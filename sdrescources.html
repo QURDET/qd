@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shia Deal Resources</title>
+    <meta name="description" content="Shia Deal Resources – Game rules, instructions, and explore the sacred Islamic sites featured in the Shia Deal card game.">
+    <link rel="icon" type="image/jpeg" href="SDlogo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Bely Display';
+            src: url('Bely Display.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #ffffff;
+            color: #333333;
+            min-height: 100vh;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(200, 140, 30, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 50px;
+            border-radius: 8px;
+        }
+
+        .logo-text {
+            font-family: 'Bely Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100vh;
+            background: rgba(200, 140, 30, 0.98);
+            flex-direction: column;
+            padding: 100px 2rem 2rem;
+            gap: 0;
+            list-style: none;
+            transition: right 0.3s ease;
+            z-index: 999;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.3);
+            display: flex;
+        }
+
+        .nav-links.active { right: 0; }
+        .nav-links li { list-style: none; }
+
+        .nav-links a {
+            font-family: 'Bely Display', serif;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: block;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .nav-links a:hover { color: #333333; }
+        .nav-links a.active-page { color: #333333; }
+
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+        }
+        .nav-overlay.active { display: block; }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            z-index: 1001;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            padding: 140px 5% 60px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(242, 161, 31, 0.08) 0%, #ffffff 100%);
+        }
+
+        .page-header h1 {
+            font-family: 'Bely Display', serif;
+            font-size: 3rem;
+            color: #333333;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            color: #666666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ── SHARED SECTION ── */
+        section {
+            padding: 60px 5%;
+        }
+
+        .section-title {
+            font-family: 'Bely Display', serif;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            color: #333333;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #666666;
+            margin-bottom: 3rem;
+            font-size: 1rem;
+        }
+
+        /* ── RULES IMAGE ── */
+        .rules-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .rules-wrap img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        /* ── EXPLORE SITES GRID ── */
+        #explore {
+            background: #f9f9f9;
+        }
+
+        .sites-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            width: 95%;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+
+        .site-item {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .site-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(242, 161, 31, 0.25);
+        }
+
+        .site-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .sites-grid {
+                grid-template-columns: 1fr;
+                width: 90%;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #333333;
+            padding: 3rem 5%;
+            text-align: center;
+        }
+
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-links a {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .social-links a:hover { background: #f2a11f; transform: translateY(-5px); }
+
+        .copyright { color: #a0a0a0; font-size: 0.9rem; }
+
+        .credit-section {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .credit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .credit-item:hover .credit-name { text-decoration: underline; }
+
+        .credit-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(242, 161, 31, 0.4);
+        }
+
+        .credit-item span { color: #a0a0a0; font-size: 0.8rem; }
+        .credit-item .credit-name { color: #f2a11f; font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2.2rem; }
+            .section-title { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="shiadeal.html" class="logo">
+            <img src="SDlogo.jpeg" alt="Shia Deal Logo">
+            <span class="logo-text">Shia Deal</span>
+        </a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="shiadeal.html#about">About</a></li>
+            <li><a href="sdrescources.html" class="active-page">Resources</a></li>
+            <li><a href="shiadeal.html#cards">Cards</a></li>
+            <li><a href="shiadeal.html#preorder">Early Bird</a></li>
+            <li><a href="shiadeal.html#faq">FAQ</a></li>
+            <li><a href="contactus.html">Contact</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+    <div class="nav-overlay" id="navOverlay"></div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1>Shia Deal Resources</h1>
+        <p>Everything you need to play and learn about the sacred sites featured in the game.</p>
+    </div>
+
+    <!-- RULES / INSTRUCTIONS -->
+    <section id="rules">
+        <h2 class="section-title">Game Rules & Instructions</h2>
+        <p class="section-subtitle">All the rules you need to get started</p>
+        <div class="rules-wrap">
+            <img src="SDrules.jpg" alt="Shia Deal Game Rules">
+        </div>
+    </section>
+
+    <!-- EXPLORE THE SITES -->
+    <section id="explore">
+        <h2 class="section-title">Explore the Sites of ShiaDeal</h2>
+        <p class="section-subtitle">Each property set represents a significant historic Islamic site</p>
+        <div class="sites-grid">
+            <div class="site-item">
+                <img src="explore-sites-1.jpg" alt="Explore the Sites of ShiaDeal – Page 1">
+            </div>
+            <div class="site-item">
+                <img src="explore-sites-2.jpg" alt="Explore the Sites of ShiaDeal – Page 2">
+            </div>
+            <div class="site-item">
+                <img src="explore-sites-3.jpg" alt="Explore the Sites of ShiaDeal – Page 3">
+            </div>
+        </div>
+    </section>
+
+    <!-- BACK BUTTON -->
+    <div style="text-align: center; padding: 40px 5% 20px;">
+        <a href="shiadeal.html#resources" style="
+            font-family: 'Bely Display', serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #f2a11f, #f5b942);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(242, 161, 31, 0.4);
+            transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 15px 40px rgba(242,161,31,0.5)'"
+           onmouseout="this.style.transform='';this.style.boxShadow='0 10px 30px rgba(242,161,31,0.4)'">
+            ← Back to Shia Deal
+        </a>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="social-links">
+                <a href="https://www.instagram.com/qurandetectives/" title="Instagram" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+            </div>
+            <div class="credit-section">
+                <a href="https://www.instagram.com/z.jets/" target="_blank" class="credit-item">
+                    <img src="zjetstudio.jpg" alt="Zjets Studio">
+                    <span>Designed by <span class="credit-name">Zjets Studio</span></span>
+                </a>
+                <a href="https://www.instagram.com/ahlulbayt_islamic_society/" target="_blank" class="credit-item">
+                    <img src="ABIS.jpg" alt="ABIS">
+                    <span>Original Concept by <span class="credit-name">ABIS</span></span>
+                </a>
+                <a href="https://www.instagram.com/qurandetectives/" target="_blank" class="credit-item">
+                    <img src="qdlogo.jpg" alt="Quran Detectives">
+                    <span>Produced by <span class="credit-name">Quran Detectives</span></span>
+                </a>
+            </div>
+            <p class="copyright">&copy; 2026 Shia Deal. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks  = document.getElementById('navLinks');
+        const navOverlay = document.getElementById('navOverlay');
+
+        function toggleMenu() {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+            navOverlay.classList.toggle('active');
+        }
+
+        hamburger.addEventListener('click', toggleMenu);
+        navOverlay.addEventListener('click', toggleMenu);
+    </script>
+
+</body>
+</html>
