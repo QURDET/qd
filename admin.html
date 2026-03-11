@@ -728,7 +728,6 @@
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
                             <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
@@ -751,6 +750,18 @@
                             </thead>
                             <tbody id="ord-tbody"></tbody>
                         </table>
+                    </div>
+                    <div style="text-align:center;margin-top:18px">
+                        <button class="btn btn-outline" onclick="toggleFinishedOrders()" id="btn-finished-orders" style="color:#27AE60;border-color:#27AE60;font-size:0.85rem">Finished Orders <span id="finished-count"></span></button>
+                    </div>
+                    <div id="finished-orders-section" style="display:none;margin-top:16px">
+                        <div class="section-header" style="margin-top:4px"><h3>Finished Orders</h3></div>
+                        <div class="table-card">
+                            <table>
+                                <thead><tr><th>Order ID</th><th>Date</th><th>Order type</th><th>Total</th><th>Country</th><th>Customer Name</th><th>Track</th><th>Stripe</th><th>Status</th><th>Assigned</th><th>Actions</th></tr></thead>
+                                <tbody id="finished-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1384,7 +1395,7 @@ async function renderOrders() {
     document.getElementById('ord-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:#9B7B6E;padding:20px">Loading…</td></tr>';
     const _orders = await getOrders();
     const filtered = _orders
-        .filter(o => (!q || o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)) && (!sf || o.status === sf))
+        .filter(o => o.status !== 'delivered' && (!q || o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)) && (!sf || o.status === sf))
         .sort((a, b) => b.date.localeCompare(a.date));
 
     const tbody = document.getElementById('ord-tbody');
@@ -1396,6 +1407,8 @@ async function renderOrders() {
     const statusOpts = ['pending','processing','shipped','delivered','cancelled'];
     const isLiveKey = getStripeKey().startsWith('sk_live') || getStripeKey().startsWith('rk_live');
     const stripeLinkBase = isLiveKey ? 'https://dashboard.stripe.com/payments/' : 'https://dashboard.stripe.com/test/payments/';
+
+    renderFinishedOrders(_orders, canEdit);
 
     tbody.innerHTML = filtered.map(o => `<tr data-order-id="${o.id}">
         <td><strong>${o.id}</strong></td>
@@ -1444,7 +1457,7 @@ async function renderOrders() {
 async function quickStatus(id, status) {
     const orders = await getOrders();
     const o = orders.find(x => x.id === id);
-    if (o) { o.status = status; await saveOrders(orders); await renderDashboard(); }
+    if (o) { o.status = status; await saveOrders(orders); await renderDashboard(); if (status === "delivered") { const row2 = document.querySelector(`#ord-tbody tr[data-order-id="${id}"]`); if (row2) row2.remove(); renderFinishedOrders(orders, currentUser.role !== "viewer"); } }
 }
 
 function openAddOrderModal() {
@@ -1507,12 +1520,54 @@ async function saveOrder() {
 async function deleteOrder(id) {
     await saveOrders((await getOrders()).filter(o => o.id !== id));
     // Remove the row directly — avoids full re-render and scroll-to-top
-    const row = document.querySelector(`#ord-tbody tr[data-order-id="${id}"]`);
+    const row = document.querySelector(`tr[data-order-id="${id}"]`);
     if (row) row.remove();
     renderDashboard();
 }
 
 // ─────────────────────────────────────────────
+function renderFinishedOrders(allOrders, canEdit) {
+    var finished = allOrders.filter(function(o) { return o.status === "delivered"; }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+    var countEl = document.getElementById("finished-count");
+    if (countEl) countEl.textContent = finished.length ? "(" + finished.length + ")" : "";
+    var tbody = document.getElementById("finished-tbody");
+    if (\!tbody) return;
+    if (\!finished.length) {
+        tbody.innerHTML = "<tr><td colspan="11"><div class="empty-state"><div class="e-icon">done</div><p>No finished orders yet</p></div></td></tr>";
+        return;
+    }
+    var isLiveKey = getStripeKey().startsWith("sk_live") || getStripeKey().startsWith("rk_live");
+    var stripeLinkBase = isLiveKey ? "https://dashboard.stripe.com/payments/" : "https://dashboard.stripe.com/test/payments/";
+    tbody.innerHTML = finished.map(function(o) {
+        var trackCell = o.tracking ? "<a href="" + o.tracking + "" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track</a>" : "&mdash;";
+        var stripeCell = o.stripeId ? "<a href="" + stripeLinkBase + o.stripeId + "" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">View</a>" : "&mdash;";
+        var actCell = canEdit ? "<button class="btn btn-sm btn-red" style="padding:3px 8px" onclick="deleteOrder(" + JSON.stringify(o.id) + ")">x</button>" : "&mdash;";
+        return "<tr data-order-id="" + o.id + "">"
+            + "<td><strong>" + o.id + "</strong></td>"
+            + "<td>" + o.date + "</td>"
+            + "<td>" + o.items + "</td>"
+            + "<td>&pound;" + parseFloat(o.total).toFixed(2) + "</td>"
+            + "<td>" + (o.country || "&mdash;") + "</td>"
+            + "<td>" + (o.shipping || "&mdash;") + "</td>"
+            + "<td>" + trackCell + "</td>"
+            + "<td>" + stripeCell + "</td>"
+            + "<td><span class="badge badge-delivered">Delivered</span></td>"
+            + "<td>" + (o.assignee || "&mdash;") + "</td>"
+            + "<td>" + actCell + "</td>"
+            + "</tr>";
+    }).join("");
+}
+
+function toggleFinishedOrders() {
+    var section = document.getElementById("finished-orders-section");
+    var btn = document.getElementById("btn-finished-orders");
+    var cntEl = document.getElementById("finished-count");
+    var cnt = cntEl ? cntEl.textContent : "";
+    var showing = section.style.display \!== "none";
+    section.style.display = showing ? "none" : "block";
+    btn.innerHTML = (showing ? "Finished Orders " : "Hide Finished ") + "<span id="finished-count">" + cnt + "</span>";
+}
+
 // TEAM
 // ─────────────────────────────────────────────
 const ROLE_LABELS = {

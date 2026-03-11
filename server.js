@@ -18,14 +18,7 @@ const DEFAULT_DATA = {
         { id: 'p3', name: 'Shia Deal Expansion Pack',     sku: 'SD-EXP', price:  8.99, qty:  7, threshold: 10, notes: 'Running low — reorder soon' },
         { id: 'p4', name: 'Shia Deal Bundle (Std + Exp)', sku: 'SD-BUN', price: 19.99, qty:  3, threshold:  5, notes: '' },
     ],
-    orders: [
-        { id: 'QD-001', customer: 'Fatima Al-Hassan', date: '2026-03-01', items: '2x Standard Pack',               total: 25.98, status: 'delivered',  notes: '' },
-        { id: 'QD-002', customer: 'Mohammed Reza',    date: '2026-03-03', items: '1x Deluxe Pack',                 total: 19.99, status: 'shipped',    notes: 'Gift wrap requested' },
-        { id: 'QD-003', customer: 'Zainab Karimi',    date: '2026-03-05', items: '1x Bundle',                     total: 19.99, status: 'processing', notes: '' },
-        { id: 'QD-004', customer: 'Hassan Al-Amin',   date: '2026-03-06', items: '3x Standard Pack',               total: 38.97, status: 'pending',    notes: '' },
-        { id: 'QD-005', customer: 'Mariam Sadiq',     date: '2026-03-07', items: '1x Standard Pack, 1x Expansion', total: 21.98, status: 'pending',    notes: 'Urgent' },
-        { id: 'QD-006', customer: 'Ali Hussain',      date: '2026-03-02', items: '1x Deluxe Pack',                 total: 19.99, status: 'cancelled',  notes: 'Customer requested cancellation' },
-    ],
+    orders: [],
 };
 
 if (!fs.existsSync(DATA_FILE)) {
