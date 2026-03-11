@@ -21,7 +21,7 @@ const DEFAULT_DATA = {
     orders: [],
 };
 
-if (\!fs.existsSync(DATA_FILE)) {
+if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULT_DATA, null, 2));
     console.log("Created data.json with default data");
 }
@@ -52,9 +52,9 @@ app.get("/api/users", function(req, res) { res.json(stripPw(readData().users)); 
 app.post("/api/login", function(req, res) {
     var body = req.body || {};
     var username = body.username; var password = body.password;
-    if (\!username || \!password) return res.status(400).json({ error: "Missing credentials" });
+    if (!username || !password) return res.status(400).json({ error: "Missing credentials" });
     var user = readData().users.find(function(u) { return u.username === username && u.password === password; });
-    if (\!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
     var safe = Object.assign({}, user); delete safe.password;
     res.json(safe);
 });
