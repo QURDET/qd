@@ -745,6 +745,7 @@
                                     <th>Track</th>
                                     <th>Stripe</th>
                                     <th>Status</th>
+                                    <th>Assigned</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1345,12 +1346,34 @@ async function deleteProduct(id) {
 // ─────────────────────────────────────────────
 // ORDERS
 // ─────────────────────────────────────────────
+const statusStyle = {
+    pending:    'background:#F39C12;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
+    processing: 'background:#3498DB;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
+    shipped:    'background:#8E44AD;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
+    delivered:  'background:#27AE60;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
+    cancelled:  'background:#C0392B;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
+};
+
+async function quickTracking(id, url) {
+    const orders = await getOrders();
+    const o = orders.find(x => x.id === id);
+    if (o && o.tracking !== url) { o.tracking = url; await saveOrders(orders); }
+}
+
+async function quickAssign(id, assignee) {
+    const orders = await getOrders();
+    const o = orders.find(x => x.id === id);
+    if (o) { o.assignee = assignee; await saveOrders(orders); }
+}
+
 async function renderOrders() {
+    const _users = await getUsers();
+    const _teamNames = _users.map(u => u.name);
     const q       = (document.getElementById('ord-search')?.value || '').toLowerCase();
     const sf      = document.getElementById('ord-status-filter')?.value || '';
     const canEdit = currentUser.role !== 'viewer';
 
-    document.getElementById('ord-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:#9B7B6E;padding:20px">Loading…</td></tr>';
+    document.getElementById('ord-tbody').innerHTML = '<tr><td colspan="12" style="text-align:center;color:#9B7B6E;padding:20px">Loading…</td></tr>';
     const _orders = await getOrders();
     const filtered = _orders
         .filter(o => (!q || o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)) && (!sf || o.status === sf))
@@ -1358,7 +1381,7 @@ async function renderOrders() {
 
     const tbody = document.getElementById('ord-tbody');
     if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="e-icon">🛒</div><p>No orders found</p></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><div class="e-icon">🛒</div><p>No orders found</p></div></td></tr>`;
         return;
     }
 
@@ -1374,20 +1397,38 @@ async function renderOrders() {
         <td>£${parseFloat(o.total).toFixed(2)}</td>
         <td>${o.country || '—'}</td>
         <td>${o.shipping || '—'}</td>
-        <td>${o.tracking ? `<a href="${o.tracking}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Track ↗</a>` : '—'}</td>
+        <td>
+            ${canEdit
+              ? `<input type="url" value="${o.tracking||''}" placeholder="Paste link…"
+                  style="width:110px;font-size:0.73rem;border:1px solid #E8D5C4;border-radius:6px;padding:3px 7px;color:#3B2417;background:#FAF6F1"
+                  onblur="quickTracking('${o.id}',this.value.trim())"
+                  onkeydown="if(event.key==='Enter')this.blur()">`
+              : (o.tracking ? `<a href="${o.tracking}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">Track ↗</a>` : '—')
+            }
+        </td>
         <td>${o.stripeId ? `<a href="${stripeLinkBase}${o.stripeId}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">View ↗</a>` : '—'}</td>
         <td>
             ${canEdit
-                ? `<select onchange="quickStatus('${o.id}', this.value)">
-                    ${statusOpts.map(s => `<option value="${s}"${o.status === s ? ' selected' : ''}>${cap(s)}</option>`).join('')}
+                ? `<select onchange="quickStatus('${o.id}',this.value)" style="${statusStyle[o.status]||''}">
+                    ${statusOpts.map(s => `<option value="${s}"${o.status===s?' selected':''}>${cap(s)}</option>`).join('')}
                    </select>`
                 : `<span class="badge badge-${o.status}">${o.status}</span>`
+            }
+        </td>
+        <td>
+            ${canEdit
+              ? `<select onchange="quickAssign('${o.id}',this.value)" style="font-size:0.73rem;border:1px solid #E8D5C4;border-radius:6px;padding:3px 6px;max-width:110px">
+                  <option value="">${o.assignee||'Unassigned'}</option>
+                  ${_teamNames.map(n => n === (o.assignee||'') ? '' : `<option value="${n}">${n}</option>`).join('')}
+                  ${o.assignee ? '<option value="">— Unassign</option>' : ''}
+                 </select>`
+              : (o.assignee || '—')
             }
         </td>
         <td style="white-space:nowrap">
             ${canEdit ? `
                 <button class="btn btn-sm btn-outline" onclick="openEditOrderModal('${o.id}')">Edit</button>
-                <button class="btn btn-sm btn-red" style="margin-left:6px" onclick="deleteOrder('${o.id}')">Delete</button>
+                <button class="btn btn-sm btn-red" style="margin-left:6px;padding:3px 8px" onclick="deleteOrder('${o.id}')">✕</button>
             ` : '—'}
         </td>
     </tr>`).join('');
@@ -1457,7 +1498,6 @@ async function saveOrder() {
 }
 
 async function deleteOrder(id) {
-    if (!confirm('Delete this order? This cannot be undone.')) return;
     await saveOrders((await getOrders()).filter(o => o.id !== id));
     await renderOrders();
     await renderDashboard();
