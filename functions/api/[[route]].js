@@ -100,10 +100,10 @@ export async function onRequest(context) {
         // POST /api/login - validates credentials server-side, returns user without password
         if (route === 'login' && method === 'POST') {
             const body = await request.json();
-            if (\!body.username || \!body.password) return json({ error: 'Missing credentials' }, 400);
+            if (!body.username || !body.password) return json({ error: 'Missing credentials' }, 400);
             const d = await readData();
             const user = d.users.find(u => u.username === body.username && u.password === body.password);
-            if (\!user) return json({ error: 'Invalid credentials' }, 401);
+            if (!user) return json({ error: 'Invalid credentials' }, 401);
             const safe = Object.assign({}, user); delete safe.password;
             return json(safe);
         }
