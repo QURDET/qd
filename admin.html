@@ -1544,41 +1544,41 @@ function renderFinishedOrders(allOrders, canEdit) {
     var countEl = document.getElementById("finished-count");
     if (countEl) countEl.textContent = finished.length ? "(" + finished.length + ")" : "";
     var tbody = document.getElementById("finished-tbody");
-    if (\!tbody) return;
-    if (\!finished.length) {
-        tbody.innerHTML = "<tr><td colspan="11"><div class="empty-state"><div class="e-icon">done</div><p>No finished orders yet</p></div></td></tr>";
+    if (!tbody) return;
+    if (!finished.length) {
+        tbody.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="e-icon">✅</div><p>No finished orders yet</p></div></td></tr>';
         return;
     }
     var isLiveKey = getStripeKey().startsWith("sk_live") || getStripeKey().startsWith("rk_live");
     var stripeLinkBase = isLiveKey ? "https://dashboard.stripe.com/payments/" : "https://dashboard.stripe.com/test/payments/";
     tbody.innerHTML = finished.map(function(o) {
-        var trackCell = o.tracking ? "<a href="" + o.tracking + "" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track</a>" : "&mdash;";
-        var stripeCell = o.stripeId ? "<a href="" + stripeLinkBase + o.stripeId + "" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">View</a>" : "&mdash;";
-        var actCell = canEdit ? "<button class="btn btn-sm btn-red" style="padding:3px 8px" onclick="deleteOrder(" + JSON.stringify(o.id) + ")">x</button>" : "&mdash;";
-        return "<tr data-order-id="" + o.id + "">"
-            + "<td><strong>" + o.id + "</strong></td>"
-            + "<td>" + o.date + "</td>"
-            + "<td>" + o.items + "</td>"
-            + "<td>&pound;" + parseFloat(o.total).toFixed(2) + "</td>"
-            + "<td>" + (o.country || "&mdash;") + "</td>"
-            + "<td>" + (o.shipping || "&mdash;") + "</td>"
-            + "<td>" + trackCell + "</td>"
-            + "<td>" + stripeCell + "</td>"
-            + "<td><span class="badge badge-delivered">Delivered</span></td>"
-            + "<td>" + (o.assignee || "&mdash;") + "</td>"
-            + "<td>" + actCell + "</td>"
-            + "</tr>";
-    }).join("");
+        var trackCell = o.tracking ? '<a href="' + o.tracking + '" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track</a>' : '&mdash;';
+        var stripeCell = o.stripeId ? '<a href="' + stripeLinkBase + o.stripeId + '" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:3px 8px">View</a>' : '&mdash;';
+        var actCell = canEdit ? '<button class="btn btn-sm btn-red" style="padding:3px 8px" onclick="deleteOrder(' + JSON.stringify(o.id) + ')">x</button>' : '&mdash;';
+        return '<tr data-order-id="' + o.id + '">'
+            + '<td><strong>' + o.id + '</strong></td>'
+            + '<td>' + o.date + '</td>'
+            + '<td>' + o.items + '</td>'
+            + '<td>&pound;' + parseFloat(o.total).toFixed(2) + '</td>'
+            + '<td>' + (o.country || '&mdash;') + '</td>'
+            + '<td>' + (o.shipping || '&mdash;') + '</td>'
+            + '<td>' + trackCell + '</td>'
+            + '<td>' + stripeCell + '</td>'
+            + '<td><span class="badge badge-delivered">Delivered</span></td>'
+            + '<td>' + (o.assignee || '&mdash;') + '</td>'
+            + '<td>' + actCell + '</td>'
+            + '</tr>';
+    }).join('');
 }
 
 function toggleFinishedOrders() {
-    var section = document.getElementById("finished-orders-section");
-    var btn = document.getElementById("btn-finished-orders");
-    var cntEl = document.getElementById("finished-count");
-    var cnt = cntEl ? cntEl.textContent : "";
-    var showing = section.style.display \!== "none";
-    section.style.display = showing ? "none" : "block";
-    btn.innerHTML = (showing ? "Finished Orders " : "Hide Finished ") + "<span id="finished-count">" + cnt + "</span>";
+    var section = document.getElementById('finished-orders-section');
+    var btn = document.getElementById('btn-finished-orders');
+    var cntEl = document.getElementById('finished-count');
+    var cnt = cntEl ? cntEl.textContent : '';
+    var showing = section.style.display !== 'none';
+    section.style.display = showing ? 'none' : 'block';
+    btn.innerHTML = (showing ? 'Finished Orders ' : 'Hide Finished ') + '<span id="finished-count">' + cnt + '</span>';
 }
 
 // TEAM
@@ -1636,7 +1636,7 @@ async function saveTeamMember() {
     const googleEmail = document.getElementById('team-google-email').value.trim().toLowerCase() || '';
     const editId      = document.getElementById('team-edit-id').value;
 
-    if (\!name || \!username || (\!editId && \!password)) {
+    if (!name || !username || (!editId && !password)) {
         alert('Please fill in all required fields.');
         return;
     }
