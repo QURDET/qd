@@ -2,6 +2,7 @@
 // Data is stored in Cloudflare KV (bound as QD_DATA)
 
 const DEFAULT_DATA = {
+    settings: { googleClientId: '' },
     users: [
         { id: 'u1', username: 'mamda006.310', password: 'HelloAbbas2023!', name: 'Abbas M',  role: 'admin' },
         { id: 'u2', username: 'zjets988',     password: 'ZahraJets2024!',  name: 'Zahra J',  role: 'staff' },
@@ -46,11 +47,12 @@ export async function onRequest(context) {
     async function readData() {
         const raw = await env.QD_DATA.get('data');
         if (!raw) {
-            // First boot — seed KV with defaults
             await env.QD_DATA.put('data', JSON.stringify(DEFAULT_DATA));
             return DEFAULT_DATA;
         }
-        return JSON.parse(raw);
+        const d = JSON.parse(raw);
+        if (!d.settings) d.settings = { googleClientId: '' };
+        return d;
     }
 
     async function writeData(d) {
@@ -60,6 +62,46 @@ export async function onRequest(context) {
     try {
         // GET /api/health
         if (route === 'health' && method === 'GET') return json({ ok: true });
+
+        // GET /api/settings
+        if (route === 'settings' && method === 'GET') return json((await readData()).settings || {});
+        // PUT /api/settings
+        if (route === 'settings' && method === 'PUT') {
+            const d = await readData();
+            d.settings = { ...(d.settings || {}), ...await request.json() };
+            await writeData(d);
+            return json(d.settings);
+        }
+
+        // POST /api/google-login
+        if (route === 'google-login' && method === 'POST') {
+            const { idToken } = await request.json();
+            if (!idToken) return json({ error: 'Missing id_token' }, 400);
+
+            const verifyRes = await fetch(
+                `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+            );
+            const tokenData = await verifyRes.json();
+            if (!verifyRes.ok || tokenData.error || tokenData.error_description) {
+                return json({ error: 'Invalid or expired Google token' }, 401);
+            }
+            if (tokenData.email_verified !== 'true' && tokenData.email_verified !== true) {
+                return json({ error: 'Google account email not verified' }, 401);
+            }
+
+            const d = await readData();
+            const clientId = d.settings?.googleClientId;
+            if (clientId && tokenData.aud !== clientId) {
+                return json({ error: 'Token audience mismatch' }, 401);
+            }
+
+            const email = (tokenData.email || '').toLowerCase();
+            const user = d.users.find(u => u.googleEmail && u.googleEmail.toLowerCase() === email);
+            if (!user) {
+                return json({ error: 'No account linked to this Google address. Ask your admin to add it in Team settings.' }, 403);
+            }
+            return json({ user });
+        }
 
         // GET /api/orders
         if (route === 'orders' && method === 'GET') return json((await readData()).orders);

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -603,6 +603,14 @@
                    onkeydown="if(event.key==='Enter') doLogin()">
         </div>
         <button class="btn-primary" onclick="doLogin()">Sign In</button>
+        <div id='google-signin-section' style='display:none'>
+            <div style='display:flex;align-items:center;gap:10px;margin:18px 0 14px'>
+                <div style='flex:1;height:1px;background:#F0E6DC'></div>
+                <span style='color:#9B7B6E;font-size:0.8rem;white-space:nowrap'>or sign in with</span>
+                <div style='flex:1;height:1px;background:#F0E6DC'></div>
+            </div>
+            <div id='google-btn-container' style='display:flex;justify-content:center'></div>
+        </div>
         <div class="login-error" id="login-error">Incorrect username or password.</div>
         <div id="login-reset-hint" style="display:none;margin-top:14px;padding:12px;background:#FFF3CD;border-radius:8px;font-size:0.8rem;color:#856404">
             Still stuck? <a href="#" onclick="resetAdminData();return false;" style="color:#7B3F5E;font-weight:700">Reset to factory defaults</a> — this clears all saved data.
@@ -757,6 +765,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Username</th>
+                                    <th>Google Email</th>
                                     <th>Role</th>
                                     <th>Access</th>
                                     <th>Actions</th>
@@ -818,6 +827,30 @@
                                 </thead>
                                 <tbody id="stripe-tbody"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- GOOGLE OAUTH SECTION -->
+                <div id="google-oauth-section" style="margin-top:36px">
+                    <div class="section-header"><h3>Google Sign-In</h3></div>
+                    <div id="google-oauth-prompt" style="background:white;border-radius:16px;padding:32px;max-width:480px;text-align:center;box-shadow:0 2px 10px rgba(59,36,23,0.07)">
+                        <div style="font-size:3rem;margin-bottom:16px">&#128274;</div>
+                        <h4 style="font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;color:#3B2417;margin-bottom:10px">Google Sign-In</h4>
+                        <p style="color:#9B7B6E;font-size:0.85rem;margin-bottom:20px;line-height:1.6">Let team members sign in with their Google accounts. You need a Google Client ID from Google Cloud Console.</p>
+                        <button class="btn btn-purple" onclick="openGoogleOAuthModal()">Set Up Google Sign-In</button>
+                    </div>
+                    <div id="google-oauth-connected" style="display:none;background:white;border-radius:16px;padding:24px;max-width:480px;box-shadow:0 2px 10px rgba(59,36,23,0.07)">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                            <div style="min-width:0">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                                    <span style="font-weight:700;color:#3B2417">Google Sign-In</span>
+                                    <span style="background:#D4EDDA;color:#155724;font-size:0.72rem;padding:2px 8px;border-radius:20px;font-weight:600">Active</span>
+                                </div>
+                                <div style="font-size:0.75rem;color:#9B7B6E;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="google-client-id-preview"></div>
+                            </div>
+                            <button class="btn btn-outline btn-sm" style="flex-shrink:0" onclick="openGoogleOAuthModal()">&#9881; Edit</button>
                         </div>
                     </div>
                 </div>
@@ -938,6 +971,10 @@
                 <option value="admin">Admin — Full Access</option>
             </select>
         </div>
+                <div class="form-group">
+            <label>Google Email <span style="color:#9B7B6E;font-weight:400;font-size:0.8rem">(optional — for Google Sign-In)</span></label>
+            <input type="email" id="team-google-email" placeholder="user@gmail.com">
+        </div>
         <div class="modal-actions">
             <button class="btn btn-outline" onclick="closeModal('team-modal')">Cancel</button>
             <button class="btn btn-purple" onclick="saveTeamMember()">Save Member</button>
@@ -960,6 +997,10 @@
         <div class="form-group">
             <label>New Password <span style="color:#9B7B6E;font-weight:400;text-transform:none">(leave blank to keep current)</span></label>
             <input type="password" id="profile-password" placeholder="New password">
+        </div>
+                <div class="form-group">
+            <label>Google Email <span style="color:#9B7B6E;font-weight:400;font-size:0.8rem">(optional — for Google Sign-In)</span></label>
+            <input type="email" id="profile-google-email" placeholder="your@gmail.com">
         </div>
         <div class="modal-actions">
             <button class="btn btn-outline" onclick="closeModal('profile-modal')">Cancel</button>
@@ -989,6 +1030,25 @@
             <button class="btn btn-outline" onclick="closeModal('stripe-modal')">Cancel</button>
             <button class="btn btn-red btn-sm" onclick="disconnectStripe()" style="margin-right:auto">Disconnect</button>
             <button class="btn btn-purple" onclick="saveStripeSettings()">Save &amp; Connect</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── GOOGLE OAUTH MODAL ── -->
+<div class="modal-overlay" id="google-oauth-modal">
+    <div class="modal">
+        <h3>Google Sign-In Setup</h3>
+        <p style="color:#9B7B6E;font-size:0.84rem;margin-bottom:20px;line-height:1.6">
+            Create OAuth 2.0 credentials in <strong>Google Cloud Console</strong>, add your site URL as an authorised JavaScript origin, then paste the Client ID below.
+        </p>
+        <div class="form-group">
+            <label>Google Client ID</label>
+            <input type="text" id="google-client-id-input" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeModal('google-oauth-modal')">Cancel</button>
+            <button class="btn btn-red btn-sm" onclick="disconnectGoogle()" style="margin-right:auto">Disconnect</button>
+            <button class="btn btn-purple" onclick="saveGoogleSettings()">Save &amp; Enable</button>
         </div>
     </div>
 </div>
@@ -1416,6 +1476,7 @@ async function renderTeam() {
     document.getElementById('team-tbody').innerHTML = users.map(u => `<tr>
         <td><strong>${u.name}</strong></td>
         <td style="color:#9B7B6E">${u.username}</td>
+        <td style="font-size:0.78rem;color:#9B7B6E">${u.googleEmail || '—'}</td>
         <td><span class="role-tag ${u.role}">${u.role}</span></td>
         <td style="color:#9B7B6E;font-size:0.8rem">${ROLE_LABELS[u.role] || ''}</td>
         <td style="white-space:nowrap">
@@ -1435,12 +1496,13 @@ async function openTeamModal(id) {
     document.getElementById('team-edit-id').value = id || '';
     if (id) {
         const u = (await getUsers()).find(x => x.id === id);
-        document.getElementById('team-name').value     = u.name;
-        document.getElementById('team-username').value = u.username;
-        document.getElementById('team-password').value = u.password;
-        document.getElementById('team-role').value     = u.role;
+        document.getElementById('team-name').value         = u.name;
+        document.getElementById('team-username').value     = u.username;
+        document.getElementById('team-password').value     = u.password;
+        document.getElementById('team-role').value         = u.role;
+        document.getElementById('team-google-email').value = u.googleEmail || '';
     } else {
-        ['team-name','team-username','team-password'].forEach(f => document.getElementById(f).value = '');
+        ['team-name','team-username','team-password','team-google-email'].forEach(f => document.getElementById(f).value = '');
         document.getElementById('team-role').value = 'staff';
     }
     openModal('team-modal');
@@ -1450,7 +1512,8 @@ async function saveTeamMember() {
     const name     = document.getElementById('team-name').value.trim();
     const username = document.getElementById('team-username').value.trim().toLowerCase().replace(/\s/g, '');
     const password = document.getElementById('team-password').value;
-    const role     = document.getElementById('team-role').value;
+    const role        = document.getElementById('team-role').value;
+    const googleEmail = document.getElementById('team-google-email').value.trim().toLowerCase() || '';
 
     if (!name || !username || !password) {
         alert('Please fill in all fields.');
@@ -1462,13 +1525,13 @@ async function saveTeamMember() {
 
     if (editId) {
         const idx = users.findIndex(x => x.id === editId);
-        if (idx > -1) users[idx] = { ...users[idx], name, username, password, role };
+        if (idx > -1) users[idx] = { ...users[idx], name, username, password, role, googleEmail };
     } else {
         if (users.find(u => u.username === username)) {
             alert('That username is already taken. Please choose another.');
             return;
         }
-        users.push({ id: 'u' + Date.now(), name, username, password, role });
+        users.push({ id: 'u' + Date.now(), name, username, password, role, googleEmail });
     }
 
     await saveUsers(users);
@@ -1496,9 +1559,10 @@ async function deleteTeamMember(id) {
 // PROFILE (own account)
 // ─────────────────────────────────────────────
 function openProfileModal() {
-    document.getElementById('profile-name').value     = currentUser.name;
-    document.getElementById('profile-username').value = currentUser.username;
-    document.getElementById('profile-password').value = '';
+    document.getElementById('profile-name').value          = currentUser.name;
+    document.getElementById('profile-username').value      = currentUser.username;
+    document.getElementById('profile-password').value      = '';
+    document.getElementById('profile-google-email').value  = currentUser.googleEmail || '';
     openModal('profile-modal');
 }
 
@@ -1506,6 +1570,7 @@ async function saveProfile() {
     const name        = document.getElementById('profile-name').value.trim();
     const username    = document.getElementById('profile-username').value.trim().toLowerCase().replace(/\s/g, '');
     const newPassword = document.getElementById('profile-password').value;
+    const googleEmail = document.getElementById('profile-google-email').value.trim().toLowerCase() || '';
 
     if (!name || !username) { alert('Name and username are required.'); return; }
 
@@ -1520,14 +1585,14 @@ async function saveProfile() {
     // Update or insert into localStorage
     const idx = users.findIndex(u => u.id === currentUser.id);
     if (idx > -1) {
-        users[idx] = { ...users[idx], name, username, password };
+        users[idx] = { ...users[idx], name, username, password, googleEmail };
     } else {
-        users.push({ ...currentUser, name, username, password });
+        users.push({ ...currentUser, name, username, password, googleEmail });
     }
     await saveUsers(users);
 
     // Update live state
-    currentUser = { ...currentUser, name, username, password };
+    currentUser = { ...currentUser, name, username, password, googleEmail };
     sessionStorage.setItem('qd_sess', JSON.stringify(currentUser));
 
     // Update sidebar instantly
@@ -1713,6 +1778,131 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
         if (e.target === this) this.classList.remove('open');
     });
 });
+// ─────────────────────────────────────────────
+// GOOGLE SIGN-IN
+// ─────────────────────────────────────────────
+async function loadGoogleSettings() {
+    try {
+        const r = await fetch('/api/settings');
+        if (!r.ok) return;
+        const s = await r.json();
+        if (s.googleClientId) initGoogleSignIn(s.googleClientId);
+        updateGoogleOAuthUI(s.googleClientId || '');
+    } catch {}
+}
+
+function initGoogleSignIn(clientId) {
+    if (typeof google !== 'undefined' && google.accounts) {
+        _setupGoogleButton(clientId);
+        return;
+    }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = () => _setupGoogleButton(clientId);
+    document.head.appendChild(s);
+}
+
+function _setupGoogleButton(clientId) {
+    google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential,
+        auto_select: false,
+    });
+    google.accounts.id.renderButton(
+        document.getElementById('google-btn-container'),
+        { theme: 'outline', size: 'large', width: 300, text: 'signin_with', shape: 'rectangular' }
+    );
+    document.getElementById('google-signin-section').style.display = 'block';
+}
+
+async function handleGoogleCredential(response) {
+    try {
+        const r = await fetch('/api/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: response.credential }),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+            const errEl = document.getElementById('login-error');
+            errEl.textContent = data.error || 'Google sign-in failed.';
+            errEl.style.display = 'block';
+            return;
+        }
+        _loginFails = 0;
+        currentUser = data.user;
+        sessionStorage.setItem('qd_sess', JSON.stringify(data.user));
+        document.getElementById('login-error').style.display = 'none';
+        showPanel();
+    } catch {
+        document.getElementById('login-error').textContent = 'Google sign-in failed. Please try again.';
+        document.getElementById('login-error').style.display = 'block';
+    }
+}
+
+function updateGoogleOAuthUI(clientId) {
+    const prompt = document.getElementById('google-oauth-prompt');
+    const connected = document.getElementById('google-oauth-connected');
+    if (!prompt || !connected) return;
+    if (clientId) {
+        prompt.style.display = 'none';
+        connected.style.display = 'block';
+        const preview = document.getElementById('google-client-id-preview');
+        if (preview) preview.textContent = clientId.length > 45 ? clientId.slice(0, 42) + '...' : clientId;
+    } else {
+        prompt.style.display = 'block';
+        connected.style.display = 'none';
+    }
+}
+
+async function openGoogleOAuthModal() {
+    try {
+        const r = await fetch('/api/settings');
+        const s = r.ok ? await r.json() : {};
+        document.getElementById('google-client-id-input').value = s.googleClientId || '';
+    } catch {}
+    openModal('google-oauth-modal');
+}
+
+async function saveGoogleSettings() {
+    const clientId = document.getElementById('google-client-id-input').value.trim();
+    if (!clientId) { alert('Please enter a Google Client ID.'); return; }
+    if (!clientId.includes('.apps.googleusercontent.com')) {
+        alert('Invalid format. Google Client IDs end with .apps.googleusercontent.com');
+        return;
+    }
+    try {
+        const r = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ googleClientId: clientId }),
+        });
+        if (r.ok) {
+            closeModal('google-oauth-modal');
+            initGoogleSignIn(clientId);
+            updateGoogleOAuthUI(clientId);
+        }
+    } catch { alert('Failed to save settings.'); }
+}
+
+async function disconnectGoogle() {
+    if (!confirm('Remove Google Sign-In? Team members will no longer be able to sign in with Google.')) return;
+    try {
+        await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ googleClientId: '' }),
+        });
+        closeModal('google-oauth-modal');
+        updateGoogleOAuthUI('');
+        document.getElementById('google-signin-section').style.display = 'none';
+    } catch { alert('Failed to remove settings.'); }
+}
+
+// Init Google Sign-In on page load
+loadGoogleSettings();
+
 </script>
 
 </body>
