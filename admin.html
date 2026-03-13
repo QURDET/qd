@@ -878,9 +878,8 @@
                             <li>Set "Execute as: Me" and "Who has access: Anyone" → Deploy → copy the URL</li>
                             <li>Paste that URL here and save</li>
                         </ol>
-                        <pre style="background:#F8F4F2;border-radius:8px;padding:12px;font-size:0.75rem;overflow-x:auto;margin-bottom:16px">function doPost(e) {
-  var d = JSON.parse(e.postData.contents);
-  GmailApp.sendEmail(d.to, d.subject, d.body);
+                        <pre style="background:#F8F4F2;border-radius:8px;padding:12px;font-size:0.75rem;overflow-x:auto;margin-bottom:16px">function doGet(e) {
+  GmailApp.sendEmail(e.parameter.to, e.parameter.subject, e.parameter.body);
   return ContentService.createTextOutput('ok');
 }</pre>
                         <div class="form-group">

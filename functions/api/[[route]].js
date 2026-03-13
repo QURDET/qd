@@ -145,15 +145,12 @@ export async function onRequest(context) {
                     const wasOk = !old || old.qty > old.threshold;
                     const isLow = item.qty <= item.threshold;
                     if (wasOk && isLow) {
-                        alerts.push(fetch(webhookUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                to: item.notifyEmail,
-                                subject: `Low Stock Alert: ${item.name}`,
-                                body: `Stock for ${item.name} (SKU: ${item.sku}) has dropped to ${item.qty}, at or below your threshold of ${item.threshold}.\n\nLog in to the staff panel to restock.`,
-                            }),
-                        }).catch(() => {}));
+                        const params = new URLSearchParams({
+                            to: item.notifyEmail,
+                            subject: `Low Stock Alert: ${item.name}`,
+                            body: `Stock for ${item.name} (SKU: ${item.sku}) has dropped to ${item.qty}, at or below your threshold of ${item.threshold}.\n\nLog in to the staff panel to restock.`,
+                        });
+                        alerts.push(fetch(`${webhookUrl}?${params}`).catch(() => {}));
                     }
                 }
                 context.waitUntil(Promise.all(alerts));
