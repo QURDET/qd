@@ -1099,7 +1099,7 @@ async function getInventory() { try { const r = await fetch('/api/inventory'); r
 async function getOrders()    { try { const r = await fetch('/api/orders');    return r.ok ? r.json() : [];               } catch { return [];                  } }
 async function saveUsers(v)     { try { await fetch('/api/users',     { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
 async function saveInventory(v) { try { await fetch('/api/inventory', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
-async function saveOrders(v)    { try { await fetch('/api/orders',    { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
+async function saveOrders(v)    { try { const r = await fetch('/api/orders',    { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); return r.ok; } catch { return false; } }
 
 // ─────────────────────────────────────────────
 // AUTH
@@ -1531,10 +1531,11 @@ async function saveOrder() {
 }
 
 async function deleteOrder(id) {
-    await saveOrders((await getOrders()).filter(o => o.id !== id));
-    // Remove the row directly — avoids full re-render and scroll-to-top
-    const row = document.querySelector(`tr[data-order-id="${id}"]`);
-    if (row) row.remove();
+    if (!confirm('Delete this order? This cannot be undone.')) return;
+    const orders = await getOrders();
+    const ok = await saveOrders(orders.filter(o => o.id !== id));
+    if (!ok) { alert('Failed to delete order — please try again.'); return; }
+    document.querySelectorAll(`tr[data-order-id="${id}"]`).forEach(r => r.remove());
     renderDashboard();
 }
 
