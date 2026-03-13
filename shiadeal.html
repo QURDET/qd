@@ -1261,12 +1261,14 @@
             <li><a href="#faq">FAQ</a></li>
             <li><a href="contactus.html">Contact</a></li>
         </ul>
-        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
-        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+        <div style="display:flex;align-items:center;gap:4px;z-index:1001;">
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
     </nav>
     <!-- Dark overlay that appears behind the side menu when it's open -->
     <div class="nav-overlay" id="navOverlay"></div>
