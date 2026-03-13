@@ -1532,7 +1532,6 @@ async function saveOrder() {
 }
 
 async function deleteOrder(id) {
-    if (!confirm('Delete this order? This cannot be undone.')) return;
     const orders = await getOrders();
     const order = orders.find(o => o.id === id);
     // Stripe-linked orders must be soft-deleted so Stripe sync doesn't re-import them
