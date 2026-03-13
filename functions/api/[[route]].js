@@ -133,29 +133,8 @@ export async function onRequest(context) {
         // PUT /api/inventory
         if (route === 'inventory' && method === 'PUT') {
             const d = await readData();
-            const oldInv = d.inventory;
             d.inventory = await request.json();
             await writeData(d);
-            // Send low stock alerts via Gmail webhook when qty crosses below threshold
-            const webhookUrl = d.settings?.gmailWebhookUrl || '';
-            if (webhookUrl) {
-                const alerts = [];
-                for (const item of d.inventory) {
-                    if (!item.notifyEmail) continue;
-                    const old = oldInv.find(p => p.id === item.id);
-                    const wasOk = !old || old.qty > old.threshold;
-                    const isLow = item.qty <= item.threshold;
-                    if (wasOk && isLow) {
-                        const params = new URLSearchParams({
-                            to: item.notifyEmail,
-                            subject: `Low Stock Alert: ${item.name}`,
-                            body: `Stock for ${item.name} (SKU: ${item.sku}) has dropped to ${item.qty}, at or below your threshold of ${item.threshold}.\n\nLog in to the staff panel to restock.`,
-                        });
-                        alerts.push(fetch(`${webhookUrl}?${params}`).catch(() => {}));
-                    }
-                }
-                context.waitUntil(Promise.all(alerts));
-            }
             return json(d.inventory);
         }
 
