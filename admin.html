@@ -1828,7 +1828,7 @@ async function loadStripe(){
             +'<div class="stat-card"><div class="s-label">Revenue (Stripe)</div><div class="s-val">'+fmtAmt(rev,cur)+'</div><div class="s-sub">'+succ.length+' succeeded</div></div>'
             +'<div class="stat-card"><div class="s-label">Total Payments</div><div class="s-val">'+ pays.length +'</div><div class="s-sub">'+ pays.filter(function(p){return p.status==='requires_payment_method';}).length +' pending</div></div>';
         document.getElementById('stripe-stats-grid').innerHTML=statsHtml;
-        var iids=getOrders().filter(function(o){return o.stripeId;}).map(function(o){return o.stripeId;});
+        var iids=(await getOrders()).filter(function(o){return o.stripeId;}).map(function(o){return o.stripeId;});
         var sm={succeeded:'badge-delivered',requires_payment_method:'badge-pending',requires_confirmation:'badge-pending',requires_action:'badge-processing',processing:'badge-processing',canceled:'badge-cancelled',requires_capture:'badge-processing'};
         document.getElementById('stripe-tbody').innerHTML=pays.length?pays.map(function(p){
             var dt=new Date(p.created*1000).toLocaleDateString('en-GB');
