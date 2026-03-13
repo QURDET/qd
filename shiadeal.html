@@ -3,6 +3,7 @@
 <head>
     <!-- Basic page settings - character encoding and mobile responsiveness -->
     <meta charset="UTF-8">
+    <script>(function(){var s=localStorage.getItem('qdTheme');if(s==='dark'||(s===null&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}());</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Page title that shows in the browser tab -->
@@ -1205,6 +1206,38 @@
         }
         /* Push nav down by banner height */
         nav { top: 40px !important; }
+
+        /* ── Theme toggle ── */
+        .theme-toggle { background: none; border: none; cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 15px 0; display: block; width: 100%; text-align: left; color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.15); }
+        .theme-toggle:hover { color: #f2a11f; }
+
+        /* ── Dark mode ── */
+        [data-theme="dark"] body { background: #1c1c1c; color: #e8d9c5; }
+        [data-theme="dark"] #about { background: #242424; }
+        [data-theme="dark"] .about-card { background: #2e2e2e; border-color: #3e3e3e; }
+        [data-theme="dark"] .about-card:hover { background: #2e2e2e; }
+        [data-theme="dark"] .about-card p { color: #a09080; }
+        [data-theme="dark"] .section-title { color: #e8d9c5; }
+        [data-theme="dark"] .section-subtitle { color: #a09080; }
+        [data-theme="dark"] #preorder { background: #242424; }
+        [data-theme="dark"] .preorder-details h3 { color: #e8d9c5; }
+        [data-theme="dark"] .preorder-features li { color: #e8d9c5; }
+        [data-theme="dark"] .quantity-display { background: #2e2e2e; border-color: #3e3e3e; color: #e8d9c5; }
+        [data-theme="dark"] #faq { background: #242424; }
+        [data-theme="dark"] .faq-item { background: #2e2e2e; border-color: #3e3e3e; }
+        [data-theme="dark"] .faq-question { color: #e8d9c5; }
+        [data-theme="dark"] .faq-answer p { color: #a09080; }
+        [data-theme="dark"] .card-preview { background: #2e2e2e; border-color: rgba(242,161,31,0.2); }
+        [data-theme="dark"] .card-preview .card-desc { color: #a09080; }
+        [data-theme="dark"] #resources { background: linear-gradient(180deg, rgba(242,161,31,0.05) 0%, #1c1c1c 100%); }
+        [data-theme="dark"] #rules { background: linear-gradient(180deg, #1c1c1c 0%, #242424 100%); }
+        [data-theme="dark"] .country-modal { background: #2e2e2e; }
+        [data-theme="dark"] .country-modal h3 { color: #e8d9c5; }
+        [data-theme="dark"] .country-modal p { color: #a09080; }
+        [data-theme="dark"] .country-btn { background: #3a3a3a; border-color: #4a4a4a; }
+        [data-theme="dark"] .country-btn:hover { background: #3e3220; border-color: #f2a11f; }
+        [data-theme="dark"] .country-label { color: #e8d9c5; }
+        [data-theme="dark"] .slide-dot { background: #4a4a4a; }
     </style>
 </head>
 <body>
@@ -1227,6 +1260,7 @@
             <li><a href="#preorder">Buy Now</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><a href="contactus.html">Contact</a></li>
+            <li><button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button></li>
         </ul>
         <button class="hamburger" id="hamburger" aria-label="Toggle menu">
             <span></span>
@@ -1506,7 +1540,26 @@
         }
 
         hamburger.addEventListener('click', toggleMenu);
-        navOverlay.addEventListener('click', toggleMenu);   // Close menu when tapping outside
+        navOverlay.addEventListener('click', toggleMenu);
+
+        function toggleTheme() {
+            var d = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (d) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('qdTheme', 'light'); }
+            else   { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('qdTheme', 'dark'); }
+            updateThemeBtn();
+        }
+        function updateThemeBtn() {
+            var b = document.getElementById('theme-toggle');
+            if (b) b.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            if (!localStorage.getItem('qdTheme')) {
+                if (e.matches) document.documentElement.setAttribute('data-theme', 'dark');
+                else document.documentElement.removeAttribute('data-theme');
+                updateThemeBtn();
+            }
+        });
+        document.addEventListener('DOMContentLoaded', updateThemeBtn);
 
         /* ============================================
            SMOOTH SCROLLING
