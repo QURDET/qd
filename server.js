@@ -8,6 +8,7 @@ const DATA_FILE = fs.existsSync("/data") ? "/data/data.json" : path.join(__dirna
 
 // Passwords set via environment variables on Render (ADMIN_PASSWORD, STAFF_PASSWORD)
 const DEFAULT_DATA = {
+    contacts: [],
     users: [
         { id: "u1", username: "mamda006.310", password: process.env.ADMIN_PASSWORD || "", name: "Abbas M",  role: "admin" },
         { id: "u2", username: "zjets988",     password: process.env.STAFF_PASSWORD  || "", name: "Zahra J",  role: "staff" },
@@ -72,6 +73,34 @@ app.put("/api/users", function(req, res) {
     });
     writeData(d);
     res.json(stripPw(d.users));
+});
+
+app.get("/api/contacts", function(req, res) { res.json(readData().contacts || []); });
+
+app.post("/api/contact", function(req, res) {
+    var b = req.body || {};
+    if (!b.name || !b.email || !b.subject || !b.message) return res.status(400).json({ error: "Missing fields" });
+    var d = readData();
+    if (!d.contacts) d.contacts = [];
+    d.contacts.unshift({ id: "c" + Date.now(), name: b.name, email: b.email, subject: b.subject, message: b.message, date: new Date().toISOString(), status: "received" });
+    writeData(d);
+    res.json({ ok: true });
+});
+
+app.put("/api/contacts/:id", function(req, res) {
+    var d = readData();
+    var contact = (d.contacts || []).find(function(c) { return c.id === req.params.id; });
+    if (!contact) return res.status(404).json({ error: "Not found" });
+    Object.assign(contact, req.body);
+    writeData(d);
+    res.json({ ok: true });
+});
+
+app.delete("/api/contacts/:id", function(req, res) {
+    var d = readData();
+    d.contacts = (d.contacts || []).filter(function(c) { return c.id !== req.params.id; });
+    writeData(d);
+    res.json({ ok: true });
 });
 
 app.post("/api/reset", function(req, res) { writeData(DEFAULT_DATA); res.json({ ok: true }); });

@@ -2,6 +2,7 @@
 // Data is stored in Cloudflare KV (bound as QD_DATA)
 
 const DEFAULT_DATA = {
+    contacts: [],
     settings: { googleClientId: '' },
     users: [
         { id: 'u1', username: 'mamda006.310', password: 'HelloAbbas2023!', name: 'Abbas M',  role: 'admin' },
@@ -173,6 +174,41 @@ export async function onRequest(context) {
             await writeData(d);
             const safe = d.users.map(function(u) { var c = Object.assign({}, u); delete c.password; return c; });
             return json(safe);
+        }
+
+        // GET /api/contacts
+        if (route === 'contacts' && method === 'GET') return json((await readData()).contacts || []);
+
+        // POST /api/contact
+        if (route === 'contact' && method === 'POST') {
+            const b = await request.json();
+            if (!b.name || !b.email || !b.subject || !b.message) return json({ error: 'Missing fields' }, 400);
+            const d = await readData();
+            if (!d.contacts) d.contacts = [];
+            d.contacts.unshift({ id: 'c' + Date.now(), name: b.name, email: b.email, subject: b.subject, message: b.message, date: new Date().toISOString(), status: 'received' });
+            await writeData(d);
+            return json({ ok: true });
+        }
+
+        // PUT /api/contacts/:id
+        if (route.startsWith('contacts/') && method === 'PUT') {
+            const id = route.slice('contacts/'.length);
+            const b = await request.json();
+            const d = await readData();
+            const contact = (d.contacts || []).find(c => c.id === id);
+            if (!contact) return json({ error: 'Not found' }, 404);
+            Object.assign(contact, b);
+            await writeData(d);
+            return json({ ok: true });
+        }
+
+        // DELETE /api/contacts/:id
+        if (route.startsWith('contacts/') && method === 'DELETE') {
+            const id = route.slice('contacts/'.length);
+            const d = await readData();
+            d.contacts = (d.contacts || []).filter(c => c.id !== id);
+            await writeData(d);
+            return json({ ok: true });
         }
 
         // POST /api/reset

@@ -207,6 +207,119 @@
             margin-top: 4px;
         }
 
+        /* ── Contact form ── */
+        .form-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 36px 40px;
+            box-shadow: 0 4px 20px rgba(59, 36, 23, 0.08);
+        }
+
+        .form-card h2 {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #3B2417;
+            margin-bottom: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #5C4033;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            color: #3B2417;
+            background: #FAF6F1;
+            border: 1.5px solid #E8D5C4;
+            border-radius: 10px;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            resize: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #7B3F5E;
+            box-shadow: 0 0 0 3px rgba(123, 63, 94, 0.1);
+        }
+
+        .form-group textarea {
+            height: 130px;
+        }
+
+        .btn-submit {
+            margin-top: 20px;
+            width: 100%;
+            padding: 14px;
+            background: #3B2417;
+            color: #ffffff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.15s ease;
+        }
+
+        .btn-submit:hover {
+            background: #5C4033;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-status {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .form-status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .form-status.error {
+            background: #fdecea;
+            color: #c62828;
+            display: block;
+        }
+
         /* ── Footer ── */
         footer {
             text-align: center;
@@ -215,6 +328,12 @@
             color: #6B5B4F;
             font-size: 0.85rem;
             font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: 1; }
+            .form-card { padding: 24px 20px; }
         }
 
         /* ── Mobile ── */
@@ -297,6 +416,33 @@
             </div>
         </a>
 
+        <!-- Send a message form -->
+        <div class="form-card">
+            <h2>Send us a message</h2>
+            <form id="contact-form" onsubmit="submitContact(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cf-name">Your Name</label>
+                        <input type="text" id="cf-name" placeholder="e.g. Ahmed Ali" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cf-email">Your Email</label>
+                        <input type="email" id="cf-email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group full">
+                        <label for="cf-subject">Subject</label>
+                        <input type="text" id="cf-subject" placeholder="What's it about?" required>
+                    </div>
+                    <div class="form-group full">
+                        <label for="cf-message">Message</label>
+                        <textarea id="cf-message" placeholder="Write your message here…" required></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="cf-submit">Send Message</button>
+                <div class="form-status" id="cf-status"></div>
+            </form>
+        </div>
+
     </section>
 
     <footer>
@@ -308,6 +454,44 @@
         function toggleMenu() {
             document.getElementById('navLinks').classList.toggle('active');
             document.querySelector('.hamburger').classList.toggle('active');
+        }
+
+        async function submitContact(e) {
+            e.preventDefault();
+            const btn    = document.getElementById('cf-submit');
+            const status = document.getElementById('cf-status');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            status.className = 'form-status';
+            status.textContent = '';
+
+            const body = {
+                name:    document.getElementById('cf-name').value.trim(),
+                email:   document.getElementById('cf-email').value.trim(),
+                subject: document.getElementById('cf-subject').value.trim(),
+                message: document.getElementById('cf-message').value.trim(),
+            };
+
+            try {
+                const r = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (r.ok) {
+                    status.className = 'form-status success';
+                    status.textContent = 'Message sent! We\'ll get back to you soon.';
+                    document.getElementById('contact-form').reset();
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch {
+                status.className = 'form-status error';
+                status.textContent = 'Something went wrong. Please try again or email us directly.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+            }
         }
     </script>
 
