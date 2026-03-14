@@ -681,6 +681,9 @@
                 <div class="nav-item" onclick="showTab('messages')" id="nav-messages">
                     <span class="icon">✉️</span> Messages <span id="unread-badge" style="display:none;background:#7B3F5E;color:#fff;font-size:0.7rem;padding:1px 7px;border-radius:20px;margin-left:4px;font-weight:700"></span>
                 </div>
+                <div class="nav-item" onclick="showTab('interest')" id="nav-interest">
+                    <span class="icon">📖</span> Interest <span id="interest-badge" style="display:none;background:#E8872A;color:#fff;font-size:0.7rem;padding:1px 7px;border-radius:20px;margin-left:4px;font-weight:700"></span>
+                </div>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-info">
@@ -903,6 +906,22 @@
                 </div>
 
                 </div><!-- /tab-stripe -->
+
+                <!-- INTEREST -->
+                <div id="tab-interest" class="tab-section">
+                    <div class="section-header">
+                        <h3>Qur'an Class Interest</h3>
+                        <button class="btn btn-outline btn-sm" onclick="loadInterests()">↻ Refresh</button>
+                    </div>
+                    <div id="interests-list"></div>
+                    <div style="text-align:center;margin-top:18px">
+                        <button class="btn btn-outline" onclick="toggleResolvedInterests()" id="btn-resolved-interests" style="color:#7F8C8D;border-color:#BDC3C7;font-size:0.85rem;display:none">Resolved Interests <span id="resolved-interest-count"></span></button>
+                    </div>
+                    <div id="resolved-interests-section" style="display:none;margin-top:16px">
+                        <div class="section-header" style="margin-top:4px"><h3>Resolved Interests</h3></div>
+                        <div id="resolved-interests-list"></div>
+                    </div>
+                </div>
 
                 <!-- MESSAGES -->
                 <div id="tab-messages" class="tab-section">
@@ -1291,7 +1310,7 @@ function showPanel() {
 // ─────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────
-const TAB_TITLES = { dashboard: 'Dashboard', inventory: 'Inventory', orders: 'Orders', team: 'Team', stripe: 'Stripe Payments', messages: 'Messages' };
+const TAB_TITLES = { dashboard: 'Dashboard', inventory: 'Inventory', orders: 'Orders', team: 'Team', stripe: 'Stripe Payments', messages: 'Messages', interest: 'Qur\'an Class Interest' };
 
 function showTab(tab) {
     document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
@@ -1306,6 +1325,7 @@ function showTab(tab) {
     if (tab === 'team')      renderTeam();
     if (tab === 'stripe')    renderStripe();
     if (tab === 'messages')  loadMessages();
+    if (tab === 'interest')  loadInterests();
 }
 
 function toggleSidebar() {
@@ -2242,6 +2262,103 @@ async function deleteMessage(id) {
 
 function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+// ─────────────────────────────────────────────
+// INTEREST (Qur'an class interest form submissions)
+// ─────────────────────────────────────────────
+const INT_STATUS = {
+    new:      { bg: '#FEF3E2', color: '#E8872A', border: '#E8872A', label: 'New' },
+    contacted:{ bg: '#EBF5FB', color: '#2471A3', border: '#2471A3', label: 'Contacted' },
+    resolved: { bg: '#F2F3F4', color: '#7F8C8D', border: '#BDC3C7', label: 'Resolved' },
+};
+
+async function loadInterests() {
+    const wrap = document.getElementById('interests-list');
+    wrap.innerHTML = '<p style="color:#9B7B6E;padding:20px 0">Loading…</p>';
+    try {
+        const r = await fetch('/api/interests');
+        const items = await r.json();
+
+        const newCount = items.filter(function(i) { return i.status === 'new'; }).length;
+        const badge = document.getElementById('interest-badge');
+        if (newCount > 0) { badge.textContent = newCount; badge.style.display = 'inline'; }
+        else badge.style.display = 'none';
+
+        const active   = items.filter(function(i) { return i.status !== 'resolved'; });
+        const resolved = items.filter(function(i) { return i.status === 'resolved'; });
+
+        const resolvedBtn = document.getElementById('btn-resolved-interests');
+        const resolvedCount = document.getElementById('resolved-interest-count');
+        if (resolved.length > 0) {
+            resolvedBtn.style.display = 'inline-flex';
+            resolvedCount.textContent = '(' + resolved.length + ')';
+        } else {
+            resolvedBtn.style.display = 'none';
+            document.getElementById('resolved-interests-section').style.display = 'none';
+        }
+
+        if (!active.length) {
+            wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#9B7B6E"><div style="font-size:2.5rem;margin-bottom:12px">📭</div><p>No active interest submissions.</p></div>';
+        } else {
+            wrap.innerHTML = active.map(function(i) { return renderInterestCard(i); }).join('');
+        }
+        document.getElementById('resolved-interests-list').innerHTML = resolved.map(function(i) { return renderInterestCard(i); }).join('');
+    } catch {
+        wrap.innerHTML = '<p style="color:#C0392B;padding:20px 0">Failed to load interests.</p>';
+    }
+}
+
+function renderInterestCard(i) {
+    const date = new Date(i.date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const sc = INT_STATUS[i.status] || INT_STATUS.new;
+    const opts = Object.keys(INT_STATUS).map(function(k) {
+        return `<option value="${k}" ${i.status === k ? 'selected' : ''}>${INT_STATUS[k].label}</option>`;
+    }).join('');
+    return `<div style="background:#fff;border-radius:16px;padding:24px 28px;margin-bottom:16px;box-shadow:0 2px 10px rgba(59,36,23,0.07);border-left:4px solid ${sc.border}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;color:#3B2417">${escHtml(i.parentName)}</span>
+                <span style="background:${sc.bg};color:${sc.color};font-size:0.72rem;padding:3px 10px;border-radius:20px;font-weight:700">${sc.label}</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+                <select onchange="updateInterestStatus('${i.id}', this.value)" style="font-family:'Poppins',sans-serif;font-size:0.8rem;border:1.5px solid #E8D5C4;border-radius:8px;padding:5px 8px;background:#FAF6F1;color:#3B2417;cursor:pointer">${opts}</select>
+                <button class="btn btn-outline btn-sm" style="color:#C0392B;border-color:#C0392B" onclick="deleteInterest('${i.id}')">Delete</button>
+            </div>
+        </div>
+        <div style="font-size:0.82rem;color:#9B7B6E;margin-bottom:12px">
+            <a href="mailto:${escHtml(i.email)}" style="color:#7B3F5E">${escHtml(i.email)}</a>${i.phone ? ' &nbsp;·&nbsp; 📞 ' + escHtml(i.phone) : ''} &nbsp;·&nbsp; ${date}
+        </div>
+        <div style="font-size:0.88rem;color:#3B2417;margin-bottom:8px">
+            <strong>Child:</strong> ${escHtml(i.childName)}, Age ${escHtml(String(i.childAge))}
+        </div>
+        ${i.message ? `<p style="color:#5C4033;font-size:0.88rem;line-height:1.6;white-space:pre-wrap;margin-top:8px;padding:10px 14px;background:#FAF6F1;border-radius:8px">${escHtml(i.message)}</p>` : ''}
+    </div>`;
+}
+
+function toggleResolvedInterests() {
+    const section = document.getElementById('resolved-interests-section');
+    const open = section.style.display !== 'none';
+    section.style.display = open ? 'none' : 'block';
+    const count = document.getElementById('resolved-interest-count').textContent;
+    document.getElementById('btn-resolved-interests').innerHTML =
+        (open ? 'Resolved Interests ' : 'Hide Resolved ') + '<span id="resolved-interest-count">' + count + '</span>';
+}
+
+async function updateInterestStatus(id, status) {
+    await fetch('/api/interests/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status }),
+    });
+    loadInterests();
+}
+
+async function deleteInterest(id) {
+    if (!confirm('Delete this interest submission?')) return;
+    await fetch('/api/interests/' + id, { method: 'DELETE' });
+    loadInterests();
 }
 
 </script>

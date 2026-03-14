@@ -9,6 +9,7 @@ const DATA_FILE = fs.existsSync("/data") ? "/data/data.json" : path.join(__dirna
 // Passwords set via environment variables on Render (ADMIN_PASSWORD, STAFF_PASSWORD)
 const DEFAULT_DATA = {
     contacts: [],
+    interests: [],
     users: [
         { id: "u1", username: "mamda006.310", password: process.env.ADMIN_PASSWORD || "", name: "Abbas M",  role: "admin" },
         { id: "u2", username: "zjets988",     password: process.env.STAFF_PASSWORD  || "", name: "Zahra J",  role: "staff" },
@@ -99,6 +100,34 @@ app.put("/api/contacts/:id", function(req, res) {
 app.delete("/api/contacts/:id", function(req, res) {
     var d = readData();
     d.contacts = (d.contacts || []).filter(function(c) { return c.id !== req.params.id; });
+    writeData(d);
+    res.json({ ok: true });
+});
+
+app.get("/api/interests", function(req, res) { res.json(readData().interests || []); });
+
+app.post("/api/interest", function(req, res) {
+    var b = req.body || {};
+    if (!b.parentName || !b.email || !b.childName || !b.childAge) return res.status(400).json({ error: "Missing fields" });
+    var d = readData();
+    if (!d.interests) d.interests = [];
+    d.interests.unshift({ id: "i" + Date.now(), parentName: b.parentName, email: b.email, phone: b.phone || "", childName: b.childName, childAge: b.childAge, message: b.message || "", date: new Date().toISOString(), status: "new" });
+    writeData(d);
+    res.json({ ok: true });
+});
+
+app.put("/api/interests/:id", function(req, res) {
+    var d = readData();
+    var item = (d.interests || []).find(function(i) { return i.id === req.params.id; });
+    if (!item) return res.status(404).json({ error: "Not found" });
+    Object.assign(item, req.body);
+    writeData(d);
+    res.json({ ok: true });
+});
+
+app.delete("/api/interests/:id", function(req, res) {
+    var d = readData();
+    d.interests = (d.interests || []).filter(function(i) { return i.id !== req.params.id; });
     writeData(d);
     res.json({ ok: true });
 });

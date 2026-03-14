@@ -419,7 +419,15 @@
 
                 <button type="submit" class="btn-submit" id="if-submit">Submit Interest</button>
                 <div class="form-status" id="if-status"></div>
+
             </form>
+
+            <!-- Success screen shown after submission -->
+            <div id="if-success" style="display:none;text-align:center;padding:32px 0">
+                <div style="font-size:3rem;margin-bottom:16px">📖</div>
+                <h3 style="font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;color:#3B2417;margin-bottom:10px">Thank you for your interest!</h3>
+                <p style="font-size:0.95rem;color:#7A6050">You will be contacted soon.</p>
+            </div>
         </div>
     </section>
 
@@ -478,9 +486,8 @@
                     body: JSON.stringify(body),
                 });
                 if (r.ok) {
-                    status.className = 'form-status success';
-                    status.textContent = 'Thank you! We\'ve received your interest and will be in touch soon.';
-                    document.getElementById('interest-form').reset();
+                    document.getElementById('interest-form').style.display = 'none';
+                    document.getElementById('if-success').style.display = 'block';
                 } else {
                     throw new Error('Server error');
                 }
