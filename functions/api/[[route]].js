@@ -3,6 +3,7 @@
 
 const DEFAULT_DATA = {
     contacts: [],
+    interests: [],
     settings: { googleClientId: '' },
     users: [
         { id: 'u1', username: 'mamda006.310', password: 'HelloAbbas2023!', name: 'Abbas M',  role: 'admin' },
@@ -186,6 +187,41 @@ export async function onRequest(context) {
             const id = route.slice('contacts/'.length);
             const d = await readData();
             d.contacts = (d.contacts || []).filter(c => c.id !== id);
+            await writeData(d);
+            return json({ ok: true });
+        }
+
+        // GET /api/interests
+        if (route === 'interests' && method === 'GET') return json((await readData()).interests || []);
+
+        // POST /api/interest
+        if (route === 'interest' && method === 'POST') {
+            const b = await request.json();
+            if (!b.parentName || !b.email || !b.childName || !b.childAge) return json({ error: 'Missing fields' }, 400);
+            const d = await readData();
+            if (!d.interests) d.interests = [];
+            d.interests.unshift({ id: 'i' + Date.now(), parentName: b.parentName, email: b.email, phone: b.phone || '', childName: b.childName, childAge: b.childAge, message: b.message || '', date: new Date().toISOString(), status: 'new' });
+            await writeData(d);
+            return json({ ok: true });
+        }
+
+        // PUT /api/interests/:id
+        if (route.startsWith('interests/') && method === 'PUT') {
+            const id = route.slice('interests/'.length);
+            const b = await request.json();
+            const d = await readData();
+            const item = (d.interests || []).find(i => i.id === id);
+            if (!item) return json({ error: 'Not found' }, 404);
+            Object.assign(item, b);
+            await writeData(d);
+            return json({ ok: true });
+        }
+
+        // DELETE /api/interests/:id
+        if (route.startsWith('interests/') && method === 'DELETE') {
+            const id = route.slice('interests/'.length);
+            const d = await readData();
+            d.interests = (d.interests || []).filter(i => i.id !== id);
             await writeData(d);
             return json({ ok: true });
         }
