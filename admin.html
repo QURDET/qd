@@ -1374,27 +1374,28 @@ async function renderDashboard() {
         </div>
     `;
 
-    const recent = [...visible].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
+    const recent = [...visible].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
     document.getElementById('recent-orders-wrap').innerHTML = recent.length
-        ? `<table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody>
+        ? `<table style="font-size:0.82rem"><thead><tr><th>Order</th><th>Customer</th><th>Status</th></tr></thead><tbody>
            ${recent.map(o => `<tr>
                <td><strong>${o.id}</strong></td>
                <td>${o.customer}</td>
-               <td>£${o.total.toFixed(2)}</td>
-               <td><span class="badge badge-${o.status}">${o.status}</span></td>
+               <td><span class="badge badge-${o.status}">${cap(o.status)}</span></td>
            </tr>`).join('')}
            </tbody></table>`
         : '<div class="empty-state"><div class="e-icon">🛒</div><p>No orders yet</p></div>';
 
+    const isLiveKey = getStripeKey().startsWith('sk_live') || getStripeKey().startsWith('rk_live');
+    const stripeLinkBase = isLiveKey ? 'https://dashboard.stripe.com/payments/' : 'https://dashboard.stripe.com/test/payments/';
     const myOrders = visible.filter(o => o.assignee === currentUser.name && o.status !== 'delivered' && !o._deleted)
                              .sort((a, b) => b.date.localeCompare(a.date));
     document.getElementById('my-orders-wrap').innerHTML = myOrders.length
-        ? `<table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Shipping</th></tr></thead><tbody>
+        ? `<table><thead><tr><th>Order</th><th>Customer</th><th>Stripe</th><th>Tracking</th></tr></thead><tbody>
            ${myOrders.map(o => `<tr>
                <td><strong>${o.id}</strong></td>
                <td>${o.customer || '—'}</td>
-               <td><span class="badge badge-${o.status}">${cap(o.status)}</span></td>
-               <td>${o.shippingType ? `<span style="${shippingPillStyle(o.shippingType)};cursor:default">${o.shippingType}</span>` : '—'}</td>
+               <td>${o.stripeId ? `<a href="${stripeLinkBase}${o.stripeId}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">View ↗</a>` : '—'}</td>
+               <td>${o.tracking ? `<a href="${o.tracking}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track ↗</a>` : '—'}</td>
            </tr>`).join('')}
            </tbody></table>`
         : '<div class="empty-state"><div class="e-icon">📋</div><p>No orders assigned to you</p></div>';
