@@ -1564,7 +1564,7 @@ async function renderOrders() {
         </td>
         <td>
             ${canEdit
-                ? `<select onchange="quickShipping('${o.id}',this.value)" style="font-size:0.78rem;padding:3px 6px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;max-width:140px">
+                ? `<select onchange="this.setAttribute('style',shippingPillStyle(this.value));quickShipping('${o.id}',this.value)" style="${shippingPillStyle(o.shippingType||'')}">
                     <option value="">— None —</option>
                     <option value="UK Shipping"${o.shippingType==='UK Shipping'?' selected':''}>UK Shipping</option>
                     <option value="International Shipping"${o.shippingType==='International Shipping'?' selected':''}>International Shipping</option>
@@ -1584,7 +1584,7 @@ async function renderOrders() {
         </td>
         <td>
             ${canEdit
-              ? `<select onchange="quickAssign('${o.id}',this.value)" style="font-size:0.73rem;border:1px solid #E8D5C4;border-radius:6px;padding:3px 6px;max-width:110px">
+              ? `<select onchange="this.setAttribute('style',assigneePillStyle(this.value));quickAssign('${o.id}',this.value)" style="${assigneePillStyle(o.assignee||'')}">
                   <option value="">${o.assignee||'Unassigned'}</option>
                   ${_teamNames.map(n => n === (o.assignee||'') ? '' : `<option value="${n}">${n}</option>`).join('')}
                   ${o.assignee ? '<option value="">— Unassign</option>' : ''}
@@ -1600,6 +1600,16 @@ async function renderOrders() {
         </td>
     </tr>`).join('');
 }
+
+const SHIP_COLORS = {
+    'UK Shipping':              'background:#27AE60;color:#fff',
+    'International Shipping':   'background:#8E44AD;color:#fff',
+    'Collection - Bham':        'background:#E67E22;color:#fff',
+    'Collection - Lon':         'background:#16A085;color:#fff',
+};
+const PILL_BASE = ';appearance:none;-webkit-appearance:none;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer;outline:none;max-width:160px';
+function shippingPillStyle(v) { return (SHIP_COLORS[v] || 'background:#E8D5C4;color:#5C4033') + PILL_BASE; }
+function assigneePillStyle(v) { return (v ? 'background:#6C5CE7;color:#fff' : 'background:#E8D5C4;color:#5C4033') + PILL_BASE + ';max-width:110px'; }
 
 async function quickShipping(id, shippingType) {
     const orders = await getOrders();
