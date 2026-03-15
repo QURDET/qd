@@ -717,8 +717,8 @@
                             <div class="table-card" id="recent-orders-wrap"></div>
                         </div>
                         <div>
-                            <div class="section-header"><h3>Low Stock Alert</h3></div>
-                            <div class="table-card" id="low-stock-wrap"></div>
+                            <div class="section-header"><h3>My Orders</h3></div>
+                            <div class="table-card" id="my-orders-wrap"></div>
                         </div>
                     </div>
                 </div>
@@ -1386,15 +1386,18 @@ async function renderDashboard() {
            </tbody></table>`
         : '<div class="empty-state"><div class="e-icon">🛒</div><p>No orders yet</p></div>';
 
-    document.getElementById('low-stock-wrap').innerHTML = lowStock.length
-        ? `<table><thead><tr><th>Product</th><th>Stock</th><th>Threshold</th></tr></thead><tbody>
-           ${lowStock.map(p => `<tr>
-               <td>${p.name}</td>
-               <td><span class="badge badge-low">${p.qty} left</span></td>
-               <td>${p.threshold}</td>
+    const myOrders = visible.filter(o => o.assignee === currentUser.name && o.status !== 'delivered' && !o._deleted)
+                             .sort((a, b) => b.date.localeCompare(a.date));
+    document.getElementById('my-orders-wrap').innerHTML = myOrders.length
+        ? `<table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Shipping</th></tr></thead><tbody>
+           ${myOrders.map(o => `<tr>
+               <td><strong>${o.id}</strong></td>
+               <td>${o.customer || '—'}</td>
+               <td><span class="badge badge-${o.status}">${cap(o.status)}</span></td>
+               <td>${o.shippingType ? `<span style="${shippingPillStyle(o.shippingType)};cursor:default">${o.shippingType}</span>` : '—'}</td>
            </tr>`).join('')}
            </tbody></table>`
-        : '<div class="empty-state"><div class="e-icon">✅</div><p>All products well stocked</p></div>';
+        : '<div class="empty-state"><div class="e-icon">📋</div><p>No orders assigned to you</p></div>';
 }
 
 // ─────────────────────────────────────────────
