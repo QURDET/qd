@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){var s=localStorage.getItem('qdTheme');if(s==='dark'||(s===null&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}());</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Shia Deal Online</title>
+    <meta name="description" content="Play Shia Deal online — challenge an AI, play locally with friends, or join an online multiplayer game.">
+    <link rel="icon" type="image/jpeg" href="SDlogo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #f5c430; --gold2: #f8d464; --gold-rgb: 245,196,48;
+            --bg: #ffffff; --bg2: #f9f4ed; --bg3: #f0e8d8;
+            --text: #333333; --text2: #5C4033; --text3: #888;
+            --nav-bg: rgba(200,140,30,0.96);
+            --card-bg: #fff; --card-border: rgba(200,140,30,0.25);
+            --shadow: rgba(0,0,0,0.12);
+        }
+        [data-theme="dark"] {
+            --gold: #c47f0a; --gold2: #c98a10;
+            --bg: #1c1c1c; --bg2: #242420; --bg3: #2a2820;
+            --text: #EFE0CE; --text2: #C8A882; --text3: #A09080;
+            --nav-bg: rgba(120,80,10,0.97);
+            --card-bg: #2a2820; --card-border: rgba(196,127,10,0.3);
+            --shadow: rgba(0,0,0,0.4);
+        }
+        @font-face { font-family: 'Bely Display'; src: url('Bely Display.ttf') format('truetype'); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+        /* ── NAV ── */
+        nav {
+            position:fixed; top:0; width:100%; padding:1rem 5%;
+            display:flex; justify-content:space-between; align-items:center;
+            background:var(--nav-bg); backdrop-filter:blur(10px);
+            z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.3);
+        }
+        .logo { display:flex; align-items:center; gap:10px; opacity:0; transform:translateY(-20px); transition:all 0.4s; }
+        nav.scrolled .logo { opacity:1; transform:translateY(0); }
+        .logo img { height:40px; border-radius:8px; }
+        .logo-text { font-family:'Bely Display',serif; font-size:1.3rem; color:#fff; }
+        .nav-links {
+            position:fixed; top:0; right:-300px; width:280px; height:100vh;
+            background:rgba(200,140,30,0.98); flex-direction:column;
+            padding:100px 2rem 2rem; list-style:none; transition:right 0.3s;
+            z-index:999; box-shadow:-5px 0 30px rgba(0,0,0,0.3); display:flex; gap:0;
+        }
+        .nav-links.active { right:0; }
+        .nav-links li { list-style:none; }
+        .nav-links a {
+            font-family:'Bely Display',serif; color:#fff; text-decoration:none;
+            display:block; padding:15px 0; font-size:1.2rem;
+            border-bottom:1px solid rgba(255,255,255,0.15); transition:color 0.2s;
+        }
+        .nav-links a:hover { color:#333; }
+        .nav-overlay {
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+            z-index:998; opacity:0; transition:opacity 0.3s;
+        }
+        .nav-overlay.active { display:block; opacity:1; }
+        .hamburger {
+            display:flex; flex-direction:column; gap:5px; background:none;
+            border:none; cursor:pointer; padding:5px; z-index:1001;
+        }
+        .hamburger span {
+            display:block; width:25px; height:2px; background:#fff;
+            transition:all 0.3s; transform-origin:center;
+        }
+        .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity:0; }
+        .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+        .theme-toggle {
+            background:none; border:none; font-size:1.3rem; cursor:pointer;
+            padding:5px; border-radius:50%; transition:background 0.2s;
+        }
+        .theme-toggle:hover { background:rgba(255,255,255,0.15); }
+
+        /* ── SCREENS ── */
+        .screen { display:none; min-height:100vh; padding:80px 5% 40px; }
+        .screen.active { display:block; }
+
+        /* ── LOBBY SCREEN ── */
+        #screen-lobby {
+            display:none; flex-direction:column; align-items:center;
+            justify-content:center; text-align:center;
+            background:var(--bg);
+            position:relative; overflow:hidden;
+        }
+        #screen-lobby.active { display:flex; }
+        #screen-lobby::before {
+            content:'🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌 🕋 🕌';
+            position:absolute; inset:-50px; font-size:2.5rem; line-height:4rem;
+            letter-spacing:2rem; opacity:0.05; word-break:break-all;
+            animation:floatbg 20s linear infinite; pointer-events:none;
+        }
+        @keyframes floatbg { from{transform:translateY(0)} to{transform:translateY(-60px)} }
+        .lobby-logo { width:110px; border-radius:16px; box-shadow:0 8px 32px var(--shadow); margin-bottom:18px; position:relative; z-index:1; }
+        .lobby-title { font-family:'Bely Display',serif; font-size:3rem; color:var(--gold); margin-bottom:8px; position:relative; z-index:1; }
+        .lobby-sub { color:var(--text2); font-size:1.05rem; margin-bottom:48px; position:relative; z-index:1; }
+        .mode-cards { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; position:relative; z-index:1; max-width:900px; }
+        .mode-card {
+            background:var(--card-bg); border:2px solid var(--card-border);
+            border-radius:20px; padding:36px 28px; width:260px; cursor:pointer;
+            transition:all 0.3s; box-shadow:0 4px 20px var(--shadow);
+            display:flex; flex-direction:column; align-items:center; gap:12px;
+        }
+        .mode-card:hover { transform:translateY(-8px); border-color:var(--gold); box-shadow:0 12px 40px rgba(var(--gold-rgb),0.2); }
+        .mode-card.coming-soon { opacity:0.65; cursor:default; }
+        .mode-card.coming-soon:hover { transform:none; border-color:var(--card-border); box-shadow:0 4px 20px var(--shadow); }
+        .mode-icon { font-size:3rem; }
+        .mode-name { font-family:'Bely Display',serif; font-size:1.4rem; color:var(--text); }
+        .mode-desc { color:var(--text3); font-size:0.88rem; text-align:center; line-height:1.5; }
+        .mode-badge {
+            background:var(--gold); color:#333; font-size:0.72rem; font-weight:700;
+            padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.05em;
+        }
+        .mode-badge.soon { background:var(--bg3); color:var(--text3); }
+
+        /* ── SETUP SCREEN ── */
+        #screen-setup {
+            display:none; flex-direction:column; align-items:center;
+            justify-content:center; min-height:100vh; padding:100px 5% 60px;
+            background:var(--bg);
+        }
+        #screen-setup.active { display:flex; }
+        .setup-box {
+            background:var(--card-bg); border:2px solid var(--card-border);
+            border-radius:24px; padding:40px 44px; max-width:480px; width:100%;
+            box-shadow:0 8px 40px var(--shadow);
+        }
+        .setup-title { font-family:'Bely Display',serif; font-size:2rem; color:var(--gold); margin-bottom:6px; }
+        .setup-sub { color:var(--text3); font-size:0.9rem; margin-bottom:28px; }
+        .form-group { margin-bottom:18px; }
+        .form-group label { display:block; font-size:0.85rem; font-weight:600; color:var(--text2); margin-bottom:6px; }
+        .form-group input, .form-group select {
+            width:100%; padding:10px 14px; border-radius:10px;
+            border:1.5px solid var(--card-border); background:var(--bg2);
+            color:var(--text); font-family:'Poppins',sans-serif; font-size:0.95rem;
+            outline:none; transition:border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus { border-color:var(--gold); }
+        .player-names { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+        .player-name-row { display:flex; align-items:center; gap:10px; }
+        .player-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+        .btn-primary {
+            background:var(--gold); color:#222; border:none; padding:13px 32px;
+            border-radius:12px; font-family:'Poppins',sans-serif; font-size:1rem;
+            font-weight:700; cursor:pointer; transition:all 0.2s; width:100%;
+        }
+        .btn-primary:hover { background:var(--gold2); transform:translateY(-2px); box-shadow:0 4px 16px rgba(var(--gold-rgb),0.4); }
+        .btn-back {
+            background:none; border:2px solid var(--card-border); color:var(--text3);
+            padding:10px 24px; border-radius:12px; font-family:'Poppins',sans-serif;
+            font-size:0.9rem; cursor:pointer; transition:all 0.2s; margin-bottom:20px;
+        }
+        .btn-back:hover { border-color:var(--gold); color:var(--text); }
+
+        /* ── GAME SCREEN ── */
+        #screen-game {
+            display:none; flex-direction:column; min-height:100vh;
+            padding:70px 0 0; background:var(--bg2);
+        }
+        #screen-game.active { display:flex; }
+        .game-topbar {
+            background:var(--bg); border-bottom:1px solid var(--card-border);
+            padding:8px 16px; display:flex; align-items:center; justify-content:space-between;
+            font-size:0.85rem; flex-wrap:wrap; gap:6px;
+        }
+        .turn-info { font-weight:600; color:var(--gold); font-size:0.95rem; }
+        .actions-left { color:var(--text3); }
+        .game-body { display:flex; flex-direction:column; flex:1; padding:10px; gap:10px; overflow:auto; }
+
+        /* Opponents row */
+        .opponents-row { display:flex; gap:10px; flex-wrap:wrap; }
+        .opponent-panel {
+            background:var(--card-bg); border:2px solid var(--card-border);
+            border-radius:14px; padding:10px 14px; flex:1; min-width:160px;
+        }
+        .opponent-panel.active-turn { border-color:var(--gold); box-shadow:0 0 12px rgba(var(--gold-rgb),0.3); }
+        .opp-name { font-weight:700; font-size:0.85rem; color:var(--text); margin-bottom:6px; }
+        .opp-bank { color:var(--text3); font-size:0.78rem; margin-bottom:6px; }
+        .opp-hand-count { color:var(--text3); font-size:0.78rem; }
+        .opp-sets { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+        .set-pill {
+            font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:10px;
+            color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.4);
+        }
+        .opp-cards-face-down { display:flex; gap:3px; flex-wrap:wrap; margin-top:4px; }
+        .mini-card-back {
+            width:22px; height:32px; border-radius:4px;
+            background:url('backofcard.jpg') center/cover no-repeat;
+            border:1px solid rgba(255,255,255,0.2);
+            box-shadow:1px 1px 3px rgba(0,0,0,0.3);
+        }
+        .opp-props { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+
+        /* Center area */
+        .center-area {
+            background:var(--card-bg); border:2px solid var(--card-border);
+            border-radius:14px; padding:12px 16px;
+            display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+        }
+        .deck-area { display:flex; gap:16px; align-items:center; }
+        .deck-pile {
+            width:60px; height:84px; border-radius:8px;
+            background:url('backofcard.jpg') center/cover no-repeat;
+            border:2px solid var(--gold); cursor:pointer; display:flex;
+            align-items:center; justify-content:center; color:#fff; font-size:0.7rem;
+            font-weight:700; text-align:center; line-height:1.3; flex-shrink:0;
+            box-shadow:3px 3px 0 rgba(0,0,0,0.2); transition:transform 0.15s;
+            user-select:none;
+        }
+        .deck-pile:hover { transform:scale(1.05); }
+        .deck-label { font-size:0.75rem; color:var(--text3); text-align:center; margin-top:4px; }
+        .discard-area { display:flex; flex-direction:column; align-items:center; }
+        .discard-pile {
+            width:60px; height:84px; border-radius:8px;
+            border:2px dashed var(--card-border); display:flex; align-items:center;
+            justify-content:center; color:var(--text3); font-size:0.7rem; text-align:center;
+            flex-shrink:0; position:relative; overflow:hidden;
+        }
+        .game-log {
+            flex:1; min-width:180px; max-height:100px; overflow-y:auto;
+            font-size:0.78rem; color:var(--text3); line-height:1.6;
+            border-left:2px solid var(--card-border); padding-left:12px;
+        }
+        .log-entry { padding:1px 0; }
+        .log-entry.highlight { color:var(--gold); font-weight:600; }
+        .end-turn-btn {
+            background:var(--gold); color:#222; border:none; padding:10px 22px;
+            border-radius:10px; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif;
+            font-size:0.9rem; transition:all 0.2s;
+        }
+        .end-turn-btn:hover { background:var(--gold2); transform:translateY(-1px); }
+        .end-turn-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+        /* Player area */
+        .player-area {
+            background:var(--card-bg); border:2px solid var(--gold);
+            border-radius:14px; padding:12px 14px;
+        }
+        .player-area-title {
+            font-size:0.85rem; font-weight:700; color:var(--gold);
+            margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;
+        }
+        .player-bank-info { font-size:0.78rem; color:var(--text3); }
+        .player-layout { display:flex; gap:14px; flex-wrap:wrap; }
+        .player-hand-section { flex:1; min-width:200px; }
+        .player-hand-section h4 { font-size:0.8rem; color:var(--text3); margin-bottom:8px; }
+        .hand-cards { display:flex; gap:8px; flex-wrap:wrap; }
+        .player-props-section { flex:1.5; min-width:200px; }
+        .player-props-section h4 { font-size:0.8rem; color:var(--text3); margin-bottom:8px; }
+        .props-grid { display:flex; gap:8px; flex-wrap:wrap; }
+        .color-set {
+            border-radius:10px; padding:6px 8px; min-width:80px;
+            border:2px solid; display:flex; flex-direction:column; gap:3px;
+        }
+        .color-set-title { font-size:0.68rem; font-weight:700; margin-bottom:2px; }
+        .color-set-card { font-size:0.65rem; background:rgba(255,255,255,0.15); padding:2px 5px; border-radius:4px; }
+
+        /* Playing cards */
+        .game-card {
+            width:68px; height:96px; border-radius:8px; display:flex; flex-direction:column;
+            padding:5px; font-size:0.6rem; cursor:pointer; transition:all 0.2s;
+            border:2px solid transparent; position:relative; flex-shrink:0;
+            box-shadow:0 2px 8px var(--shadow); user-select:none;
+        }
+        .game-card:hover { transform:translateY(-10px) scale(1.05); z-index:10; }
+        .game-card.selected { transform:translateY(-12px) scale(1.06); border-color:#fff; box-shadow:0 6px 20px rgba(var(--gold-rgb),0.5); z-index:11; }
+        .game-card.playable:hover { cursor:pointer; }
+        .game-card .card-type-label { font-weight:700; font-size:0.58rem; text-transform:uppercase; letter-spacing:0.04em; opacity:0.8; }
+        .game-card .card-name { font-weight:700; font-size:0.62rem; line-height:1.2; flex:1; display:flex; align-items:center; text-align:center; justify-content:center; }
+        .game-card .card-value { font-weight:700; font-size:0.7rem; text-align:right; }
+        .game-card .card-icon { font-size:1.1rem; text-align:center; }
+
+        /* Card colour themes */
+        .card-brown  { background:linear-gradient(135deg,#8B4513,#A0522D); color:#fff; }
+        .card-teal   { background:linear-gradient(135deg,#008080,#20B2AA); color:#fff; }
+        .card-pink   { background:linear-gradient(135deg,#C71585,#FF69B4); color:#fff; }
+        .card-orange { background:linear-gradient(135deg,#D2691E,#FF8C00); color:#fff; }
+        .card-red    { background:linear-gradient(135deg,#8B0000,#DC143C); color:#fff; }
+        .card-yellow { background:linear-gradient(135deg,#B8860B,#DAA520); color:#222; }
+        .card-green  { background:linear-gradient(135deg,#006400,#228B22); color:#fff; }
+        .card-blue   { background:linear-gradient(135deg,#00008B,#1E90FF); color:#fff; }
+        .card-money  { background:linear-gradient(135deg,#1a472a,#2d6a4f); color:#fff; }
+        .card-action { background:linear-gradient(135deg,#4a1d5e,#7b2d8b); color:#fff; }
+        .card-wild   { background:linear-gradient(135deg,#c47f0a,#f5c430); color:#222; }
+
+        /* Modal */
+        .modal-overlay {
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+            z-index:2000; align-items:center; justify-content:center;
+        }
+        .modal-overlay.active { display:flex; }
+        .modal-box {
+            background:var(--card-bg); border:2px solid var(--gold); border-radius:20px;
+            padding:32px; max-width:440px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.5);
+        }
+        .modal-title { font-family:'Bely Display',serif; font-size:1.5rem; color:var(--gold); margin-bottom:8px; }
+        .modal-body { color:var(--text3); font-size:0.9rem; margin-bottom:20px; line-height:1.6; }
+        .modal-options { display:flex; flex-wrap:wrap; gap:10px; }
+        .modal-option-btn {
+            padding:9px 18px; border-radius:10px; border:2px solid var(--card-border);
+            background:var(--bg2); color:var(--text); font-family:'Poppins',sans-serif;
+            font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s;
+        }
+        .modal-option-btn:hover { border-color:var(--gold); background:rgba(var(--gold-rgb),0.1); }
+        .modal-option-btn.primary { background:var(--gold); color:#222; border-color:var(--gold); }
+
+        /* Win screen */
+        .win-overlay {
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+            z-index:3000; align-items:center; justify-content:center; text-align:center;
+        }
+        .win-overlay.active { display:flex; }
+        .win-box {
+            background:var(--card-bg); border:3px solid var(--gold); border-radius:24px;
+            padding:48px 40px; max-width:400px; width:90%;
+        }
+        .win-emoji { font-size:4rem; margin-bottom:12px; }
+        .win-title { font-family:'Bely Display',serif; font-size:2.5rem; color:var(--gold); margin-bottom:8px; }
+        .win-sub { color:var(--text3); margin-bottom:28px; }
+        .win-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        .win-btns button {
+            padding:11px 26px; border-radius:12px; font-family:'Poppins',sans-serif;
+            font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.2s;
+        }
+        .win-btn-play { background:var(--gold); border:none; color:#222; }
+        .win-btn-home { background:none; border:2px solid var(--card-border); color:var(--text); }
+        .win-btn-play:hover { transform:translateY(-2px); background:var(--gold2); }
+        .win-btn-home:hover { border-color:var(--gold); color:var(--text); }
+
+        /* Discard top card preview */
+        .discard-top {
+            position:absolute; inset:0; border-radius:6px; display:flex;
+            flex-direction:column; padding:4px; font-size:0.55rem;
+        }
+
+        /* Online placeholder */
+        .online-coming-soon {
+            min-height:100vh; display:flex; flex-direction:column; align-items:center;
+            justify-content:center; text-align:center; padding:80px 5%;
+        }
+        .online-coming-soon.active { display:flex; }
+        .coming-soon-icon { font-size:4rem; margin-bottom:20px; }
+        .coming-soon-title { font-family:'Bely Display',serif; font-size:2.5rem; color:var(--gold); margin-bottom:10px; }
+        .coming-soon-sub { color:var(--text3); max-width:400px; line-height:1.7; margin-bottom:28px; }
+
+        /* Footer */
+        footer {
+            background:var(--bg3); border-top:1px solid var(--card-border);
+            padding:32px 5%; text-align:center;
+        }
+        .footer-content { max-width:1000px; margin:0 auto; }
+        .social-links { display:flex; justify-content:center; gap:16px; margin-bottom:20px; }
+        .social-links a {
+            color:var(--text3); transition:color 0.2s; display:flex;
+            align-items:center; justify-content:center; width:40px; height:40px;
+            border-radius:50%; border:1px solid var(--card-border);
+        }
+        .social-links a:hover { color:var(--gold); border-color:var(--gold); }
+        .credit-section { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin-bottom:16px; }
+        .credit-item { display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text3); font-size:0.82rem; transition:color 0.2s; }
+        .credit-item:hover { color:var(--gold); }
+        .credit-item img { width:28px; height:28px; border-radius:50%; object-fit:cover; }
+        .credit-name { color:var(--gold); font-weight:600; }
+        .copyright { font-size:0.8rem; color:var(--text3); margin-top:8px; }
+
+        @media(max-width:700px) {
+            .lobby-title { font-size:2.2rem; }
+            .mode-cards { gap:16px; }
+            .mode-card { width:100%; max-width:320px; }
+            .game-card { width:54px; height:76px; }
+            .setup-box { padding:28px 20px; }
+            .center-area { flex-direction:column; }
+            .game-topbar { font-size:0.78rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="mainNav">
+    <div class="logo">
+        <img src="SDlogo.jpeg" alt="Shia Deal">
+        <span class="logo-text">Shia Deal</span>
+    </div>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shiadeal.html">About</a></li>
+        <li><a href="sdrescources.html">Resources</a></li>
+        <li><a href="shiadeal.html#preorder">Buy Now</a></li>
+        <li><a href="contactus.html">Contact</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:4px;z-index:1001;">
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+<div class="nav-overlay" id="navOverlay"></div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1: LOBBY
+══════════════════════════════════════ -->
+<div id="screen-lobby" class="screen active">
+    <img src="SDlogo.jpeg" alt="Shia Deal" class="lobby-logo">
+    <h1 class="lobby-title">Play Shia Deal</h1>
+    <p class="lobby-sub">Choose how you want to play</p>
+    <div class="mode-cards">
+
+        <div class="mode-card" onclick="startMode('ai')">
+            <div class="mode-icon">🤖</div>
+            <div class="mode-name">vs AI</div>
+            <div class="mode-desc">Play against the computer. Great for practice or a solo session.</div>
+            <div class="mode-badge">Available</div>
+        </div>
+
+        <div class="mode-card" onclick="startMode('local')">
+            <div class="mode-icon">👨‍👩‍👧‍👦</div>
+            <div class="mode-name">Local Multiplayer</div>
+            <div class="mode-desc">Pass the device between friends. Up to 4 players on one screen.</div>
+            <div class="mode-badge">Available</div>
+        </div>
+
+        <div class="mode-card coming-soon">
+            <div class="mode-icon">🌐</div>
+            <div class="mode-name">Online Multiplayer</div>
+            <div class="mode-desc">Challenge players around the world in real-time matches.</div>
+            <div class="mode-badge soon">Coming Soon</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2: SETUP
+══════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+    <div class="setup-box">
+        <button class="btn-back" onclick="goToLobby()">← Back</button>
+        <h2 class="setup-title" id="setup-title">Game Setup</h2>
+        <p class="setup-sub" id="setup-sub">Configure your game before starting.</p>
+
+        <div class="form-group" id="player-count-group">
+            <label for="player-count">Number of Players</label>
+            <select id="player-count" onchange="updateNameInputs()">
+                <option value="2">2 Players</option>
+                <option value="3">3 Players</option>
+                <option value="4" selected>4 Players</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Player Names</label>
+            <div class="player-names" id="player-names"></div>
+        </div>
+
+        <button class="btn-primary" onclick="startGame()">Start Game</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3: GAME
+══════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+    <div class="game-topbar">
+        <div>
+            <span class="turn-info" id="turn-info">Player 1's Turn</span>
+            <span class="actions-left" id="actions-left"> — 3 plays left</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <span id="phase-info" style="font-size:0.82rem;color:var(--text3);">Draw phase</span>
+            <button class="end-turn-btn" id="end-turn-btn" onclick="endTurn()" disabled>End Turn</button>
+            <button class="btn-back" style="margin:0;padding:7px 14px;font-size:0.8rem;" onclick="goToLobby()">Quit</button>
+        </div>
+    </div>
+
+    <div class="game-body">
+        <!-- Opponents -->
+        <div class="opponents-row" id="opponents-row"></div>
+
+        <!-- Center: deck + discard + log + end turn -->
+        <div class="center-area">
+            <div class="deck-area">
+                <div>
+                    <div class="deck-pile" id="deck-pile" onclick="drawCard()">
+                        <span id="deck-count" style="display:none;"></span>
+                    </div>
+                    <div class="deck-label">Draw Pile</div>
+                </div>
+                <div class="discard-area">
+                    <div class="discard-pile" id="discard-pile">
+                        <span id="discard-empty-text" style="display:none;"></span>
+                    </div>
+                    <div class="deck-label">Discard</div>
+                </div>
+            </div>
+            <div class="game-log" id="game-log"></div>
+        </div>
+
+        <!-- Current player -->
+        <div class="player-area" id="player-area">
+            <div class="player-area-title">
+                <span id="player-area-name">Your Hand</span>
+                <span class="player-bank-info" id="player-bank-info">Bank: £0M</span>
+            </div>
+            <div class="player-layout">
+                <div class="player-hand-section">
+                    <h4>Hand <span id="hand-count" style="color:var(--gold);">(0)</span></h4>
+                    <div class="hand-cards" id="hand-cards"></div>
+                </div>
+                <div class="player-props-section">
+                    <h4>Your Properties <span id="sets-count" style="color:var(--gold);">(0/3 sets)</span></h4>
+                    <div class="props-grid" id="props-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── ACTION MODAL (wild colour pick, pay debt, etc.) ── -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+        <h3 class="modal-title" id="modal-title">Choose a Colour</h3>
+        <p class="modal-body" id="modal-body">Which colour should this wild card represent?</p>
+        <div class="modal-options" id="modal-options"></div>
+    </div>
+</div>
+
+<!-- ── WIN SCREEN ── -->
+<div class="win-overlay" id="win-overlay">
+    <div class="win-box">
+        <div class="win-emoji">🏆</div>
+        <div class="win-title" id="win-title">You Win!</div>
+        <div class="win-sub" id="win-sub">First to collect 3 complete property sets!</div>
+        <div class="win-btns">
+            <button class="win-btn-play" onclick="restartGame()">Play Again</button>
+            <button class="win-btn-home" onclick="goToLobby()">Back to Lobby</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <div class="footer-content">
+        <div class="social-links">
+            <a href="https://www.instagram.com/qurandetectives/" title="Instagram" target="_blank">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+        </div>
+        <div class="credit-section">
+            <a href="https://www.instagram.com/z.jets/" target="_blank" class="credit-item">
+                <img src="zjetstudio.jpg" alt="Zjets Studio">
+                <span>Designed by <span class="credit-name">Zjets Studio</span></span>
+            </a>
+            <a href="https://www.instagram.com/ahlulbayt_islamic_society/" target="_blank" class="credit-item">
+                <img src="ABIS.jpg" alt="ABIS">
+                <span>Original Concept by <span class="credit-name">ABIS</span></span>
+            </a>
+            <a href="https://www.instagram.com/qurandetectives/" target="_blank" class="credit-item">
+                <img src="qdlogo.jpg" alt="Qur'an Detectives">
+                <span>Produced by <span class="credit-name">Qur'an Detectives</span></span>
+            </a>
+        </div>
+        <p class="copyright">&copy; 2026 Shia Deal. All rights reserved.</p>
+        <a href="admin.html" style="display:inline-block;margin-top:12px;padding:7px 18px;background:#3B2417;color:#fff;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:600;text-decoration:none;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">Staff</a>
+    </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════
+   NAV + THEME
+════════════════════════════════════════════════════ */
+const hamburger = document.getElementById('hamburger');
+const navLinks   = document.getElementById('navLinks');
+const navOverlay = document.getElementById('navOverlay');
+function toggleMenu() {
+    hamburger.classList.toggle('active');
+    navLinks.classList.toggle('active');
+    navOverlay.classList.toggle('active');
+}
+hamburger.addEventListener('click', toggleMenu);
+navOverlay.addEventListener('click', toggleMenu);
+window.addEventListener('scroll', () => {
+    document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 20);
+});
+function toggleTheme() {
+    var d = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (d) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('qdTheme','light'); }
+    else    { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('qdTheme','dark'); }
+    updateThemeBtn();
+}
+function updateThemeBtn() {
+    var b = document.getElementById('theme-toggle');
+    if (b) b.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+}
+document.addEventListener('DOMContentLoaded', updateThemeBtn);
+
+/* ════════════════════════════════════════════════════
+   SCREEN ROUTING
+════════════════════════════════════════════════════ */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+function goToLobby() { G = null; showScreen('screen-lobby'); }
+
+/* ════════════════════════════════════════════════════
+   GAME DATA — COLOUR SETS
+════════════════════════════════════════════════════ */
+const COLOR_META = {
+    orange:   { label:'Orange',    hex:'#E8622A', needed:3, icon:'🕌' },
+    red:      { label:'Red',       hex:'#CC2222', needed:3, icon:'🔴' },
+    brown:    { label:'Brown',     hex:'#7B3F00', needed:2, icon:'🟫' },
+    teal:     { label:'Teal',      hex:'#009B8A', needed:3, icon:'💎' },
+    purple:   { label:'Purple',    hex:'#8B5CA8', needed:2, icon:'💜' },
+    green:    { label:'Green',     hex:'#2D8A2D', needed:3, icon:'🌿' },
+    yellow:   { label:'Yellow',    hex:'#C9A000', needed:3, icon:'⭐' },
+    pink:     { label:'Pink',      hex:'#D43090', needed:3, icon:'🌸' },
+    darkblue: { label:'Dark Blue', hex:'#1A3A9C', needed:2, icon:'💙' },
+    train:    { label:'Stations',  hex:'#222222', needed:4, icon:'🚂' },
+};
+
+/* ════════════════════════════════════════════════════
+   GAME DATA — CARDS (real names + PDF images)
+════════════════════════════════════════════════════ */
+const PROPERTIES = [
+    { id:'p01', type:'property', color:'orange',   name:'Masjid Nabawi',          value:2, img:'cards/property_01.jpg' },
+    { id:'p02', type:'property', color:'red',      name:'Imam Hussain Shrine',     value:3, img:'cards/property_02.jpg' },
+    { id:'p03', type:'property', color:'red',      name:'Abbas Ibn Ali Shrine',    value:3, img:'cards/property_03.jpg' },
+    { id:'p04', type:'property', color:'red',      name:'Maqam of Imam Mahdi',     value:3, img:'cards/property_04.jpg' },
+    { id:'p05', type:'property', color:'brown',    name:'Imam Jawad Shrine',       value:1, img:'cards/property_05.jpg' },
+    { id:'p06', type:'property', color:'teal',     name:'Sayyida Zainab Shrine',   value:1, img:'cards/property_06.jpg' },
+    { id:'p07', type:'property', color:'purple',   name:'River of Furat',          value:1, img:'cards/property_07.jpg' },
+    { id:'p08', type:'property', color:'green',    name:'Imam Ali Shrine',         value:4, img:'cards/property_08.jpg' },
+    { id:'p09', type:'property', color:'green',    name:'Masjid Kufa',             value:4, img:'cards/property_09.jpg' },
+    { id:'p10', type:'property', color:'green',    name:'Wadi us Salam',           value:4, img:'cards/property_10.jpg' },
+    { id:'p11', type:'property', color:'yellow',   name:'Imam Reza Shrine',        value:4, img:'cards/property_11.jpg' },
+    { id:'p12', type:'property', color:'yellow',   name:'Masjid Jamkaran',         value:4, img:'cards/property_12.jpg' },
+    { id:'p13', type:'property', color:'yellow',   name:'Fatima Masumeh Shrine',   value:4, img:'cards/property_13.jpg' },
+    { id:'p14', type:'property', color:'pink',     name:'Masjid Sahla',            value:2, img:'cards/property_14.jpg' },
+    { id:'p15', type:'property', color:'darkblue', name:'Imam Askari Shrine',      value:4, img:'cards/property_15.jpg' },
+    { id:'p16', type:'property', color:'train',    name:'Iran International',      value:2, img:'cards/property_16.jpg' },
+    { id:'p17', type:'property', color:'teal',     name:'Sayyida Ruqayyah Shrine', value:1, img:'cards/property_17.jpg' },
+    { id:'p18', type:'property', color:'teal',     name:'Baab as-Saghir',          value:1, img:'cards/property_18.jpg' },
+    { id:'p19', type:'property', color:'brown',    name:'Balad',                   value:1, img:'cards/property_19.jpg' },
+    { id:'p20', type:'property', color:'purple',   name:'Till-e-Zainabiya',        value:1, img:'cards/property_20.jpg' },
+    { id:'p21', type:'property', color:'darkblue', name:'Sardab',                  value:4, img:'cards/property_21.jpg' },
+    { id:'p22', type:'property', color:'train',    name:'Syria International',     value:2, img:'cards/property_22.jpg' },
+    { id:'p23', type:'property', color:'train',    name:'Makkah Mukarramah',       value:2, img:'cards/property_23.jpg' },
+    { id:'p24', type:'property', color:'train',    name:'Najaf al Ashraf',         value:2, img:'cards/property_24.jpg' },
+    { id:'p25', type:'property', color:'pink',     name:'Masjid Hannana',          value:2, img:'cards/property_25.jpg' },
+    { id:'p26', type:'property', color:'pink',     name:'Masjid Buratha',          value:2, img:'cards/property_26.jpg' },
+    { id:'p27', type:'property', color:'orange',   name:'Masjid ul Haram',         value:2, img:'cards/property_27.jpg' },
+    { id:'p28', type:'property', color:'orange',   name:'Jannatul Baqi',           value:2, img:'cards/property_28.jpg' },
+];
+
+const WILDS = [1,2,3,4,5,6,7,8,9,10,11].map(i => ({
+    id:'w'+i, type:'wild', name:'Wild Card', value:0,
+    img:'cards/wild_'+String(i).padStart(2,'0')+'.jpg'
+}));
+
+const ACTIONS = [
+    ...[0,1,2,3,4,5,6,7,8,9].map(i => ({ id:'pg'+i,  type:'action', name:'Pass Go',         effect:'pass_go',   desc:'Draw 2 extra cards.',                          value:1, img:'cards/action_01.jpg' })),
+    ...[0,1,2].map(i =>          ({ id:'em'+i,  type:'action', name:'Eid Mubarak',     effect:'birthday',  desc:'All players give you 2M.',                     value:2, img:'cards/action_02.jpg' })),
+    ...[0,1,2].map(i =>          ({ id:'es'+i,  type:'action', name:'Expand the Sahn', effect:'expand',     desc:'Add to a complete set for +3M (not stations).', value:3, img:'cards/action_03.jpg' })),
+    ...[0,1,2].map(i =>          ({ id:'td'+i,  type:'action', name:'Thawab Deal',     effect:'steal_prop', desc:'Steal any property not in a complete set.',      value:3, img:'cards/action_05.jpg' })),
+    ...[0,1,2].map(i =>          ({ id:'dna'+i, type:'action', name:'Do Not Agree',    effect:'block',      desc:'Block an action card played against you.',       value:4, img:'cards/action_08.jpg' })),
+    ...[0,1,2].map(i =>          ({ id:'hs'+i,  type:'action', name:'Halal Swap',      effect:'steal_set',  desc:'Swap a property with another player.',           value:3, img:'cards/action_25.jpg' })),
+];
+
+const MONEY_IMG = { 1:'cards/money_06.jpg', 2:'cards/money_05.jpg', 3:'cards/money_04.jpg', 4:'cards/money_03.jpg', 5:'cards/money_02.jpg', 10:'cards/money_01.jpg' };
+function makeMoney() {
+    const vals = [1,1,1,1,1,1, 2,2,2,2,2, 3,3,3, 4,4,4, 5,5, 10];
+    return vals.map((v,i) => ({ id:'m'+i, type:'money', name:'£'+v+'M', value:v, img:MONEY_IMG[v] }));
+}
+
+function buildDeck() {
+    const deck = [
+        ...PROPERTIES.map(c => ({...c})),
+        ...WILDS.map(c => ({...c})),
+        ...ACTIONS.map(c => ({...c})),
+        ...makeMoney(),
+    ];
+    for (let i = deck.length-1; i > 0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+}
+
+/* ════════════════════════════════════════════════════
+   SETUP SCREEN
+════════════════════════════════════════════════════ */
+const PLAYER_COLORS = ['#f5c430','#CC2222','#1E90FF','#228B22'];
+let currentMode = 'local';
+
+function startMode(mode) {
+    currentMode = mode;
+    const countGroup = document.getElementById('player-count-group');
+    if (mode === 'ai') {
+        document.getElementById('setup-title').textContent = 'vs AI Setup';
+        document.getElementById('setup-sub').textContent   = 'You vs the computer. Enter your name below.';
+        document.getElementById('player-count').value = '2';
+        countGroup.style.display = 'none';
+    } else {
+        document.getElementById('setup-title').textContent = 'Local Multiplayer Setup';
+        document.getElementById('setup-sub').textContent   = 'Pass the device between players each turn.';
+        document.getElementById('player-count').value = '4';
+        countGroup.style.display = '';
+    }
+    updateNameInputs();
+    showScreen('screen-setup');
+}
+
+function updateNameInputs() {
+    const count    = currentMode === 'ai' ? 2 : parseInt(document.getElementById('player-count').value);
+    const defaults = ['You','Player 2','Player 3','Player 4'];
+    const container = document.getElementById('player-names');
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const isAI = currentMode === 'ai' && i === 1;
+        const row  = document.createElement('div');
+        row.className = 'player-name-row';
+        row.innerHTML = `
+            <div class="player-dot" style="background:${PLAYER_COLORS[i]}"></div>
+            <input type="text" id="pname${i}"
+                value="${isAI ? 'AI Opponent' : defaults[i]}"
+                placeholder="${isAI ? 'AI Opponent' : 'Player '+(i+1)+' name'}"
+                ${isAI ? 'readonly' : ''}>
+        `;
+        container.appendChild(row);
+    }
+}
+
+/* ════════════════════════════════════════════════════
+   GAME STATE
+════════════════════════════════════════════════════ */
+let G = null;
+
+function startGame() {
+    const count = currentMode === 'ai' ? 2 : parseInt(document.getElementById('player-count').value);
+    const names = [];
+    for (let i = 0; i < count; i++)
+        names.push(document.getElementById('pname'+i).value.trim() || 'Player '+(i+1));
+
+    const deck    = buildDeck();
+    const players = names.map((name, i) => ({
+        name, isAI: currentMode === 'ai' && i === 1,
+        color: PLAYER_COLORS[i], hand: [], bank: [], props: {},
+    }));
+    players.forEach(p => { for (let i = 0; i < 5; i++) if (deck.length) p.hand.push(deck.pop()); });
+    G = { deck, discard:[], players, currentPlayer:0, phase:'draw', drawnThisTurn:0, playsThisTurn:0, maxPlays:3, pendingWild:null };
+    showScreen('screen-game');
+    renderGame();
+    addLog(`Game started! ${G.players[0].name}'s turn.`, true);
+    if (G.players[0].isAI) setTimeout(doAITurn, 800);
+}
+
+/* ════════════════════════════════════════════════════
+   RENDER
+════════════════════════════════════════════════════ */
+function renderGame() {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+
+    document.getElementById('turn-info').textContent    = cp.name + "'s Turn";
+    document.getElementById('actions-left').textContent = ` — ${G.maxPlays - G.playsThisTurn} plays left`;
+    document.getElementById('phase-info').textContent   = G.phase === 'draw' ? 'Draw 2 cards' : G.phase === 'play' ? 'Play cards or end turn' : 'Discard to 7';
+    document.getElementById('end-turn-btn').disabled   = G.phase === 'draw' || cp.isAI;
+    // deck count hidden per design
+
+    // Discard pile
+    const dp      = document.getElementById('discard-pile');
+    const emptyEl = document.getElementById('discard-empty-text');
+    if (G.discard.length) {
+        emptyEl.style.display = 'none';
+        let img = dp.querySelector('img.discard-img');
+        if (!img) { img = document.createElement('img'); img.className='discard-img'; img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;'; dp.appendChild(img); }
+        img.src = G.discard[G.discard.length-1].img || '';
+    } else {
+        emptyEl.style.display = '';
+        const old = dp.querySelector('img.discard-img');
+        if (old) old.remove();
+    }
+
+    // Opponents
+    const oppRow = document.getElementById('opponents-row');
+    oppRow.innerHTML = '';
+    G.players.forEach((p, i) => {
+        if (i === G.currentPlayer) return;
+        const el = document.createElement('div');
+        el.className = 'opponent-panel';
+        const bankTotal = p.bank.reduce((s,c) => s+c.value, 0);
+        const setsHtml  = Object.entries(p.props).map(([col, cards]) => {
+            const meta = COLOR_META[col]; if (!meta) return '';
+            return `<span class="set-pill" style="background:${meta.hex}">${meta.label} ${cards.length}/${meta.needed}</span>`;
+        }).join('');
+        el.innerHTML = `
+            <div class="opp-name" style="color:${p.color}">${p.name}${p.isAI?' 🤖':''}</div>
+            <div class="opp-bank">Bank: £${bankTotal}M &nbsp;|&nbsp; Sets: ${completeSets(p)}/3</div>
+            <div class="opp-hand-count">${p.hand.length} cards in hand</div>
+            <div class="opp-cards-face-down">${p.hand.map(()=>'<div class="mini-card-back"></div>').join('')}</div>
+            <div class="opp-sets">${setsHtml}</div>
+        `;
+        oppRow.appendChild(el);
+    });
+
+    // Current player area
+    document.getElementById('player-area-name').textContent = cp.name + (cp.isAI?' 🤖':'') + "'s Hand";
+    document.getElementById('player-bank-info').textContent = 'Bank: £' + cp.bank.reduce((s,c)=>s+c.value,0) + 'M';
+    document.getElementById('sets-count').textContent = `(${completeSets(cp)}/3 sets)`;
+    document.getElementById('hand-count').textContent  = '('+cp.hand.length+')';
+
+    const handEl = document.getElementById('hand-cards');
+    handEl.innerHTML = '';
+    cp.hand.forEach((card, idx) => handEl.appendChild(buildCardEl(card, idx, !cp.isAI && G.phase === 'play')));
+
+    renderProps(document.getElementById('props-grid'), cp);
+}
+
+function renderProps(container, player) {
+    container.innerHTML = '';
+    Object.entries(player.props).forEach(([col, cards]) => {
+        const meta = COLOR_META[col]; if (!meta) return;
+        const el   = document.createElement('div');
+        el.className = 'color-set';
+        el.style.borderColor = meta.hex;
+        el.style.background  = meta.hex + '22';
+        el.innerHTML = `
+            <div class="color-set-title" style="color:${meta.hex}">${meta.icon} ${meta.label} (${cards.length}/${meta.needed})</div>
+            ${cards.map(c => `<div class="color-set-card" style="background:${meta.hex}33">${c.name}</div>`).join('')}
+            ${cards.length >= meta.needed ? `<div class="color-set-card" style="background:${meta.hex};color:#fff;text-align:center;font-weight:700;">✓ Complete</div>` : ''}
+        `;
+        container.appendChild(el);
+    });
+    if (!Object.keys(player.props).length)
+        container.innerHTML = '<span style="color:var(--text3);font-size:0.82rem;">No properties yet</span>';
+}
+
+function buildCardEl(card, idx, clickable) {
+    const el = document.createElement('div');
+    el.className = 'game-card';
+    if (clickable) el.onclick = () => playCard(idx);
+    if (card.img) {
+        el.innerHTML = `<img src="${card.img}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;" draggable="false">`;
+    } else {
+        el.classList.add('card-' + (card.color || card.type));
+        el.innerHTML = `<div class="card-type-label">${card.type}</div><div class="card-name">${card.name}</div>`;
+    }
+    return el;
+}
+
+/* ════════════════════════════════════════════════════
+   GAME LOGIC
+════════════════════════════════════════════════════ */
+function completeSets(player) {
+    return Object.entries(player.props).filter(([col, cards]) => {
+        const meta = COLOR_META[col]; return meta && cards.length >= meta.needed;
+    }).length;
+}
+
+function drawCard() {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+    if (cp.isAI || G.phase !== 'draw') return;
+    if (G.drawnThisTurn >= 2) { addLog('Already drew 2 cards.'); return; }
+    if (!G.deck.length) reshuffleDeck();
+    if (!G.deck.length) { addLog('Deck is empty!'); return; }
+    cp.hand.push(G.deck.pop());
+    G.drawnThisTurn++;
+    addLog(`${cp.name} drew a card.`);
+    if (G.drawnThisTurn >= 2) { G.phase = 'play'; addLog('Draw complete — play up to 3 cards.', true); }
+    renderGame();
+}
+
+function reshuffleDeck() {
+    if (G.discard.length <= 1) return;
+    const top = G.discard.pop();
+    G.deck = [...G.discard]; G.discard = top ? [top] : [];
+    for (let i = G.deck.length-1; i > 0; i--) { const j=Math.floor(Math.random()*(i+1)); [G.deck[i],G.deck[j]]=[G.deck[j],G.deck[i]]; }
+    addLog('Deck reshuffled.');
+}
+
+function playCard(idx) {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+    if (cp.isAI || G.phase !== 'play') return;
+    if (G.playsThisTurn >= G.maxPlays) { addLog('No plays left — end your turn.'); return; }
+    executeCard(G.currentPlayer, idx);
+}
+
+function executeCard(playerIdx, handIdx) {
+    const player = G.players[playerIdx];
+    const card   = player.hand[handIdx];
+    player.hand.splice(handIdx, 1);
+    G.playsThisTurn++;
+
+    if (card.type === 'property') {
+        if (!player.props[card.color]) player.props[card.color] = [];
+        player.props[card.color].push(card);
+        const meta = COLOR_META[card.color];
+        addLog(`${player.name} played ${card.name}${meta ? ' ('+meta.label+')' : ''}.`, true);
+        checkWin(playerIdx); renderGame(); checkAutoEndTurn();
+    } else if (card.type === 'wild') {
+        G.pendingWild = { playerIdx, card }; showWildModal();
+    } else if (card.type === 'money') {
+        player.bank.push(card);
+        addLog(`${player.name} banked £${card.value}M.`); renderGame(); checkAutoEndTurn();
+    } else if (card.type === 'action') {
+        G.discard.push(card); runAction(playerIdx, card);
+    }
+}
+
+function runAction(playerIdx, card) {
+    const player = G.players[playerIdx];
+    if (card.effect === 'pass_go') {
+        let drawn = 0;
+        for (let i = 0; i < 2; i++) { if (!G.deck.length) reshuffleDeck(); if (G.deck.length) { player.hand.push(G.deck.pop()); drawn++; } }
+        addLog(`${player.name} played Pass Go — drew ${drawn} extra cards! ➡️`, true); renderGame(); checkAutoEndTurn();
+    } else if (card.effect === 'birthday') {
+        let total = 0;
+        G.players.forEach((p, i) => { if (i === playerIdx) return; const paid = payFromBank(p, 2); total += paid; if (paid) addLog(`${p.name} paid £${paid}M.`); });
+        if (total) player.bank.push({ id:'bk', type:'money', name:'£'+total+'M', value:total, img:MONEY_IMG[Math.min(total,10)] });
+        addLog(`${player.name} played Eid Mubarak — collected £${total}M! 🎉`, true); renderGame(); checkAutoEndTurn();
+    } else if (card.effect === 'expand') {
+        const eligible = Object.entries(player.props).filter(([col, cards]) => { const m=COLOR_META[col]; return m && cards.length >= m.needed && col !== 'train'; });
+        if (!eligible.length) { addLog(`${player.name} played Expand the Sahn but has no eligible complete sets.`); renderGame(); checkAutoEndTurn(); return; }
+        if (eligible.length === 1) {
+            const [col] = eligible[0]; const meta = COLOR_META[col];
+            player.props[col].push({ id:'sahn_'+col, type:'property', color:col, name:'Expand the Sahn (+3M)', value:3, img:null });
+            addLog(`${player.name} expanded the ${meta.label} set (+3M)! 🏛️`, true); renderGame(); checkAutoEndTurn();
+        } else { showExpandModal(playerIdx); }
+    } else if (card.effect === 'steal_prop') {
+        showStealPropModal(playerIdx);
+    } else if (card.effect === 'steal_set') {
+        showStealSetModal(playerIdx);
+    } else if (card.effect === 'block') {
+        addLog(`${player.name} played Do Not Agree (no active action to block).`); renderGame(); checkAutoEndTurn();
+    }
+}
+
+function payFromBank(player, amount) {
+    let paid = 0;
+    player.bank.sort((a,b) => b.value - a.value);
+    while (paid < amount && player.bank.length) { const c = player.bank.pop(); paid += c.value; }
+    return Math.min(paid, amount);
+}
+
+/* ════════════════════════════════════════════════════
+   MODALS
+════════════════════════════════════════════════════ */
+function openModal(title, body) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').textContent  = body;
+    document.getElementById('modal-options').innerHTML = '';
+    document.getElementById('modal-overlay').classList.add('active');
+    return document.getElementById('modal-options');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+
+function showWildModal() {
+    const opts = openModal('Wild Card — Choose a Colour', 'Which colour set should this wild join?');
+    Object.entries(COLOR_META).forEach(([col, meta]) => {
+        const btn = document.createElement('button');
+        btn.className = 'modal-option-btn'; btn.style.borderColor = meta.hex;
+        btn.textContent = meta.icon + ' ' + meta.label;
+        btn.onclick = () => {
+            const pw = G.pendingWild; const player = G.players[pw.playerIdx];
+            if (!player.props[col]) player.props[col] = [];
+            player.props[col].push({ ...pw.card, color:col, name:'Wild ('+meta.label+')' });
+            addLog(`${player.name} played a Wild as ${meta.label}.`, true);
+            G.pendingWild = null; closeModal(); checkWin(pw.playerIdx); renderGame(); checkAutoEndTurn();
+        };
+        opts.appendChild(btn);
+    });
+}
+
+function showExpandModal(playerIdx) {
+    const player = G.players[playerIdx];
+    const opts   = openModal('Expand the Sahn', 'Choose a complete set to expand (+3M):');
+    Object.entries(player.props).forEach(([col, cards]) => {
+        const meta = COLOR_META[col];
+        if (!meta || cards.length < meta.needed || col === 'train') return;
+        const btn = document.createElement('button');
+        btn.className = 'modal-option-btn'; btn.style.borderColor = meta.hex;
+        btn.textContent = meta.icon + ' ' + meta.label;
+        btn.onclick = () => {
+            player.props[col].push({ id:'sahn_'+col, type:'property', color:col, name:'Expand the Sahn (+3M)', value:3, img:null });
+            addLog(`${player.name} expanded the ${meta.label} set (+3M)! 🏛️`, true);
+            closeModal(); renderGame(); checkAutoEndTurn();
+        };
+        opts.appendChild(btn);
+    });
+}
+
+function showStealPropModal(playerIdx) {
+    const player = G.players[playerIdx];
+    const opts   = openModal('Thawab Deal — Steal a Property', 'Choose a property not in a complete set:');
+    let found = false;
+    G.players.forEach((opp, oi) => {
+        if (oi === playerIdx) return;
+        Object.entries(opp.props).forEach(([col, cards]) => {
+            const meta = COLOR_META[col]; if (!meta) return;
+            cards.forEach((card, ci) => {
+                if (cards.length >= meta.needed) return;
+                found = true;
+                const btn = document.createElement('button');
+                btn.className = 'modal-option-btn'; btn.style.borderColor = meta.hex;
+                btn.textContent = `${opp.name}: ${card.name}`;
+                btn.onclick = () => {
+                    opp.props[col].splice(ci, 1);
+                    if (!opp.props[col].length) delete opp.props[col];
+                    if (!player.props[col]) player.props[col] = [];
+                    player.props[col].push(card);
+                    addLog(`${player.name} used Thawab Deal to take ${card.name} from ${opp.name}! 🤝`, true);
+                    closeModal(); checkWin(playerIdx); renderGame(); checkAutoEndTurn();
+                };
+                opts.appendChild(btn);
+            });
+        });
+    });
+    if (!found) {
+        document.getElementById('modal-body').textContent = 'No stealable properties available!';
+        const btn = document.createElement('button'); btn.className='modal-option-btn primary'; btn.textContent='OK';
+        btn.onclick = () => { closeModal(); renderGame(); checkAutoEndTurn(); }; opts.appendChild(btn);
+    }
+}
+
+function showStealSetModal(playerIdx) {
+    const player = G.players[playerIdx];
+    const opts   = openModal('Halal Swap — Take a Property', 'Choose a property not in a complete set:');
+    let found = false;
+    G.players.forEach((opp, oi) => {
+        if (oi === playerIdx) return;
+        Object.entries(opp.props).forEach(([col, cards]) => {
+            const meta = COLOR_META[col]; if (!meta) return;
+            cards.forEach((card, ci) => {
+                if (cards.length >= meta.needed) return;
+                found = true;
+                const btn = document.createElement('button');
+                btn.className = 'modal-option-btn'; btn.style.borderColor = meta.hex;
+                btn.textContent = `Take ${card.name} from ${opp.name}`;
+                btn.onclick = () => {
+                    opp.props[col].splice(ci, 1);
+                    if (!opp.props[col].length) delete opp.props[col];
+                    if (!player.props[col]) player.props[col] = [];
+                    player.props[col].push(card);
+                    addLog(`${player.name} used Halal Swap to take ${card.name} from ${opp.name}! 🔄`, true);
+                    closeModal(); checkWin(playerIdx); renderGame(); checkAutoEndTurn();
+                };
+                opts.appendChild(btn);
+            });
+        });
+    });
+    if (!found) {
+        document.getElementById('modal-body').textContent = 'No swappable properties available!';
+        const btn = document.createElement('button'); btn.className='modal-option-btn primary'; btn.textContent='OK';
+        btn.onclick = () => { closeModal(); renderGame(); checkAutoEndTurn(); }; opts.appendChild(btn);
+    }
+}
+
+/* ════════════════════════════════════════════════════
+   END TURN
+════════════════════════════════════════════════════ */
+function checkAutoEndTurn() {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+    if (!cp.isAI && G.phase === 'play' && G.playsThisTurn >= G.maxPlays) {
+        addLog('3 plays used — turn ended automatically.', true);
+        setTimeout(endTurn, 400);
+    }
+}
+
+function endTurn() {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+    if (G.phase === 'draw') { addLog('Draw your cards first.'); return; }
+    if (cp.hand.length > 7) { G.phase = 'discard'; showDiscardModal(cp); return; }
+    nextPlayer();
+}
+
+function showDiscardModal(player) {
+    const need = player.hand.length - 7;
+    const opts = openModal('Discard Cards', `You have ${player.hand.length} cards. Discard ${need}:`);
+    let done = 0;
+    player.hand.forEach((card, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'modal-option-btn';
+        btn.textContent = `${card.name} (${card.type})`;
+        btn.onclick = () => {
+            if (done >= need) return;
+            G.discard.push(card); player.hand.splice(idx, 1); done++;
+            closeModal();
+            if (done >= need) nextPlayer(); else showDiscardModal(player);
+        };
+        opts.appendChild(btn);
+    });
+}
+
+function nextPlayer() {
+    G.currentPlayer = (G.currentPlayer+1) % G.players.length;
+    G.phase='draw'; G.drawnThisTurn=0; G.playsThisTurn=0;
+    const cp = G.players[G.currentPlayer];
+    addLog(`--- ${cp.name}'s turn ---`, true);
+    renderGame();
+    if (cp.isAI) setTimeout(doAITurn, 800);
+}
+
+/* ════════════════════════════════════════════════════
+   WIN CHECK
+════════════════════════════════════════════════════ */
+function checkWin(playerIdx) {
+    const player = G.players[playerIdx];
+    if (completeSets(player) >= 3) {
+        document.getElementById('win-title').textContent = player.name + ' Wins!';
+        document.getElementById('win-sub').textContent   = `${player.name} collected 3 complete property sets!`;
+        document.getElementById('win-overlay').classList.add('active');
+    }
+}
+
+/* ════════════════════════════════════════════════════
+   AI LOGIC
+════════════════════════════════════════════════════ */
+function doAITurn() {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+    if (!cp.isAI) return;
+    for (let i=0; i<2; i++) { if (!G.deck.length) reshuffleDeck(); if (G.deck.length) cp.hand.push(G.deck.pop()); }
+    G.drawnThisTurn=2; G.phase='play';
+    addLog(`${cp.name} drew 2 cards.`); renderGame();
+    setTimeout(aiPlayCards, 700);
+}
+
+function aiPlayCards() {
+    if (!G) return;
+    const cp = G.players[G.currentPlayer];
+    if (!cp.isAI) return;
+
+    function tryPlay() {
+        if (G.playsThisTurn >= G.maxPlays || !cp.hand.length) {
+            setTimeout(() => { if (G) { addLog(`${cp.name} ends their turn.`); nextPlayer(); } }, 500);
+            return;
+        }
+        let bestIdx=-1, bestScore=-1;
+        cp.hand.forEach((card, idx) => {
+            let score = 0;
+            if (card.type==='property') {
+                const meta = COLOR_META[card.color]; if (!meta) return;
+                const have = (cp.props[card.color]||[]).length;
+                score = 10 + have*5 + (have+1 >= meta.needed ? 50 : 0);
+            } else if (card.type==='wild')   { score=8; }
+            else if (card.type==='action')   { score = card.effect==='pass_go'?9 : card.effect==='birthday'?12 : 6; }
+            else if (card.type==='money')    { score = card.value; }
+            if (score > bestScore) { bestScore=score; bestIdx=idx; }
+        });
+        if (bestIdx===-1) { setTimeout(()=>{ if(G) nextPlayer(); },300); return; }
+
+        const card = cp.hand[bestIdx];
+        cp.hand.splice(bestIdx, 1);
+        G.playsThisTurn++;
+
+        if (card.type==='property') {
+            if (!cp.props[card.color]) cp.props[card.color]=[];
+            cp.props[card.color].push(card);
+            addLog(`${cp.name} played ${card.name}.`); checkWin(G.currentPlayer);
+        } else if (card.type==='wild') {
+            let bestCol=Object.keys(COLOR_META)[0], bestCnt=-1;
+            Object.entries(COLOR_META).forEach(([col,meta])=>{ const cnt=(cp.props[col]||[]).length; if(cnt<meta.needed&&cnt>bestCnt){bestCnt=cnt;bestCol=col;} });
+            const meta=COLOR_META[bestCol];
+            if(!cp.props[bestCol]) cp.props[bestCol]=[];
+            cp.props[bestCol].push({...card,color:bestCol,name:'Wild ('+meta.label+')'});
+            addLog(`${cp.name} played Wild as ${meta.label}.`); checkWin(G.currentPlayer);
+        } else if (card.type==='money') {
+            cp.bank.push(card); addLog(`${cp.name} banked £${card.value}M.`);
+        } else if (card.type==='action') {
+            G.discard.push(card);
+            if (card.effect==='pass_go') {
+                let drawn=0;
+                for(let i=0;i<2;i++){if(!G.deck.length)reshuffleDeck();if(G.deck.length){cp.hand.push(G.deck.pop());drawn++;}}
+                addLog(`${cp.name} played Pass Go — drew ${drawn} extra cards.`);
+            } else if (card.effect==='birthday') {
+                let total=0;
+                G.players.forEach((p,i)=>{if(i===G.currentPlayer)return;total+=payFromBank(p,2);});
+                if(total) cp.bank.push({id:'ai_bk',type:'money',name:'£'+total+'M',value:total,img:MONEY_IMG[Math.min(total,10)]||MONEY_IMG[5]});
+                addLog(`${cp.name} played Eid Mubarak — collected £${total}M.`);
+            } else if (card.effect==='steal_prop') {
+                let stolen=false;
+                G.players.forEach((opp,oi)=>{
+                    if(stolen||oi===G.currentPlayer) return;
+                    Object.entries(opp.props).forEach(([col,cards])=>{
+                        if(stolen||!COLOR_META[col]||cards.length>=COLOR_META[col].needed) return;
+                        if((cp.props[col]||[]).length>0&&cards.length>0){
+                            const c=opp.props[col].pop();
+                            if(!opp.props[col].length) delete opp.props[col];
+                            if(!cp.props[col]) cp.props[col]=[];
+                            cp.props[col].push(c);
+                            addLog(`${cp.name} used Thawab Deal to take ${c.name}!`);
+                            stolen=true; checkWin(G.currentPlayer);
+                        }
+                    });
+                });
+                if(!stolen) addLog(`${cp.name} played Thawab Deal (nothing useful).`);
+            } else { addLog(`${cp.name} played ${card.name}.`); }
+        }
+
+        renderGame();
+        if (!G || G.currentPlayer !== G.players.indexOf(cp)) return;
+        setTimeout(tryPlay, 700);
+    }
+    tryPlay();
+}
+
+/* ════════════════════════════════════════════════════
+   LOG + RESTART + INIT
+════════════════════════════════════════════════════ */
+function addLog(msg, highlight) {
+    const log = document.getElementById('game-log'); if (!log) return;
+    const el = document.createElement('div');
+    el.className = 'log-entry' + (highlight ? ' highlight' : '');
+    el.textContent = msg; log.appendChild(el); log.scrollTop = log.scrollHeight;
+}
+function restartGame() { document.getElementById('win-overlay').classList.remove('active'); startGame(); }
+updateNameInputs();
+</script>
+</body>
+</html>
