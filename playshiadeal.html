@@ -543,6 +543,16 @@
     </div>
 </div>
 
+<!-- ── PASS-DEVICE OVERLAY (local multiplayer) ── -->
+<div id="passto-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:4500;align-items:center;justify-content:center;">
+    <div style="background:var(--card-bg,#1a1a2e);border:2px solid var(--gold,#f5c430);border-radius:22px;padding:48px 56px;text-align:center;max-width:420px;width:90%;box-shadow:0 20px 80px rgba(0,0,0,0.8);">
+        <div style="font-size:2.8rem;margin-bottom:14px;">🤲</div>
+        <div id="passto-name" style="font-family:'Bely Display',serif;font-size:2rem;color:var(--gold,#f5c430);margin-bottom:10px;"></div>
+        <div style="color:#ccc;font-size:1rem;margin-bottom:32px;">Hand the device to this player, then tap below.</div>
+        <button onclick="dismissPassTo()" style="background:var(--gold,#f5c430);color:#111;font-weight:700;font-size:1.05rem;border:none;border-radius:10px;padding:14px 40px;cursor:pointer;width:100%;">▶ Start Turn</button>
+    </div>
+</div>
+
 <!-- ── CARD ZOOM OVERLAY (right-click any card) ── -->
 <div id="zoom-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:5000;align-items:center;justify-content:center;cursor:zoom-out;">
     <img id="zoom-img" src="" alt="Card zoom" style="max-height:82vh;max-width:88vw;border-radius:18px;box-shadow:0 12px 60px rgba(0,0,0,0.9);pointer-events:none;">
@@ -612,7 +622,13 @@ function showScreen(id) {
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
 }
-function goToLobby() { G = null; showScreen('screen-lobby'); }
+function goToLobby() {
+    G = null;
+    document.getElementById('win-overlay').classList.remove('active');
+    document.getElementById('modal-overlay').classList.remove('active');
+    document.getElementById('passto-overlay').style.display = 'none';
+    showScreen('screen-lobby');
+}
 
 /* ════════════════════════════════════════════════════
    GAME DATA — COLOUR SETS
@@ -1132,7 +1148,20 @@ function nextPlayer() {
     G.phase='draw'; G.drawnThisTurn=0; G.playsThisTurn=0;
     const cp = G.players[G.currentPlayer];
     addLog(`--- ${cp.name}'s turn ---`, true);
+    if (currentMode === 'local' && !cp.isAI) {
+        const overlay = document.getElementById('passto-overlay');
+        document.getElementById('passto-name').textContent = `${cp.name}'s Turn`;
+        overlay.style.display = 'flex';
+    } else {
+        renderGame();
+        if (cp.isAI) setTimeout(doAITurn, 800);
+    }
+}
+
+function dismissPassTo() {
+    document.getElementById('passto-overlay').style.display = 'none';
     renderGame();
+    const cp = G.players[G.currentPlayer];
     if (cp.isAI) setTimeout(doAITurn, 800);
 }
 
