@@ -457,6 +457,14 @@
                    onkeydown="if(event.key==='Enter') doMemberLogin()">
         </div>
         <button class="btn-login" onclick="doMemberLogin()">Sign In</button>
+        <div id="google-signin-section" style="display:none">
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0 14px">
+                <div style="flex:1;height:1px;background:var(--border)"></div>
+                <span style="color:var(--text2);font-size:0.8rem;white-space:nowrap">or sign in with</span>
+                <div style="flex:1;height:1px;background:var(--border)"></div>
+            </div>
+            <div id="google-btn-container" style="display:flex;justify-content:center"></div>
+        </div>
         <div class="login-error" id="login-error"></div>
         <a href="index.html" class="login-back">← Back to home</a>
     </div>
@@ -594,6 +602,67 @@ function updateThemeBtn() {
 document.addEventListener('DOMContentLoaded', updateThemeBtn);
 
 // ─────────────────────────────────────────────
+// GOOGLE SIGN-IN
+// ─────────────────────────────────────────────
+async function loadMemberGoogleSettings() {
+    try {
+        var r = await fetch('/api/settings');
+        if (!r.ok) return;
+        var s = await r.json();
+        if (s.googleClientId) initMemberGoogleSignIn(s.googleClientId);
+    } catch {}
+}
+
+function initMemberGoogleSignIn(clientId) {
+    if (typeof google !== 'undefined' && google.accounts) {
+        _setupMemberGoogleButton(clientId);
+        return;
+    }
+    var s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = function() { _setupMemberGoogleButton(clientId); };
+    document.head.appendChild(s);
+}
+
+function _setupMemberGoogleButton(clientId) {
+    google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleMemberGoogleCredential,
+        auto_select: false,
+    });
+    google.accounts.id.renderButton(
+        document.getElementById('google-btn-container'),
+        { theme: 'outline', size: 'large', width: 300, text: 'signin_with', shape: 'rectangular' }
+    );
+    document.getElementById('google-signin-section').style.display = 'block';
+}
+
+async function handleMemberGoogleCredential(response) {
+    var errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    try {
+        var r = await fetch('/api/member-google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: response.credential }),
+        });
+        var data = await r.json();
+        if (!r.ok) {
+            errEl.textContent = data.error || 'Google sign-in failed. Please try again.';
+            errEl.style.display = 'block';
+            return;
+        }
+        currentMember = data.member;
+        sessionStorage.setItem('qd_member_sess', JSON.stringify(data.member));
+        showPortal();
+    } catch {
+        errEl.textContent = 'Google sign-in failed. Please try again.';
+        errEl.style.display = 'block';
+    }
+}
+
+// ─────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────
 var currentMember = null;
@@ -668,6 +737,9 @@ function showPortal() {
     }
     window.scrollTo(0, 0);
 }
+
+// Load Google Sign-In on page load
+loadMemberGoogleSettings();
 
 // Restore session on page load
 (function() {

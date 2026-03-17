@@ -228,6 +228,62 @@ export async function onRequest(context) {
             return json({ ok: true });
         }
 
+        // POST /api/member-google-login
+        if (route === 'member-google-login' && method === 'POST') {
+            const { idToken } = await request.json();
+            if (!idToken) return json({ error: 'Missing id_token' }, 400);
+
+            const verifyRes = await fetch(
+                `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+            );
+            const tokenData = await verifyRes.json();
+            if (!verifyRes.ok || tokenData.error) {
+                return json({ error: 'Invalid or expired Google token' }, 401);
+            }
+            if (tokenData.email_verified !== 'true' && tokenData.email_verified !== true) {
+                return json({ error: 'Google account email not verified' }, 401);
+            }
+
+            const d = await readData();
+            const clientId = d.settings?.googleClientId;
+            if (clientId && tokenData.aud !== clientId) {
+                return json({ error: 'Token audience mismatch' }, 401);
+            }
+
+            const email = (tokenData.email || '').toLowerCase();
+
+            // Staff users get automatic member access
+            const staffUser = (d.users || []).find(u =>
+                u.googleEmail && u.googleEmail.toLowerCase() === email
+            );
+            if (staffUser) {
+                return json({ member: {
+                    id: 'staff-' + staffUser.id,
+                    name: staffUser.name,
+                    email: staffUser.googleEmail,
+                    plan: 'Staff',
+                    active: true,
+                    isStaff: true,
+                    memberSince: null,
+                    expiryDate: null,
+                }});
+            }
+
+            // Check members (match by email or googleEmail field)
+            const member = (d.members || []).find(m =>
+                m.active !== false &&
+                ((m.email || '').toLowerCase() === email || (m.googleEmail || '').toLowerCase() === email)
+            );
+            if (!member) {
+                return json({ error: 'No member account found for this Google address. Contact us to get access.' }, 403);
+            }
+            if (member.expiryDate && new Date(member.expiryDate) < new Date()) {
+                return json({ error: 'Your membership has expired. Please contact us to renew.' }, 403);
+            }
+            const safeMember = Object.assign({}, member); delete safeMember.password;
+            return json({ member: safeMember });
+        }
+
         // POST /api/member-login
         if (route === 'member-login' && method === 'POST') {
             const body = await request.json();

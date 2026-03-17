@@ -133,6 +133,57 @@ app.delete("/api/interests/:id", function(req, res) {
     res.json({ ok: true });
 });
 
+// POST /api/member-google-login
+app.post("/api/member-google-login", function(req, res) {
+    var idToken = (req.body || {}).idToken;
+    if (!idToken) return res.status(400).json({ error: "Missing id_token" });
+
+    fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken))
+        .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+        .then(function(result) {
+            var tokenData = result.data;
+            if (!result.ok || tokenData.error) return res.status(401).json({ error: "Invalid or expired Google token" });
+            if (tokenData.email_verified !== "true" && tokenData.email_verified !== true)
+                return res.status(401).json({ error: "Google account email not verified" });
+
+            var d = readData();
+            var clientId = (d.settings || {}).googleClientId;
+            if (clientId && tokenData.aud !== clientId)
+                return res.status(401).json({ error: "Token audience mismatch" });
+
+            var email = (tokenData.email || "").toLowerCase();
+
+            // Staff users get automatic member access
+            var staffUser = (d.users || []).find(function(u) {
+                return u.googleEmail && u.googleEmail.toLowerCase() === email;
+            });
+            if (staffUser) {
+                return res.json({ member: {
+                    id: "staff-" + staffUser.id,
+                    name: staffUser.name,
+                    email: staffUser.googleEmail,
+                    plan: "Staff",
+                    active: true,
+                    isStaff: true,
+                    memberSince: null,
+                    expiryDate: null,
+                }});
+            }
+
+            // Check members (by email or googleEmail field)
+            var member = (d.members || []).find(function(m) {
+                return m.active !== false &&
+                    ((m.email || "").toLowerCase() === email || (m.googleEmail || "").toLowerCase() === email);
+            });
+            if (!member) return res.status(403).json({ error: "No member account found for this Google address. Contact us to get access." });
+            if (member.expiryDate && new Date(member.expiryDate) < new Date())
+                return res.status(403).json({ error: "Your membership has expired. Please contact us to renew." });
+            var safe = Object.assign({}, member); delete safe.password;
+            res.json({ member: safe });
+        })
+        .catch(function() { res.status(500).json({ error: "Failed to verify Google token" }); });
+});
+
 // POST /api/member-login
 app.post("/api/member-login", function(req, res) {
     var body = req.body || {};
