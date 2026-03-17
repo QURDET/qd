@@ -503,6 +503,16 @@
             </select>
         </div>
 
+        <div class="form-group" id="difficulty-group" style="display:none">
+            <label for="ai-difficulty">AI Difficulty</label>
+            <select id="ai-difficulty">
+                <option value="easy">🟢 Easy — relaxed, plays randomly</option>
+                <option value="medium" selected>🟡 Medium — balanced play</option>
+                <option value="hard">🟠 Hard — smart &amp; aggressive</option>
+                <option value="veryhard">🔴 Very Hard — optimal play</option>
+            </select>
+        </div>
+
         <div class="form-group">
             <label>Player Names</label>
             <div class="player-names" id="player-names"></div>
@@ -794,11 +804,13 @@ function startMode(mode) {
         document.getElementById('setup-sub').textContent   = 'You vs the computer. Enter your name below.';
         document.getElementById('player-count').value = '2';
         countGroup.style.display = 'none';
+        document.getElementById('difficulty-group').style.display = '';
     } else {
         document.getElementById('setup-title').textContent = 'Local Multiplayer Setup';
         document.getElementById('setup-sub').textContent   = 'Pass the device between players each turn.';
         document.getElementById('player-count').value = '4';
         countGroup.style.display = '';
+        document.getElementById('difficulty-group').style.display = 'none';
     }
     updateNameInputs();
     showScreen('screen-setup');
@@ -841,7 +853,8 @@ function startGame() {
         color: PLAYER_COLORS[i], hand: [], bank: [], props: {},
     }));
     players.forEach(p => { for (let i = 0; i < 5; i++) if (deck.length) p.hand.push(deck.pop()); });
-    G = { deck, discard:[], players, currentPlayer:0, phase:'draw', drawnThisTurn:0, playsThisTurn:0, maxPlays:3, pendingWild:null };
+    const aiDiff = currentMode === 'ai' ? (document.getElementById('ai-difficulty').value) : 'medium';
+    G = { deck, discard:[], players, currentPlayer:0, phase:'draw', drawnThisTurn:0, playsThisTurn:0, maxPlays:3, pendingWild:null, aiDifficulty: aiDiff };
     showScreen('screen-game');
     renderGame();
     addLog(`Game started! ${G.players[0].name}'s turn.`, true);
@@ -1260,37 +1273,69 @@ function aiPlayCards() {
     if (!G) return;
     const cp = G.players[G.currentPlayer];
     if (!cp.isAI) return;
+    const diff = G.aiDifficulty || 'medium';
+    // Timings: easy is slow/deliberate, veryhard is snappy
+    const delay = { easy:1100, medium:700, hard:500, veryhard:380 }[diff] || 700;
 
-    function tryPlay() {
-        if (G.playsThisTurn >= G.maxPlays || !cp.hand.length) {
-            setTimeout(() => { if (G) { addLog(`${cp.name} ends their turn.`); nextPlayer(); } }, 500);
-            return;
+    function scoreCard(card) {
+        if (diff === 'easy') return Math.random() * 10; // pure random on easy
+
+        const have = card.type==='property' ? (cp.props[card.color]||[]).length : 0;
+        const meta = card.type==='property' ? COLOR_META[card.color] : null;
+
+        if (diff === 'medium') {
+            if (card.type==='property') { if (!meta) return 0; return 10 + have*5 + (have+1>=meta.needed?50:0); }
+            if (card.type==='wild')    return 8;
+            if (card.type==='action')  return card.effect==='pass_go'?9 : card.effect==='birthday'?12 : 6;
+            if (card.type==='money')   return card.value;
+            return 0;
         }
-        let bestIdx=-1, bestScore=-1;
-        cp.hand.forEach((card, idx) => {
-            let score = 0;
-            if (card.type==='property') {
-                const meta = COLOR_META[card.color]; if (!meta) return;
-                const have = (cp.props[card.color]||[]).length;
-                score = 10 + have*5 + (have+1 >= meta.needed ? 50 : 0);
-            } else if (card.type==='wild')   { score=8; }
-            else if (card.type==='action')   { score = card.effect==='pass_go'?9 : card.effect==='birthday'?12 : 6; }
-            else if (card.type==='money')    { score = card.value; }
-            if (score > bestScore) { bestScore=score; bestIdx=idx; }
-        });
-        if (bestIdx===-1) { setTimeout(()=>{ if(G) nextPlayer(); },300); return; }
 
-        const card = cp.hand[bestIdx];
-        cp.hand.splice(bestIdx, 1);
-        G.playsThisTurn++;
+        // hard / veryhard — smarter scoring
+        if (card.type==='property') {
+            if (!meta) return 0;
+            const wouldComplete = have+1 >= meta.needed;
+            // veryhard: also penalise giving opponent a set they need
+            let oppThreat = 0;
+            if (diff==='veryhard') {
+                G.players.forEach((p,i)=>{ if(i===G.currentPlayer) return; const oh=(p.props[card.color]||[]).length; if(oh+1>=meta.needed) oppThreat+=30; });
+            }
+            return 10 + have*8 + (wouldComplete?80:0) + oppThreat;
+        }
+        if (card.type==='wild') {
+            // place on the colour closest to completion
+            let best=0;
+            Object.entries(COLOR_META).forEach(([col,m])=>{ const c=(cp.props[col]||[]).length; const pct=c/m.needed; if(pct>best) best=pct; });
+            return 15 + best*40;
+        }
+        if (card.type==='action') {
+            if (card.effect==='pass_go') return 18;
+            if (card.effect==='birthday') {
+                // veryhard: value by how much we'll actually collect
+                if (diff==='veryhard') { let est=0; G.players.forEach((p,i)=>{if(i===G.currentPlayer)return; est+=Math.min(p.bank.reduce((s,c)=>s+c.value,0),2);}); return 20+est*3; }
+                return 15;
+            }
+            if (card.effect==='steal_prop') {
+                // high value if opponent is close to completing a set we also want
+                let bonus=0;
+                G.players.forEach((p,i)=>{if(i===G.currentPlayer)return; Object.entries(p.props).forEach(([col,cards])=>{ const m=COLOR_META[col]; if(!m||cards.length>=m.needed) return; if((cp.props[col]||[]).length>0) bonus+=20; if(diff==='veryhard'&&cards.length+1>=m.needed) bonus+=30; }); });
+                return 10+bonus;
+            }
+            return 6;
+        }
+        if (card.type==='money') return card.value + (diff==='veryhard'?2:0);
+        return 0;
+    }
 
+    function playCardEffect(card) {
         if (card.type==='property') {
             if (!cp.props[card.color]) cp.props[card.color]=[];
             cp.props[card.color].push(card);
             addLog(`${cp.name} played ${card.name}.`); checkWin(G.currentPlayer);
         } else if (card.type==='wild') {
-            let bestCol=Object.keys(COLOR_META)[0], bestCnt=-1;
-            Object.entries(COLOR_META).forEach(([col,meta])=>{ const cnt=(cp.props[col]||[]).length; if(cnt<meta.needed&&cnt>bestCnt){bestCnt=cnt;bestCol=col;} });
+            // pick colour closest to completion
+            let bestCol=Object.keys(COLOR_META)[0], bestPct=-1;
+            Object.entries(COLOR_META).forEach(([col,meta])=>{ const cnt=(cp.props[col]||[]).length; const pct=cnt/meta.needed; if(cnt<meta.needed&&pct>bestPct){bestPct=pct;bestCol=col;} });
             const meta=COLOR_META[bestCol];
             if(!cp.props[bestCol]) cp.props[bestCol]=[];
             cp.props[bestCol].push({...card,color:bestCol,name:'Wild ('+meta.label+')'});
@@ -1310,8 +1355,11 @@ function aiPlayCards() {
                 addLog(`${cp.name} played Eid Mubarak — collected £${total}M.`);
             } else if (card.effect==='steal_prop') {
                 let stolen=false;
-                G.players.forEach((opp,oi)=>{
-                    if(stolen||oi===G.currentPlayer) return;
+                // veryhard: prioritise stealing from player closest to winning
+                const opps = [...G.players.entries()].filter(([i])=>i!==G.currentPlayer);
+                if (diff==='veryhard') opps.sort(([,a],[,b])=>Object.keys(b.props).length-Object.keys(a.props).length);
+                opps.forEach(([oi,opp])=>{
+                    if(stolen) return;
                     Object.entries(opp.props).forEach(([col,cards])=>{
                         if(stolen||!COLOR_META[col]||cards.length>=COLOR_META[col].needed) return;
                         if((cp.props[col]||[]).length>0&&cards.length>0){
@@ -1327,10 +1375,33 @@ function aiPlayCards() {
                 if(!stolen) addLog(`${cp.name} played Thawab Deal (nothing useful).`);
             } else { addLog(`${cp.name} played ${card.name}.`); }
         }
+    }
+
+    function tryPlay() {
+        // Easy: 30% chance to end turn early each card (makes it feel forgetful)
+        if (diff==='easy' && G.playsThisTurn > 0 && Math.random() < 0.3) {
+            setTimeout(()=>{ if(G){ addLog(`${cp.name} ends their turn.`); nextPlayer(); } }, delay);
+            return;
+        }
+        if (G.playsThisTurn >= G.maxPlays || !cp.hand.length) {
+            setTimeout(()=>{ if(G){ addLog(`${cp.name} ends their turn.`); nextPlayer(); } }, 500);
+            return;
+        }
+        let bestIdx=-1, bestScore=-Infinity;
+        cp.hand.forEach((card, idx) => {
+            const s = scoreCard(card);
+            if (s > bestScore) { bestScore=s; bestIdx=idx; }
+        });
+        if (bestIdx===-1) { setTimeout(()=>{ if(G) nextPlayer(); },300); return; }
+
+        const card = cp.hand[bestIdx];
+        cp.hand.splice(bestIdx, 1);
+        G.playsThisTurn++;
+        playCardEffect(card);
 
         renderGame();
         if (!G || G.currentPlayer !== G.players.indexOf(cp)) return;
-        setTimeout(tryPlay, 700);
+        setTimeout(tryPlay, delay);
     }
     tryPlay();
 }
