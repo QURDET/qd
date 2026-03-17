@@ -287,6 +287,44 @@
         .card-action { background:linear-gradient(135deg,#4a1d5e,#7b2d8b); color:#fff; }
         .card-wild   { background:linear-gradient(135deg,#c47f0a,#f5c430); color:#222; }
 
+        /* ── MEMBER GATE OVERLAY ── */
+        #member-gate {
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.88);
+            z-index:9999; align-items:center; justify-content:center;
+            backdrop-filter:blur(6px);
+        }
+        #member-gate.active { display:flex; }
+        .gate-card {
+            background:var(--card-bg); border:2px solid rgba(123,63,94,0.4);
+            border-radius:24px; padding:44px 40px; max-width:420px; width:90%;
+            text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+        }
+        .gate-lock { font-size:3rem; margin-bottom:12px; }
+        .gate-title {
+            font-family:'Bely Display',serif; font-size:1.8rem;
+            color:#7b3f5e; margin-bottom:8px;
+        }
+        .gate-sub {
+            color:var(--text3); font-size:0.9rem; line-height:1.6; margin-bottom:28px;
+        }
+        .gate-btn {
+            display:block; width:100%; padding:13px; border-radius:12px;
+            font-family:'Poppins',sans-serif; font-size:1rem; font-weight:700;
+            text-decoration:none; cursor:pointer; border:none; transition:all 0.2s;
+            margin-bottom:12px;
+        }
+        .gate-btn-primary {
+            background:#7b3f5e; color:#fff;
+        }
+        .gate-btn-primary:hover { background:#9b4f78; transform:translateY(-2px); box-shadow:0 6px 20px rgba(123,63,94,0.4); }
+        .gate-btn-secondary {
+            background:none; border:2px solid var(--card-border); color:var(--text3);
+            font-family:'Poppins',sans-serif; font-size:0.9rem; font-weight:600;
+            padding:11px;
+        }
+        .gate-btn-secondary:hover { border-color:#7b3f5e; color:#7b3f5e; }
+
         /* Modal */
         .modal-overlay {
             display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
@@ -379,6 +417,17 @@
     </style>
 </head>
 <body>
+
+<!-- ── MEMBER GATE ── -->
+<div id="member-gate">
+    <div class="gate-card">
+        <div class="gate-lock">🔒</div>
+        <div class="gate-title">Members Only</div>
+        <p class="gate-sub">Play Online is exclusive to Qur'an Detectives members.<br>Log in to your member account to play.</p>
+        <a href="members.html" class="gate-btn gate-btn-primary">🎫 Go to Member Login</a>
+        <a href="index.html" class="gate-btn gate-btn-secondary">← Back to Home</a>
+    </div>
+</div>
 
 <!-- ── NAV ── -->
 <nav id="mainNav">
@@ -587,6 +636,22 @@
 </footer>
 
 <script>
+/* ════════════════════════════════════════════════════
+   MEMBER GATE — block non-members
+════════════════════════════════════════════════════ */
+(function() {
+    try {
+        var raw = sessionStorage.getItem('qdMember');
+        if (raw) {
+            var m = JSON.parse(raw);
+            if (m && (m.active !== false)) return; // logged-in member → allow
+        }
+    } catch(e) {}
+    // Not logged in — show gate and disable all game screens
+    document.getElementById('member-gate').classList.add('active');
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+})();
+
 /* ════════════════════════════════════════════════════
    NAV + THEME
 ════════════════════════════════════════════════════ */
