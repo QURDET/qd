@@ -491,59 +491,56 @@
         .tut-btn-no   { background:none; border:2px solid var(--card-border); color:var(--text3); }
         .tut-btn-no:hover   { border-color:var(--gold); color:var(--text); }
 
-        /* ── TUTORIAL WALKTHROUGH ── */
-        #tutorial-overlay {
-            display:none; position:fixed; inset:0; background:rgba(0,0,0,0.84);
-            z-index:8001; align-items:center; justify-content:center;
-            backdrop-filter:blur(6px);
+        /* ── IN-GAME TUTORIAL SPOTLIGHT ── */
+        #tut-spotlight {
+            position:fixed; border-radius:12px; display:none; pointer-events:none;
+            z-index:6000;
+            box-shadow:0 0 0 9999px rgba(0,0,0,0.54), 0 0 0 3px var(--gold), 0 0 22px rgba(var(--gold-rgb),0.5);
+            transition:left 0.32s ease, top 0.32s ease, width 0.32s ease, height 0.32s ease;
+            animation:tutGlow 2.2s ease-in-out infinite;
         }
-        #tutorial-overlay.active { display:flex; }
-        .tut-card {
+        @keyframes tutGlow {
+            0%,100% { box-shadow:0 0 0 9999px rgba(0,0,0,0.54), 0 0 0 3px var(--gold), 0 0 16px rgba(var(--gold-rgb),0.35); }
+            50%      { box-shadow:0 0 0 9999px rgba(0,0,0,0.54), 0 0 0 3px var(--gold), 0 0 34px rgba(var(--gold-rgb),0.8); }
+        }
+
+        /* ── IN-GAME TUTORIAL CORNER PANEL ── */
+        #tut-panel {
+            position:fixed; bottom:20px; right:20px; width:272px;
             background:var(--card-bg); border:2px solid var(--gold);
-            border-radius:24px; padding:36px 32px 28px; max-width:480px; width:92%;
-            text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.55);
-            position:relative; animation:tutFadeIn 0.3s ease;
+            border-radius:18px; padding:14px 16px 16px;
+            z-index:6001; box-shadow:0 8px 40px rgba(0,0,0,0.45);
+            display:none; flex-direction:column; gap:7px;
+            animation:tutFadeIn 0.3s ease;
         }
-        .tut-skip-btn {
-            position:absolute; top:14px; right:16px;
-            background:none; border:none; color:var(--text3); font-size:0.78rem;
-            cursor:pointer; padding:4px 10px; border-radius:6px;
+        #tut-panel.active { display:flex; }
+        .tp-header { display:flex; align-items:center; justify-content:space-between; }
+        .tp-counter { font-size:0.66rem; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.06em; }
+        .tp-close {
+            background:none; border:none; font-size:0.75rem; color:var(--text3);
+            cursor:pointer; padding:3px 7px; border-radius:6px;
             font-family:'Poppins',sans-serif; transition:background 0.2s;
         }
-        .tut-skip-btn:hover { background:var(--bg3); color:var(--text); }
-        .tut-step-icon { font-size:3.6rem; margin-bottom:12px; }
-        .tut-step-counter {
-            font-size:0.72rem; font-weight:700; color:var(--text3);
-            letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px;
+        .tp-close:hover { background:var(--bg3); color:var(--text); }
+        .tp-title { font-family:'Bely Display',serif; font-size:1.05rem; color:var(--gold); line-height:1.2; }
+        .tp-text { font-size:0.8rem; color:var(--text); line-height:1.65; }
+        .tp-text strong { color:var(--gold); }
+        .tp-dots { display:flex; gap:5px; justify-content:center; }
+        .tp-dot { width:7px; height:7px; border-radius:50%; background:var(--card-border); }
+        .tp-dot.active { background:var(--gold); }
+        .tp-btn {
+            background:var(--gold); color:#222; border:none;
+            padding:9px 14px; border-radius:10px;
+            font-family:'Poppins',sans-serif; font-size:0.82rem; font-weight:700;
+            cursor:pointer; transition:all 0.2s; width:100%; text-align:center;
         }
-        .tut-step-title {
-            font-family:'Bely Display',serif; font-size:1.55rem; color:var(--gold);
-            margin-bottom:10px;
+        .tp-btn:hover { background:var(--gold2); transform:translateY(-1px); }
+        .tp-arrow {
+            position:absolute; width:12px; height:12px;
+            background:var(--gold); border-radius:50%;
+            animation:tutPing 1.2s ease-in-out infinite;
         }
-        .tut-step-text {
-            color:var(--text); font-size:0.9rem; line-height:1.75;
-            margin-bottom:22px; min-height:80px;
-        }
-        .tut-step-text strong { color:var(--gold); }
-        .tut-dots {
-            display:flex; justify-content:center; gap:8px; margin-bottom:22px;
-        }
-        .tut-dot {
-            width:9px; height:9px; border-radius:50%;
-            background:var(--card-border); border:none; cursor:pointer; padding:0;
-            transition:background 0.2s, transform 0.2s;
-        }
-        .tut-dot.active { background:var(--gold); transform:scale(1.35); }
-        .tut-nav { display:flex; gap:10px; justify-content:center; }
-        .tut-nav button {
-            padding:11px 28px; border-radius:12px;
-            font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700;
-            cursor:pointer; transition:all 0.2s;
-        }
-        .tut-nav .btn-prev { background:none; border:2px solid var(--card-border); color:var(--text3); }
-        .tut-nav .btn-prev:hover { border-color:var(--gold); color:var(--text); }
-        .tut-nav .btn-next { background:var(--gold); color:#222; border:none; }
-        .tut-nav .btn-next:hover { background:var(--gold2); transform:translateY(-2px); }
+        @keyframes tutPing { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.6);opacity:0.6} }
 
         @media(max-width:700px) {
             .lobby-title { font-size:2.2rem; }
@@ -554,7 +551,7 @@
             .game-topbar { font-size:0.78rem; }
             .table-middle { gap:8px; padding:10px 12px; }
             .hand-fan { height:118px; }
-            .tut-card { padding:28px 20px 22px; }
+            #tut-panel { width:calc(100vw - 24px); right:12px; bottom:12px; }
         }
     </style>
 </head>
@@ -584,20 +581,19 @@
     </div>
 </div>
 
-<!-- ── TUTORIAL WALKTHROUGH ── -->
-<div id="tutorial-overlay">
-    <div class="tut-card">
-        <button class="tut-skip-btn" onclick="closeTutorial()">Skip ✕</button>
-        <div class="tut-step-icon" id="tut-icon">🎴</div>
-        <div class="tut-step-counter" id="tut-counter">Step 1 of 10</div>
-        <div class="tut-step-title" id="tut-title">Title</div>
-        <div class="tut-step-text" id="tut-text">Text</div>
-        <div class="tut-dots" id="tut-dots"></div>
-        <div class="tut-nav">
-            <button class="btn-prev" id="tut-prev-btn" onclick="tutNav(-1)">← Back</button>
-            <button class="btn-next" id="tut-next-btn" onclick="tutNav(1)">Next →</button>
-        </div>
+<!-- ── IN-GAME TUTORIAL SPOTLIGHT (highlights target element) ── -->
+<div id="tut-spotlight"></div>
+
+<!-- ── IN-GAME TUTORIAL CORNER PANEL ── -->
+<div id="tut-panel">
+    <div class="tp-header">
+        <span class="tp-counter" id="tp-counter">Step 1 of 10</span>
+        <button class="tp-close" onclick="exitTutorial()">Exit ✕</button>
     </div>
+    <div class="tp-title" id="tp-title"></div>
+    <div class="tp-text"  id="tp-text"></div>
+    <div class="tp-dots"  id="tp-dots"></div>
+    <button class="tp-btn" id="tp-btn" onclick="tutPanelNext()">Next →</button>
 </div>
 
 <!-- ── NAV ── -->
@@ -1224,6 +1220,7 @@ function drawCard() {
     addLog(`${cp.name} drew a card.`);
     if (G.drawnThisTurn >= 2) { G.phase = 'play'; addLog('Draw complete — play up to 3 cards.', true); }
     renderGame();
+    if (tutorialActive) { const s = TUT_GAME_STEPS[tutGameStep]; if (s?.advanceOn === 'draw') tutGameAdvance(); }
 }
 
 function reshuffleDeck() {
@@ -1247,6 +1244,7 @@ function executeCard(playerIdx, handIdx) {
     const card   = player.hand[handIdx];
     player.hand.splice(handIdx, 1);
     G.playsThisTurn++;
+    if (tutorialActive && playerIdx === 0) { const s = TUT_GAME_STEPS[tutGameStep]; if (s?.advanceOn === 'play') setTimeout(tutGameAdvance, 350); }
 
     if (card.type === 'property') {
         if (!player.props[card.color]) player.props[card.color] = [];
@@ -1449,6 +1447,7 @@ function endTurn() {
     const cp = G.players[G.currentPlayer];
     if (G.phase === 'draw') { addLog('Draw your cards first.'); return; }
     if (cp.hand.length > 7) { G.phase = 'discard'; showDiscardModal(cp); return; }
+    if (tutorialActive) { const s = TUT_GAME_STEPS[tutGameStep]; if (s?.advanceOn === 'endturn') tutGameAdvance(); }
     slideFanOut(nextPlayer);
 }
 
@@ -1669,67 +1668,23 @@ function restartGame() { document.getElementById('win-overlay').classList.remove
 updateNameInputs();
 
 /* ════════════════════════════════════════════════════
-   TUTORIAL SYSTEM
+   TUTORIAL SYSTEM — IN-GAME INTERACTIVE WALKTHROUGH
 ════════════════════════════════════════════════════ */
-const TUT_STEPS = [
-    {
-        icon: '🕌',
-        title: 'Welcome to Shia Deal!',
-        text: 'Let\'s walk you through everything in just a few steps. You can skip at any time.'
-    },
-    {
-        icon: '🏆',
-        title: 'The Goal',
-        text: 'Be the <strong>first player to collect 3 complete property sets</strong> of different colours. Each colour needs 2–4 matching property cards to complete.'
-    },
-    {
-        icon: '🃏',
-        title: 'Drawing Cards',
-        text: 'At the start of your turn, click the <strong>Draw Pile on the left</strong> twice to draw 2 cards into your hand. You must draw before you can play.'
-    },
-    {
-        icon: '🖐️',
-        title: 'Your Hand',
-        text: 'Your cards fan out at the <strong>bottom of the screen</strong>. You can play up to <strong>3 cards per turn</strong>. Hover to see a card clearly — click it to play.'
-    },
-    {
-        icon: '🏠',
-        title: 'Property Cards',
-        text: 'Playing a Property card places it in <strong>your area in front of you</strong>. Collect all cards of the same colour to <strong>complete a set</strong> and lock it in!'
-    },
-    {
-        icon: '💰',
-        title: 'Money Cards',
-        text: 'Play Money cards into your <strong>Bank</strong>. When opponents play action cards against you, money is taken from your bank — keep it stocked!'
-    },
-    {
-        icon: '⚡',
-        title: 'Action Cards',
-        text: '<strong>Pass Go</strong> — draw 2 extra cards.<br><strong>Eid Mubarak</strong> — collect £2M from every player.<br><strong>Thawab Deal</strong> — steal a property from someone.<br><strong>Do Not Agree</strong> — block any action used against you.'
-    },
-    {
-        icon: '🌈',
-        title: 'Wild Cards',
-        text: 'Wild Cards can join <strong>any colour set</strong>. When you play one, a menu appears — pick whichever colour you need to complete a set fastest.'
-    },
-    {
-        icon: '♻️',
-        title: 'Discard Pile',
-        text: 'Action cards go to the <strong>Discard Pile on the right</strong> after being played. If the draw deck runs out, the discard pile gets reshuffled automatically.'
-    },
-    {
-        icon: '✅',
-        title: 'Ending Your Turn',
-        text: 'After playing your cards, click <strong>End Turn</strong>. Your hand fans off the screen and passes to the next player. You can\'t hold more than 7 cards at the end of a turn.'
-    },
-    {
-        icon: '🌙',
-        title: 'You\'re Ready!',
-        text: 'That\'s everything — pick a mode below and start playing. <strong>Good luck, and bismillah! 🤲</strong>'
-    },
+const TUT_GAME_STEPS = [
+    { id:'welcome',   title:'🕌 Welcome!',        text:'We\'ve started a practice game. The glowing highlight shows you exactly where to look and what to press!', highlight:null,                    advanceOn:'next'    },
+    { id:'draw1',     title:'🃏 Draw Pile',        text:'Click the <strong>glowing Draw Pile</strong> on the left to draw your first card.',                         highlight:'#deck-pile',            advanceOn:'draw'    },
+    { id:'draw2',     title:'🃏 Draw Again',       text:'<strong>One more!</strong> Click the Draw Pile again to complete your draw phase.',                          highlight:'#deck-pile',            advanceOn:'draw'    },
+    { id:'hand',      title:'🖐️ Your Hand',        text:'Your cards fan out here. <strong>Hover</strong> over a card to see it clearly. You can play up to 3 cards per turn.',  highlight:'#hand-fan-container',   advanceOn:'next'    },
+    { id:'playcard',  title:'▶️ Play a Card',      text:'Now <strong>click any card</strong> to play it — try a coloured Property card to start building a set!',    highlight:'#hand-fan-container',   advanceOn:'play'    },
+    { id:'yourplays', title:'🏠 Your Plays',       text:'Played cards land <strong>right in front of you</strong>. Collect all cards of the same colour to complete a set!',    highlight:'#player-table-area',    advanceOn:'next'    },
+    { id:'discard',   title:'♻️ Discard Pile',     text:'The <strong>Discard Pile</strong> sits on the right. Action cards go here after use and reshuffle into the deck when empty.', highlight:'#discard-pile',     advanceOn:'next'    },
+    { id:'log',       title:'📋 Game Log',          text:'Everything that happens — draws, plays, actions, turns — is tracked <strong>right here</strong>.',           highlight:'#game-log',             advanceOn:'next'    },
+    { id:'endturn',   title:'✅ End Your Turn',     text:'Done playing? Click <strong>End Turn</strong>. Your hand fans off screen and passes to the next player!',    highlight:'#end-turn-btn',         advanceOn:'endturn' },
+    { id:'done',      title:'🌙 You\'re Ready!',   text:'That\'s everything! <strong>Keep playing</strong> to practice, or go back to the lobby for a real game. Bismillah! 🤲', highlight:null,           advanceOn:'finish'  },
 ];
 
-let tutStep = 0;
+let tutorialActive = false;
+let tutGameStep    = 0;
 
 function checkTutorial() {
     try {
@@ -1751,54 +1706,105 @@ function markTutorialSeen() {
     } catch(e) {}
 }
 
-function startTutorial() {
-    document.getElementById('tutorial-prompt').classList.remove('active');
-    tutStep = 0;
-    renderTutStep();
-    document.getElementById('tutorial-overlay').classList.add('active');
-}
-
+/* Prompt: "No thanks" */
 function closeTutorial() {
     document.getElementById('tutorial-prompt').classList.remove('active');
-    document.getElementById('tutorial-overlay').classList.remove('active');
     markTutorialSeen();
 }
 
-function tutNav(dir) {
-    const next = tutStep + dir;
-    if (next >= TUT_STEPS.length) { closeTutorial(); return; }
-    if (next < 0) return;
-    tutStep = next;
-    renderTutStep();
+/* Prompt: "Yes" — launch a practice game then overlay the panel */
+function startTutorial() {
+    document.getElementById('tutorial-prompt').classList.remove('active');
+    currentMode = 'ai';
+    const deck = buildDeck();
+    const players = [
+        { name:'You',         isAI:false, color:PLAYER_COLORS[0], hand:[], bank:[], props:{} },
+        { name:'Practice AI', isAI:true,  color:PLAYER_COLORS[1], hand:[], bank:[], props:{} },
+    ];
+    players.forEach(p => { for (let i = 0; i < 5; i++) if (deck.length) p.hand.push(deck.pop()); });
+    G = { deck, discard:[], players, currentPlayer:0, phase:'draw', drawnThisTurn:0, playsThisTurn:0, maxPlays:3, pendingWild:null, aiDifficulty:'easy' };
+    showScreen('screen-game');
+    renderGame();
+    slideFanIn();
+    addLog('🎓 Tutorial game started — follow the glowing prompts!', true);
+    tutorialActive = true;
+    tutGameStep    = 0;
+    renderTutPanel();
 }
 
-function renderTutStep() {
-    const s = TUT_STEPS[tutStep];
-    const total = TUT_STEPS.length;
-    document.getElementById('tut-icon').textContent   = s.icon;
-    document.getElementById('tut-title').textContent  = s.title;
-    document.getElementById('tut-text').innerHTML     = s.text;
-    document.getElementById('tut-counter').textContent = `Step ${tutStep + 1} of ${total}`;
+/* Exit at any point */
+function exitTutorial() {
+    tutorialActive = false;
+    document.getElementById('tut-panel').classList.remove('active');
+    document.getElementById('tut-spotlight').style.display = 'none';
+    markTutorialSeen();
+}
 
-    // Dots
-    const dots = document.getElementById('tut-dots');
-    dots.innerHTML = '';
-    TUT_STEPS.forEach((_, i) => {
-        const d = document.createElement('button');
-        d.className = 'tut-dot' + (i === tutStep ? ' active' : '');
-        d.onclick = () => { tutStep = i; renderTutStep(); };
-        dots.appendChild(d);
+/* "Next / Skip / Finish" button */
+function tutPanelNext() {
+    const step = TUT_GAME_STEPS[tutGameStep];
+    if (!step || step.advanceOn === 'finish') { exitTutorial(); return; }
+    tutGameAdvance(); // next/skip always advances
+}
+
+function tutGameAdvance() {
+    tutGameStep++;
+    if (tutGameStep >= TUT_GAME_STEPS.length) { exitTutorial(); return; }
+    renderTutPanel();
+}
+
+function renderTutPanel() {
+    const step  = TUT_GAME_STEPS[tutGameStep];
+    const total = TUT_GAME_STEPS.length;
+    if (!step) return;
+
+    document.getElementById('tp-counter').textContent = `Step ${tutGameStep + 1} of ${total}`;
+    document.getElementById('tp-title').textContent   = step.title;
+    document.getElementById('tp-text').innerHTML      = step.text;
+
+    // Progress dots
+    const dotsEl = document.getElementById('tp-dots');
+    dotsEl.innerHTML = '';
+    TUT_GAME_STEPS.forEach((_, i) => {
+        const d = document.createElement('div');
+        d.className = 'tp-dot' + (i === tutGameStep ? ' active' : '');
+        dotsEl.appendChild(d);
     });
 
-    // Buttons
-    const isLast = tutStep === total - 1;
-    const isFirst = tutStep === 0;
-    const prev = document.getElementById('tut-prev-btn');
-    const next = document.getElementById('tut-next-btn');
-    prev.style.visibility = isFirst ? 'hidden' : 'visible';
-    next.textContent = isLast ? '🎮 Start Playing' : 'Next →';
-    next.className   = 'btn-next';
+    // Button label
+    const isActionStep = ['draw','play','endturn'].includes(step.advanceOn);
+    document.getElementById('tp-btn').textContent =
+        step.advanceOn === 'finish' ? '🎮 Start Playing!' :
+        isActionStep                ? 'Skip →'             : 'Next →';
+
+    document.getElementById('tut-panel').classList.add('active');
+    updateTutSpotlight(step.highlight);
 }
+
+function updateTutSpotlight(selector) {
+    const spot = document.getElementById('tut-spotlight');
+    if (!selector) { spot.style.display = 'none'; return; }
+    const el = document.querySelector(selector);
+    if (!el) { spot.style.display = 'none'; return; }
+    const r = el.getBoundingClientRect();
+    const p = 8;
+    spot.style.display = 'block';
+    spot.style.left    = (r.left - p) + 'px';
+    spot.style.top     = (r.top  - p) + 'px';
+    spot.style.width   = (r.width  + p * 2) + 'px';
+    spot.style.height  = (r.height + p * 2) + 'px';
+    el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// Reposition spotlight if layout shifts (scroll or resize)
+window.addEventListener('scroll', () => {
+    if (!tutorialActive) return;
+    const s = TUT_GAME_STEPS[tutGameStep]; if (s?.highlight) updateTutSpotlight(s.highlight);
+}, { passive:true });
+window.addEventListener('resize', () => {
+    if (!tutorialActive) return;
+    const s = TUT_GAME_STEPS[tutGameStep]; if (s?.highlight) updateTutSpotlight(s.highlight);
+});
 
 checkTutorial();
 </script>
