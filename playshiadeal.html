@@ -304,7 +304,7 @@
             text-align:center; margin-bottom:4px;
         }
         .hand-fan {
-            position:relative; height:152px; display:block;
+            position:relative; height:180px; display:block;
         }
         .fan-card-wrap {
             position:absolute; bottom:0; left:50%;
@@ -317,8 +317,8 @@
 
         /* Playing cards */
         .game-card {
-            width:68px; height:96px; border-radius:8px; display:flex; flex-direction:column;
-            padding:5px; font-size:0.6rem; cursor:pointer; transition:all 0.2s;
+            width:84px; height:118px; border-radius:8px; display:flex; flex-direction:column;
+            padding:6px; font-size:0.68rem; cursor:pointer; transition:all 0.2s;
             border:2px solid transparent; position:relative; flex-shrink:0;
             box-shadow:0 2px 8px var(--shadow); user-select:none;
         }
@@ -550,7 +550,7 @@
             .setup-box { padding:28px 20px; }
             .game-topbar { font-size:0.78rem; }
             .table-middle { gap:8px; padding:10px 12px; }
-            .hand-fan { height:118px; }
+            .hand-fan { height:145px; }
             #tut-panel { width:calc(100vw - 24px); right:12px; bottom:12px; }
         }
     </style>
@@ -1155,7 +1155,7 @@ function renderFan(player, clickable) {
 
         if (clickable && !player.isAI) {
             wrap.addEventListener('mouseenter', () => {
-                wrap.style.transform = `translateX(calc(-50% + ${tx}px)) translateY(${ty - 26}px) rotate(${deg}deg) scale(1.08)`;
+                wrap.style.transform = `translateX(calc(-50% + ${tx}px)) translateY(${ty - 34}px) rotate(${deg}deg) scale(1.08)`;
                 wrap.style.zIndex = 200;
             });
             wrap.addEventListener('mouseleave', () => {
