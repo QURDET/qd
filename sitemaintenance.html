@@ -520,7 +520,7 @@ async function runSiteHealth() {
     var activeMembers = members.filter(function(m){ return m.active!==false&&(!m.expiryDate||new Date(m.expiryDate)>=today); });
     var unreadMsgs    = contacts.filter(function(m){ return m.status==='received'||!m.status; }).length;
     var newInterests  = interests.filter(function(i){ return i.status==='new'||!i.status; }).length;
-    var openOrders    = orders.filter(function(o){ return o.status==='processing'||o.status==='pending'; }).length;
+    var openOrders    = orders.filter(function(o){ return o.status!=='delivered'&&o.status!=='cancelled'&&o.status!=='canceled'; }).length;
     var lowStock      = inventory.filter(function(i){ return (i.qty||i.quantity||0)<3; });
     var totalRev      = orders.filter(function(o){ return o.status!=='cancelled'&&o.status!=='canceled'; }).reduce(function(s,o){ return s+(parseFloat(o.total||o.amount||0)||0); }, 0);
 
