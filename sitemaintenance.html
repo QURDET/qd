@@ -260,6 +260,7 @@
                         <div class="key-preview" id="stripe-key-preview-sm"></div>
                     </div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+                        <a href="https://dashboard.stripe.com" target="_blank" class="btn btn-outline btn-sm">↗ Open Stripe Dashboard</a>
                         <button class="btn btn-purple btn-sm" onclick="toggleStripeForm()">⚙ Update Key</button>
                         <button class="btn btn-red btn-sm" id="stripe-disconnect-btn" style="display:none" onclick="doDisconnectStripe()">Disconnect</button>
                     </div>
@@ -521,7 +522,7 @@ async function runSiteHealth() {
     var newInterests  = interests.filter(function(i){ return i.status==='new'||!i.status; }).length;
     var openOrders    = orders.filter(function(o){ return o.status==='processing'||o.status==='pending'; }).length;
     var lowStock      = inventory.filter(function(i){ return (i.qty||i.quantity||0)<3; });
-    var totalRev      = orders.filter(function(o){ return o.status==='complete'||o.status==='completed'; }).reduce(function(s,o){ return s+(parseFloat(o.total||o.amount||0)||0); }, 0);
+    var totalRev      = orders.filter(function(o){ return o.status!=='cancelled'&&o.status!=='canceled'; }).reduce(function(s,o){ return s+(parseFloat(o.total||o.amount||0)||0); }, 0);
 
     document.getElementById('health-data').innerHTML = [
         shCard('👥','Active Members',   activeMembers.length,          '#F3E8F0','#7B3F5E'),
