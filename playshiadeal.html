@@ -764,7 +764,7 @@
     <div class="win-box">
         <div class="win-emoji">🏆</div>
         <div class="win-title" id="win-title">You Win!</div>
-        <div class="win-sub" id="win-sub">First to collect 3 complete property sets!</div>
+        <div class="win-sub" id="win-sub">First to collect 3 complete property sets with £10M in the bank!</div>
         <div class="win-btns">
             <button class="win-btn-play" onclick="restartGame()">Play Again</button>
             <button class="win-btn-home" onclick="goToLobby()">Back to Lobby</button>
@@ -1522,9 +1522,10 @@ function dismissPassTo() {
 ════════════════════════════════════════════════════ */
 function checkWin(playerIdx) {
     const player = G.players[playerIdx];
-    if (completeSets(player) >= 3) {
+    const bankTotal = player.bank.reduce((s,c) => s+c.value, 0);
+    if (completeSets(player) >= 3 && bankTotal >= 10) {
         document.getElementById('win-title').textContent = player.name + ' Wins!';
-        document.getElementById('win-sub').textContent   = `${player.name} collected 3 complete property sets!`;
+        document.getElementById('win-sub').textContent   = `${player.name} completed 3 property sets with £${bankTotal}M in the bank!`;
         document.getElementById('win-overlay').classList.add('active');
     }
 }
