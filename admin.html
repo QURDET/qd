@@ -649,6 +649,9 @@
             Still stuck? <a href="#" onclick="resetAdminData();return false;" style="color:#7B3F5E;font-weight:700">Reset to factory defaults</a> — this clears all saved data.
         </div>
         <a href="index.html" style="display:block;margin-top:16px;color:#9B7B6E;font-size:0.84rem;text-decoration:none;" onmouseover="this.style.color='#7B3F5E'" onmouseout="this.style.color='#9B7B6E'">← Go back to home</a>
+        <div style="margin-top:32px;padding-top:18px;border-top:1px solid #F0E6DC;text-align:center">
+            <a href="sitemaintenance.html" style="color:#9B7B6E;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.color='#7B3F5E'" onmouseout="this.style.color='#9B7B6E'">🛠️ Site Maintenance</a>
+        </div>
     </div>
 </div>
 
@@ -676,9 +679,6 @@
                 <div class="nav-item" onclick="showTab('team')" id="nav-team">
                     <span class="icon">👥</span> Team
                 </div>
-                <a href="sitemaintenance.html" class="nav-item" id="nav-stripe" style="text-decoration:none;color:inherit">
-                    <span class="icon">⚙️</span> Maintenance
-                </a>
                 <div class="nav-item" onclick="showTab('messages')" id="nav-messages">
                     <span class="icon">✉️</span> Messages <span id="unread-badge" style="display:none;background:#7B3F5E;color:#fff;font-size:0.7rem;padding:1px 7px;border-radius:20px;margin-left:4px;font-weight:700"></span>
                 </div>
@@ -1253,7 +1253,6 @@ function showPanel() {
     const isBuilder = currentUser.role === 'builder';
 
     document.getElementById('nav-team').style.display         = isAdmin   ? 'flex'  : 'none';
-    document.getElementById('nav-stripe').style.display       = isAdmin   ? 'flex'  : 'none';
     document.getElementById('nav-members').style.display      = isAdmin   ? 'flex'  : 'none';
     document.getElementById('btn-add-product').style.display  = isViewer  ? 'none'  : '';
     document.getElementById('btn-add-order').style.display    = isViewer  ? 'none'  : '';
