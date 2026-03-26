@@ -700,10 +700,28 @@ loadMemberGoogleSettings();
 // Restore session on page load
 (function() {
     try {
+        // If a staff session exists, auto-grant member access
+        var staffSess = sessionStorage.getItem('qd_sess');
+        if (staffSess) {
+            var staff = JSON.parse(staffSess);
+            if (staff && staff.name) {
+                currentMember = {
+                    id: 'staff-' + (staff.id || 'x'),
+                    name: staff.name,
+                    email: staff.googleEmail || staff.username || '',
+                    plan: staff.role === 'builder' ? 'Full Access' : 'Staff',
+                    active: true,
+                    isStaff: true,
+                    expiryDate: null,
+                };
+                sessionStorage.setItem('qd_member_sess', JSON.stringify(currentMember));
+                showPortal();
+                return;
+            }
+        }
         var s = sessionStorage.getItem('qd_member_sess');
         if (s) {
             currentMember = JSON.parse(s);
-            // Check expiry client-side too
             if (currentMember.expiryDate && new Date(currentMember.expiryDate) < new Date()) {
                 sessionStorage.removeItem('qd_member_sess');
                 currentMember = null;

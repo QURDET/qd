@@ -685,6 +685,9 @@
                 <div class="nav-item" onclick="showTab('members')" id="nav-members">
                     <span class="icon">🎫</span> Members
                 </div>
+                <a href="sitehealth.html" class="nav-item" id="nav-sitehealth" style="display:none;text-decoration:none;color:inherit">
+                    <span class="icon">🛠️</span> Site Health
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-info">
@@ -1101,6 +1104,7 @@
                 <option value="staff">Staff — Inventory + Orders</option>
                 <option value="viewer">Viewer — Orders read-only</option>
                 <option value="admin">Admin — Full Access</option>
+                <option value="builder">Full Access — All permissions + Site Health</option>
             </select>
         </div>
                 <div class="form-group">
@@ -1366,16 +1370,18 @@ function showPanel() {
     document.getElementById('u-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
     // Role-based visibility
-    const isAdmin  = currentUser.role === 'admin';
-    const isViewer = currentUser.role === 'viewer';
+    const isAdmin   = currentUser.role === 'admin' || currentUser.role === 'builder';
+    const isViewer  = currentUser.role === 'viewer';
+    const isBuilder = currentUser.role === 'builder';
 
-    document.getElementById('nav-team').style.display         = isAdmin  ? 'flex'  : 'none';
-    document.getElementById('nav-stripe').style.display       = isAdmin  ? 'flex'  : 'none';
-    document.getElementById('nav-members').style.display      = isAdmin  ? 'flex'  : 'none';
-    document.getElementById('btn-add-product').style.display  = isViewer ? 'none'  : '';
-    document.getElementById('btn-add-order').style.display    = isViewer ? 'none'  : '';
-    document.getElementById('btn-add-member').style.display   = isAdmin  ? ''      : 'none';
-    document.getElementById('btn-add-reg-member').style.display = isAdmin ? ''     : 'none';
+    document.getElementById('nav-team').style.display         = isAdmin   ? 'flex'  : 'none';
+    document.getElementById('nav-stripe').style.display       = isAdmin   ? 'flex'  : 'none';
+    document.getElementById('nav-members').style.display      = isAdmin   ? 'flex'  : 'none';
+    document.getElementById('nav-sitehealth').style.display   = isBuilder ? 'flex'  : 'none';
+    document.getElementById('btn-add-product').style.display  = isViewer  ? 'none'  : '';
+    document.getElementById('btn-add-order').style.display    = isViewer  ? 'none'  : '';
+    document.getElementById('btn-add-member').style.display   = isAdmin   ? ''      : 'none';
+    document.getElementById('btn-add-reg-member').style.display = isAdmin ? ''      : 'none';
     document.getElementById('btn-sync-stripe').style.display  = (!isViewer && getStripeKey()) ? '' : 'none';
 
     showTab('dashboard');
@@ -1849,9 +1855,10 @@ function toggleFinishedOrders() {
 // TEAM
 // ─────────────────────────────────────────────
 const ROLE_LABELS = {
-    admin:  'Full access — inventory, orders, team',
-    staff:  'Inventory + orders management',
-    viewer: 'Orders view only (read-only)',
+    admin:   'Full access — inventory, orders, team',
+    staff:   'Inventory + orders management',
+    viewer:  'Orders view only (read-only)',
+    builder: 'Full access — all permissions + site health panel',
 };
 
 async function renderTeam() {
