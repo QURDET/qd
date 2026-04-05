@@ -2066,8 +2066,12 @@ async function loadAllMessages() {
     wrap.innerHTML = '<p style="color:#9B7B6E;padding:20px 0">Loading…</p>';
     try {
         const [contactsRes, interestsRes] = await Promise.all([fetch('/api/contacts'), fetch('/api/interests')]);
+        if (!contactsRes.ok) throw new Error('Contacts API returned ' + contactsRes.status);
+        if (!interestsRes.ok) throw new Error('Interests API returned ' + interestsRes.status);
         const contacts  = await contactsRes.json();
         const interests = await interestsRes.json();
+        if (!Array.isArray(contacts)) throw new Error('Contacts response is not an array');
+        if (!Array.isArray(interests)) throw new Error('Interests response is not an array');
 
         // Normalise & tag
         contacts.forEach(function(m) {
@@ -2114,7 +2118,8 @@ async function loadAllMessages() {
         }
         document.getElementById('resolved-messages-list').innerHTML = resolved.map(renderInboxCard).join('');
     } catch(e) {
-        wrap.innerHTML = '<p style="color:#C0392B;padding:20px 0">Failed to load messages.</p>';
+        console.error('loadAllMessages error:', e);
+        wrap.innerHTML = '<p style="color:#C0392B;padding:20px 0">Failed to load messages: ' + e.message + '</p>';
     }
 }
 
