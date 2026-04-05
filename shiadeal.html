@@ -82,8 +82,9 @@
         /* Logo in the navbar - hidden at first, slides in when you scroll down */
         .logo {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 2px;
             opacity: 0;
             transform: translateY(-20px);
             transition: all 0.4s ease;
@@ -96,15 +97,42 @@
         }
 
         .logo img {
-            height: 50px;
+            height: 40px;
             border-radius: 8px;
         }
 
         .logo-text {
             font-family: 'Bely Display', serif;
-            font-size: 1.5rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: #ffffff;
+            line-height: 1;
+        }
+
+        /* Review Us button - gold outline */
+        .review-btn {
+            border: 2px solid var(--gold);
+            color: #fff;
+            background: transparent;
+            padding: 6px 16px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.4s ease;
+        }
+        nav.scrolled .review-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .review-btn:hover {
+            background: var(--gold);
+            color: #1a1a2e;
         }
 
         /* Navigation links - slides in from the right as a side menu */
@@ -1223,6 +1251,8 @@
         [data-theme="dark"] .country-label { color: #e8d9c5; }
         [data-theme="dark"] .slide-dot { background: #4a4a4a; }
         [data-theme="dark"] nav { background: rgba(110, 72, 5, 0.98); }
+        [data-theme="dark"] .review-btn { color: #e8d9c5; }
+        [data-theme="dark"] .review-btn:hover { background: var(--gold); color: #1a1a2e; }
         [data-theme="dark"] .nav-links { background: rgba(110, 72, 5, 0.98); }
         [data-theme="dark"] .about-card h3 { color: #c47f0a; }
         [data-theme="dark"] .card-preview .card-name { color: #c47f0a; }
@@ -1308,22 +1338,15 @@
         [data-theme="dark"] .qc-popup-no { border-color: rgba(196,127,10,0.4); color: #C8A882; }
         [data-theme="dark"] .qc-popup-no:hover { border-color: #c47f0a; color: #EFE0CE; }
     </style>
-    <!-- TrustBox script -->
-    <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
-    <!-- End TrustBox script -->
 </head>
 <body>
     <!-- ========== NAVIGATION BAR - Fixed at top, contains logo + hamburger menu + links ========== -->
     <nav>
-        <!-- TrustBox widget - Review Collector -->
-        <div class="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="69d28a3fbf61deb19eec4ae8" data-style-height="52px" data-style-width="100%" data-token="010175a8-ecb7-4115-b9c9-92d165df2d11" style="flex-shrink:0;">
-          <a href="https://www.trustpilot.com/review/qurandetectives.co.uk" target="_blank" rel="noopener">Trustpilot</a>
-        </div>
-        <!-- End TrustBox widget -->
         <div class="logo">
             <img src="SDlogo.jpeg" alt="Shia Deal Logo">
             <span class="logo-text">Shia Deal</span>
         </div>
+        <a href="https://uk.trustpilot.com/review/qurandetectives.co.uk" target="_blank" rel="noopener" class="review-btn">Review Us ⭐</a>
         <ul class="nav-links" id="navLinks">
             <li><a href="index.html">Home</a></li>
             <li><a href="#about">About</a></li>
