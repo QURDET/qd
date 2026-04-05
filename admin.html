@@ -1152,6 +1152,14 @@
 
 <script>
 // ─────────────────────────────────────────────
+// HTML ESCAPE — prevents XSS in user-submitted content
+// ─────────────────────────────────────────────
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ─────────────────────────────────────────────
 // THEME
 // ─────────────────────────────────────────────
 function toggleTheme() {
