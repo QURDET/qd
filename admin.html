@@ -688,9 +688,6 @@
                 <div class="nav-item active" onclick="showTab('dashboard')" id="nav-dashboard">
                     <span class="icon">📊</span> Dashboard
                 </div>
-                <div class="nav-item" onclick="showTab('inventory')" id="nav-inventory">
-                    <span class="icon">📦</span> Inventory
-                </div>
                 <div class="nav-item" onclick="showTab('orders')" id="nav-orders">
                     <span class="icon">🛒</span> Orders
                 </div>
@@ -746,32 +743,6 @@
                 </div>
 
                 <!-- INVENTORY -->
-                <div id="tab-inventory" class="tab-section">
-                    <div class="section-header">
-                        <h3>All Products</h3>
-                        <button class="btn btn-purple" onclick="openInvModal()" id="btn-add-product">+ Add Product</button>
-                    </div>
-                    <div class="filter-bar">
-                        <input type="text" id="inv-search" placeholder="Search by name or SKU…" oninput="renderInventory()">
-                    </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>SKU</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Threshold</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inv-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <!-- ORDERS -->
                 <div id="tab-orders" class="tab-section">
                     <div class="section-header">
@@ -912,46 +883,6 @@
 </div><!-- /staff-panel -->
 
 <!-- ── INVENTORY MODAL ── -->
-<div class="modal-overlay" id="inv-modal">
-    <div class="modal">
-        <h3 id="inv-modal-title">Add Product</h3>
-        <input type="hidden" id="inv-edit-id">
-        <div class="form-group">
-            <label>Product Name</label>
-            <input type="text" id="inv-name" placeholder="e.g. Shia Deal Standard Pack">
-        </div>
-        <div class="form-group">
-            <label>SKU</label>
-            <input type="text" id="inv-sku" placeholder="e.g. SD-001">
-        </div>
-        <div class="two-col">
-            <div class="form-group">
-                <label>Price (£)</label>
-                <input type="number" id="inv-price" placeholder="0.00" min="0" step="0.01">
-            </div>
-            <div class="form-group">
-                <label>Quantity</label>
-                <input type="number" id="inv-qty" placeholder="0" min="0">
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Low Stock Threshold</label>
-            <input type="number" id="inv-thresh" placeholder="e.g. 5" min="0">
-        </div>
-        <div class="form-group">
-            <label>Notes (optional)</label>
-            <input type="text" id="inv-notes" placeholder="Any notes…">
-        </div>
-        <div class="form-group">
-            <label>Low Stock Alert Email (optional)</label>
-            <input type="email" id="inv-notify-email" placeholder="e.g. store@example.com">
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" onclick="closeModal('inv-modal')">Cancel</button>
-            <button class="btn btn-purple" onclick="saveProduct()">Save Product</button>
-        </div>
-    </div>
-</div>
 
 <!-- ── ORDER MODAL ── -->
 <div class="modal-overlay" id="ord-modal">
@@ -1039,7 +970,7 @@
         <div class="form-group">
             <label>Role</label>
             <select id="team-role">
-                <option value="staff">Staff — Inventory + Orders</option>
+                <option value="staff">Staff — Orders</option>
                 <option value="viewer">Viewer — Orders read-only</option>
                 <option value="admin">Admin — Full Access</option>
                 <option value="builder">Full Access — All permissions + Site Health</option>
@@ -1201,13 +1132,6 @@ const DEFAULT_USERS = [
     { id: 'u2', username: 'zjets988',     name: 'Zahra J',  role: 'staff' },
 ];
 
-const DEFAULT_INVENTORY = [
-    { id: 'p1', name: 'Shia Deal Standard Pack',        sku: 'SD-001', price: 12.99, qty: 48, threshold: 10, notes: '' },
-    { id: 'p2', name: 'Shia Deal Deluxe Pack',          sku: 'SD-002', price: 19.99, qty: 22, threshold:  8, notes: '' },
-    { id: 'p3', name: 'Shia Deal Expansion Pack',       sku: 'SD-EXP', price:  8.99, qty:  7, threshold: 10, notes: 'Running low — reorder soon' },
-    { id: 'p4', name: 'Shia Deal Bundle (Std + Exp)',   sku: 'SD-BUN', price: 19.99, qty:  3, threshold:  5, notes: '' },
-];
-
 const DEFAULT_ORDERS = [
     { id: 'QD-001', customer: 'Fatima Al-Hassan', date: '2026-03-01', items: '2x Standard Pack',              total: 25.98, status: 'delivered',  notes: '' },
     { id: 'QD-002', customer: 'Mohammed Reza',    date: '2026-03-03', items: '1x Deluxe Pack',                total: 19.99, status: 'shipped',    notes: 'Gift wrap requested' },
@@ -1221,10 +1145,8 @@ const DEFAULT_ORDERS = [
 // STORAGE HELPERS (server-side API)
 // ─────────────────────────────────────────────
 async function getUsers()     { try { const r = await fetch('/api/users');     return r.ok ? r.json() : DEFAULT_USERS;     } catch { return DEFAULT_USERS;     } }
-async function getInventory() { try { const r = await fetch('/api/inventory'); return r.ok ? r.json() : DEFAULT_INVENTORY; } catch { return DEFAULT_INVENTORY; } }
 async function getOrders()    { try { const r = await fetch('/api/orders');    return r.ok ? r.json() : [];               } catch { return [];                  } }
 async function saveUsers(v)     { try { await fetch('/api/users',     { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
-async function saveInventory(v) { try { await fetch('/api/inventory', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
 async function saveOrders(v)    { try { const r = await fetch('/api/orders',    { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); return r.ok; } catch { return false; } }
 
 // ─────────────────────────────────────────────
@@ -1294,7 +1216,6 @@ function showPanel() {
 
     document.getElementById('nav-team').style.display         = isAdmin   ? 'flex'  : 'none';
     document.getElementById('nav-members').style.display      = isAdmin   ? 'flex'  : 'none';
-    document.getElementById('btn-add-product').style.display  = isViewer  ? 'none'  : '';
     document.getElementById('btn-add-order').style.display    = isViewer  ? 'none'  : '';
     document.getElementById('btn-add-member').style.display   = isAdmin   ? ''      : 'none';
     document.getElementById('btn-add-reg-member').style.display = isAdmin ? ''      : 'none';
@@ -1323,7 +1244,7 @@ function showPanel() {
 // ─────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────
-const TAB_TITLES = { dashboard: 'Dashboard', inventory: 'Inventory', orders: 'Orders', team: 'Team', messages: 'Messages', members: 'Members' };
+const TAB_TITLES = { dashboard: 'Dashboard', orders: 'Orders', team: 'Team', messages: 'Messages', members: 'Members' };
 
 function showTab(tab) {
     document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
@@ -1333,7 +1254,6 @@ function showTab(tab) {
     document.getElementById('page-title').textContent = TAB_TITLES[tab];
     closeSidebar();
     if (tab === 'dashboard') renderDashboard();
-    if (tab === 'inventory') renderInventory();
     if (tab === 'orders')    { renderOrders(); if (getStripeKey()) syncStripeOrders(); }
     if (tab === 'team')      renderTeam();
     if (tab === 'messages')  loadAllMessages();
@@ -1353,7 +1273,6 @@ function closeSidebar() {
 // DASHBOARD
 // ─────────────────────────────────────────────
 async function renderDashboard() {
-    const inv    = await getInventory();
     const orders = await getOrders();
     const allMembers = await getMembers();
     const today = new Date(); today.setHours(0,0,0,0);
@@ -1363,8 +1282,6 @@ async function renderDashboard() {
     const revenue    = visible.filter(o => o.status !== 'cancelled').reduce((a, o) => a + o.total, 0);
     const totalOrds  = visible.length;
     const pending    = visible.filter(o => o.status === 'processing').length;
-    const totalStock = inv.reduce((a, p) => a + p.qty, 0);
-    const lowStock   = inv.filter(p => p.qty <= p.threshold);
 
     document.getElementById('stats-grid').innerHTML = `
         <div class="stat-card purple-card">
@@ -1376,16 +1293,6 @@ async function renderDashboard() {
             <div class="s-label">Orders</div>
             <div class="s-val">${totalOrds}</div>
             <div class="s-sub">${pending} pending</div>
-        </div>
-        <div class="stat-card">
-            <div class="s-label">Products</div>
-            <div class="s-val">${inv.length}</div>
-            <div class="s-sub">${totalStock} units in stock</div>
-        </div>
-        <div class="stat-card">
-            <div class="s-label">Low Stock</div>
-            <div class="s-val" style="color:${lowStock.length > 0 ? '#C0392B' : '#27AE60'}">${lowStock.length}</div>
-            <div class="s-sub">item${lowStock.length !== 1 ? 's' : ''} need restocking</div>
         </div>
         <div class="stat-card">
             <div class="s-label">Members</div>
@@ -1420,95 +1327,6 @@ async function renderDashboard() {
         : '<div class="empty-state"><div class="e-icon">📋</div><p>No orders assigned to you</p></div>';
 }
 
-// ─────────────────────────────────────────────
-// INVENTORY
-// ─────────────────────────────────────────────
-async function renderInventory() {
-    const q        = (document.getElementById('inv-search')?.value || '').toLowerCase();
-    const inv      = await getInventory();
-    const filtered = inv.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
-    const canEdit  = currentUser.role !== 'viewer';
-
-    const tbody = document.getElementById('inv-tbody');
-    if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="e-icon">📦</div><p>No products found</p></div></td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = filtered.map(p => {
-        const low = p.qty <= p.threshold;
-        return `<tr>
-            <td><strong>${p.name}</strong>${p.notes ? `<br><small style="color:#9B7B6E">${p.notes}</small>` : ''}${p.notifyEmail ? `<br><small style="color:#7B3F5E" title="Low stock alert: ${p.notifyEmail}">✉ ${p.notifyEmail}</small>` : ''}</td>
-            <td style="color:#9B7B6E;font-family:monospace">${p.sku}</td>
-            <td>£${parseFloat(p.price).toFixed(2)}</td>
-            <td><strong>${p.qty}</strong></td>
-            <td>${p.threshold}</td>
-            <td><span class="badge badge-${low ? 'low' : 'ok'}">${low ? 'Low Stock' : 'OK'}</span></td>
-            <td style="white-space:nowrap">
-                ${canEdit ? `
-                    <button class="btn btn-sm btn-outline" onclick="openInvModal('${p.id}')">Edit</button>
-                    <button class="btn btn-sm btn-red" style="margin-left:6px" onclick="deleteProduct('${p.id}')">Delete</button>
-                ` : '—'}
-            </td>
-        </tr>`;
-    }).join('');
-}
-
-async function openInvModal(id) {
-    const editing = !!id;
-    document.getElementById('inv-modal-title').textContent = editing ? 'Edit Product' : 'Add Product';
-    document.getElementById('inv-edit-id').value = id || '';
-    if (editing) {
-        const p = (await getInventory()).find(x => x.id === id);
-        document.getElementById('inv-name').value         = p.name;
-        document.getElementById('inv-sku').value           = p.sku;
-        document.getElementById('inv-price').value         = p.price;
-        document.getElementById('inv-qty').value           = p.qty;
-        document.getElementById('inv-thresh').value        = p.threshold;
-        document.getElementById('inv-notes').value         = p.notes || '';
-        document.getElementById('inv-notify-email').value  = p.notifyEmail || '';
-    } else {
-        ['inv-name','inv-sku','inv-price','inv-qty','inv-thresh','inv-notes','inv-notify-email'].forEach(f => document.getElementById(f).value = '');
-    }
-    openModal('inv-modal');
-}
-
-async function saveProduct() {
-    const name   = document.getElementById('inv-name').value.trim();
-    const sku    = document.getElementById('inv-sku').value.trim();
-    const price  = parseFloat(document.getElementById('inv-price').value);
-    const qty    = parseInt(document.getElementById('inv-qty').value);
-    const thresh = parseInt(document.getElementById('inv-thresh').value) || 5;
-    const notes       = document.getElementById('inv-notes').value.trim();
-    const notifyEmail = document.getElementById('inv-notify-email').value.trim();
-
-    if (!name || !sku || isNaN(price) || isNaN(qty)) {
-        alert('Please fill in all required fields (Name, SKU, Price, Quantity).');
-        return;
-    }
-
-    const inv    = await getInventory();
-    const editId = document.getElementById('inv-edit-id').value;
-
-    if (editId) {
-        const idx = inv.findIndex(x => x.id === editId);
-        if (idx > -1) inv[idx] = { ...inv[idx], name, sku, price, qty, threshold: thresh, notes, notifyEmail };
-    } else {
-        inv.push({ id: 'p' + Date.now(), name, sku, price, qty, threshold: thresh, notes, notifyEmail });
-    }
-
-    await saveInventory(inv);
-    closeModal('inv-modal');
-    await renderInventory();
-    await renderDashboard();
-}
-
-async function deleteProduct(id) {
-    if (!confirm('Delete this product? This cannot be undone.')) return;
-    await saveInventory((await getInventory()).filter(p => p.id !== id));
-    await renderInventory();
-    await renderDashboard();
-}
 
 // ─────────────────────────────────────────────
 // ORDERS
@@ -1768,8 +1586,8 @@ function toggleFinishedOrders() {
 // TEAM
 // ─────────────────────────────────────────────
 const ROLE_LABELS = {
-    admin:   'Full access — inventory, orders, team',
-    staff:   'Inventory + orders management',
+    admin:   'Full access — orders, team',
+    staff:   'Orders management',
     viewer:  'Orders view only (read-only)',
     builder: 'Full access — all permissions + site health panel',
 };
