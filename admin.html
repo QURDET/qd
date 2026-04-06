@@ -2018,6 +2018,10 @@ function renderInterestCard(i) {
         <div style="font-size:0.88rem;color:#3B2417;margin-bottom:8px">
             <strong>Child:</strong> ${escHtml(i.childName)}, Age ${escHtml(String(i.childAge))}
         </div>
+        <div style="font-size:0.85rem;color:#5C4033;margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap">
+            ${i.programme ? `<span style="background:#EBF5FB;color:#2471A3;padding:3px 10px;border-radius:12px;font-size:0.78rem;font-weight:600">📖 ${escHtml(i.programme)}</span>` : ''}
+            ${i.format ? `<span style="background:#F3E8F0;color:#7B3F5E;padding:3px 10px;border-radius:12px;font-size:0.78rem;font-weight:600">📍 ${escHtml(i.format)}</span>` : ''}
+        </div>
         ${i.message ? `<p style="color:#5C4033;font-size:0.88rem;line-height:1.6;white-space:pre-wrap;margin-top:8px;padding:10px 14px;background:#FAF6F1;border-radius:8px">${escHtml(i.message)}</p>` : ''}
     </div>`;
 }

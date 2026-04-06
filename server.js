@@ -112,7 +112,7 @@ app.post("/api/interest", function(req, res) {
     if (!b.parentName || !b.email || !b.childName || !b.childAge) return res.status(400).json({ error: "Missing fields" });
     var d = readData();
     if (!d.interests) d.interests = [];
-    d.interests.unshift({ id: "i" + Date.now(), parentName: b.parentName, email: b.email, phone: b.phone || "", childName: b.childName, childAge: b.childAge, message: b.message || "", date: new Date().toISOString(), status: "new" });
+    d.interests.unshift({ id: "i" + Date.now(), parentName: b.parentName, email: b.email, phone: b.phone || "", childName: b.childName, childAge: b.childAge, programme: b.programme || "", format: b.format || "", message: b.message || "", date: new Date().toISOString(), status: "new" });
     writeData(d);
     res.json({ ok: true });
 });

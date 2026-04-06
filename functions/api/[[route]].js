@@ -202,7 +202,7 @@ export async function onRequest(context) {
             if (!b.parentName || !b.email || !b.childName || !b.childAge) return json({ error: 'Missing fields' }, 400);
             const d = await readData();
             if (!d.interests) d.interests = [];
-            d.interests.unshift({ id: 'i' + Date.now(), parentName: b.parentName, email: b.email, phone: b.phone || '', childName: b.childName, childAge: b.childAge, message: b.message || '', date: new Date().toISOString(), status: 'new' });
+            d.interests.unshift({ id: 'i' + Date.now(), parentName: b.parentName, email: b.email, phone: b.phone || '', childName: b.childName, childAge: b.childAge, programme: b.programme || '', format: b.format || '', message: b.message || '', date: new Date().toISOString(), status: 'new' });
             await writeData(d);
             return json({ ok: true });
         }
