@@ -1139,43 +1139,49 @@
             margin-bottom: 1.8rem;
         }
 
-        /* Grid of country buttons */
+        /* Stacked column of country buttons */
         .country-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
         /* Individual country button */
         .country-btn {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1.2rem 0.8rem;
+            align-items: flex-start;
+            gap: 0.25rem;
+            padding: 1rem 1.25rem;
             border: 2px solid #eeeeee;
             border-radius: 14px;
             background: #fafafa;
             cursor: pointer;
             transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
         }
 
         .country-btn:hover {
             border-color: var(--gold);
             background: #fff8ee;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(var(--gold-rgb), 0.2);
-        }
-
-        .country-flag {
-            font-size: 2.2rem;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(var(--gold-rgb), 0.2);
         }
 
         .country-label {
             font-family: 'Poppins', sans-serif;
-            font-size: 0.85rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #333333;
+            line-height: 1.3;
+        }
+
+        .country-sublabel {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #888;
         }
 
         @media (max-width: 768px) {
@@ -1249,6 +1255,8 @@
         [data-theme="dark"] .country-modal p { color: #a09080; }
         [data-theme="dark"] .country-btn { background: #3a3a3a; border-color: #4a4a4a; }
         [data-theme="dark"] .country-btn:hover { background: #3e3220; border-color: var(--gold); }
+        [data-theme="dark"] .country-label { color: #e8d9c5; }
+        [data-theme="dark"] .country-sublabel { color: #a09080; }
         [data-theme="dark"] .country-label { color: #e8d9c5; }
         [data-theme="dark"] .slide-dot { background: #4a4a4a; }
         [data-theme="dark"] nav { background: rgba(110, 72, 5, 0.98); }
@@ -1485,8 +1493,8 @@
                     <li>2-6 players</li>
                     <li>Free collection from Birmingham and Stanmore</li>
                 </ul>
-                <!-- Pre-order button: links to the SumUp store product page -->
-                <a class="checkout-btn" href="https://quran-detectives.sumupstore.com/product/shia-deal" target="_blank" rel="noopener noreferrer">Buy Now</a>
+                <!-- Pre-order button: opens country selector -->
+                <button class="checkout-btn" onclick="openCountryModal()">Buy Now</button>
                 <div class="secure-badge">
                     <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
                     Secure checkout
@@ -1582,24 +1590,16 @@
     <div class="country-modal-overlay" id="countryModalOverlay" onclick="closeCountryModal()">
         <div class="country-modal" onclick="event.stopPropagation()">
             <button class="country-modal-close" onclick="closeCountryModal()">&#10005;</button>
-            <h3>Select Your Country</h3>
+            <h3>Select Your Region</h3>
             <p>Choose where you're ordering from</p>
             <div class="country-options">
-                <button class="country-btn" onclick="goToCheckout('uk')">
-                    <span class="country-flag">🇬🇧</span>
-                    <span class="country-label">United Kingdom</span>
-                </button>
-                <button class="country-btn" onclick="goToCheckout('us')">
-                    <span class="country-flag">🇺🇸</span>
-                    <span class="country-label">United States</span>
+                <button class="country-btn" onclick="goToCheckout('ukusau')">
+                    <span class="country-label">UK, US, Australia, Canada</span>
+                    <span class="country-sublabel">Delivery</span>
                 </button>
                 <button class="country-btn" onclick="goToCheckout('ca')">
-                    <span class="country-flag">🇨🇦</span>
                     <span class="country-label">Canada</span>
-                </button>
-                <button class="country-btn" onclick="goToCheckout('au')">
-                    <span class="country-flag">🇦🇺</span>
-                    <span class="country-label">Australia</span>
+                    <span class="country-sublabel">Collection — Markham &amp; Vaughan only</span>
                 </button>
             </div>
             <p style="margin-top: 1.2rem; font-size: 0.85rem; color: #888; text-align: center;">
@@ -1847,10 +1847,8 @@
            per-country links when they are ready.
            ============================================ */
         const countryLinks = {
-            uk: 'https://buy.stripe.com/14AaEX88N1vG5dKchp3AY01',
-            us: 'https://buy.stripe.com/aFa5kDexb5LW9u0dlt3AY04',
-            au: 'https://buy.stripe.com/14A9AT9cR0rCcGc4OX3AY05',
-            ca: 'https://buy.stripe.com/fZu8wP4WB0rC49G3KT3AY06',
+            ukusau: 'https://quran-detectives.sumupstore.com/product/shia-deal',
+            ca: 'canadacollectionform.html',
         };
 
         /* Open the country selector modal */
