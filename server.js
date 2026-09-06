@@ -21,7 +21,6 @@ const DEFAULT_DATA = {
         { id: "p3", name: "Shia Deal Expansion Pack",     sku: "SD-EXP", price:  8.99, qty:  7, threshold: 10, notes: "Running low -- reorder soon" },
         { id: "p4", name: "Shia Deal Bundle (Std + Exp)", sku: "SD-BUN", price: 19.99, qty:  3, threshold:  5, notes: "" },
     ],
-    orders: [],
 };
 
 if (!fs.existsSync(DATA_FILE)) {
@@ -45,7 +44,6 @@ app.use(function(req, res, next) {
 });
 
 app.get("/api/health",    function(req, res) { res.json({ ok: true }); });
-app.get("/api/orders",    function(req, res) { res.json(readData().orders); });
 app.get("/api/inventory", function(req, res) { res.json(readData().inventory); });
 
 // Never expose passwords to the client
@@ -62,7 +60,6 @@ app.post("/api/login", function(req, res) {
     res.json(safe);
 });
 
-app.put("/api/orders",    function(req, res) { var d = readData(); d.orders    = req.body; writeData(d); res.json(d.orders);    });
 app.put("/api/inventory", function(req, res) { var d = readData(); d.inventory = req.body; writeData(d); res.json(d.inventory); });
 
 // Preserve existing passwords -- client never holds them so cannot send them back

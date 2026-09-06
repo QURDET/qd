@@ -560,13 +560,6 @@
         .empty-state .e-icon { font-size: 2.5rem; margin-bottom: 10px; }
         .empty-state p { font-size: 0.88rem; }
 
-        /* DASHBOARD GRID */
-        .dash-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
         /* MOBILE */
         .sidebar-overlay {
             display: none;
@@ -594,8 +587,6 @@
             .page-content { padding: 18px; }
 
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-
-            .dash-grid { grid-template-columns: 1fr; }
 
             .two-col { grid-template-columns: 1fr; }
         }
@@ -688,9 +679,6 @@
                 <div class="nav-item active" onclick="showTab('dashboard')" id="nav-dashboard">
                     <span class="icon">📊</span> Dashboard
                 </div>
-                <div class="nav-item" onclick="showTab('orders')" id="nav-orders">
-                    <span class="icon">🛒</span> Orders
-                </div>
                 <div class="nav-item" onclick="showTab('team')" id="nav-team">
                     <span class="icon">👥</span> Team
                 </div>
@@ -730,70 +718,6 @@
                 <!-- DASHBOARD -->
                 <div id="tab-dashboard" class="tab-section active">
                     <div class="stats-grid" id="stats-grid"></div>
-                    <div class="dash-grid">
-                        <div>
-                            <div class="section-header"><h3>Recent Orders</h3></div>
-                            <div class="table-card" id="recent-orders-wrap"></div>
-                        </div>
-                        <div>
-                            <div class="section-header"><h3>My Orders</h3></div>
-                            <div class="table-card" id="my-orders-wrap"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ORDERS -->
-                <div id="tab-orders" class="tab-section">
-                    <div class="section-header">
-                        <h3>All Orders</h3>
-                        <div style="display:flex;gap:8px;align-items:center">
-                            <button class="btn btn-outline" onclick="syncStripeOrders()" id="btn-sync-stripe" style="display:none">&#8635; Sync Stripe</button>
-                            <button class="btn btn-purple" onclick="openAddOrderModal()" id="btn-add-order">+ Add Order</button>
-                        </div>
-                    </div>
-                    <div class="filter-bar">
-                        <input type="text" id="ord-search" placeholder="Search by name or order ID…" oninput="renderOrders()">
-                        <select id="ord-status-filter" onchange="renderOrders()">
-                            <option value="">All Statuses</option>
-                            <option value="processing">Processing</option>
-                            <option value="packed">Packed</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="issue">Issue</option>
-                        </select>
-                    </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Stripe</th>
-                                    <th>Date</th>
-                                    <th>Order type</th>
-                                    <th>Total</th>
-                                    <th>Country</th>
-                                    <th>Customer Name</th>
-                                    <th>Track</th>
-                                    <th>Shipping Type</th>
-                                    <th>Status</th>
-                                    <th>Assigned</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ord-tbody"></tbody>
-                        </table>
-                    </div>
-                    <div style="text-align:center;margin-top:18px">
-                        <button class="btn btn-outline" onclick="toggleFinishedOrders()" id="btn-finished-orders" style="color:#27AE60;border-color:#27AE60;font-size:0.85rem">Finished Orders <span id="finished-count"></span></button>
-                    </div>
-                    <div id="finished-orders-section" style="display:none;margin-top:16px">
-                        <div class="section-header" style="margin-top:4px"><h3>Finished Orders</h3></div>
-                        <div class="table-card">
-                            <table>
-                                <thead><tr><th>Stripe</th><th>Date</th><th>Order type</th><th>Total</th><th>Country</th><th>Customer Name</th><th>Track</th><th>Shipping Type</th><th>Status</th><th>Assigned</th><th>Actions</th></tr></thead>
-                                <tbody id="finished-tbody"></tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- TEAM -->
@@ -820,8 +744,6 @@
                 </div>
 
                 <!-- STRIPE -->
-
-                <!-- INTEREST -->
 
                 <!-- MEMBERS -->
                 <div id="tab-members" class="tab-section">
@@ -881,72 +803,6 @@
     </div><!-- /admin-layout -->
 </div><!-- /staff-panel -->
 
-<!-- ── ORDER MODAL ── -->
-<div class="modal-overlay" id="ord-modal">
-    <div class="modal">
-        <h3 id="ord-modal-title">Add Order</h3>
-        <input type="hidden" id="ord-edit-id">
-        <div class="form-group">
-            <label>Customer Name</label>
-            <input type="text" id="ord-customer" placeholder="Full name">
-        </div>
-        <div class="form-group">
-            <label>Items / Order Description</label>
-            <input type="text" id="ord-items" placeholder="e.g. 2x Standard Pack, 1x Expansion">
-        </div>
-        <div class="form-group">
-            <label>Shipping Type</label>
-            <select id="ord-shipping-type">
-                <option value="">— Select —</option>
-                <option value="UK Shipping">UK Shipping</option>
-                <option value="International Shipping">International Shipping</option>
-                <option value="Collection - Lon">Collection - Lon</option>
-            </select>
-        </div>
-        <div class="two-col">
-            <div class="form-group">
-                <label>Total (£)</label>
-                <input type="number" id="ord-total" placeholder="0.00" min="0" step="0.01">
-            </div>
-            <div class="form-group">
-                <label>Status</label>
-                <select id="ord-status">
-                    <option value="processing">Processing</option>
-                    <option value="packed">Packed</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="issue">Issue</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Date</label>
-            <input type="date" id="ord-date">
-        </div>
-        <div class="form-group">
-            <label>Country (optional)</label>
-            <input type="text" id="ord-country" placeholder="e.g. United Kingdom">
-        </div>
-        <div class="form-group">
-            <label>Notes (optional)</label>
-            <input type="text" id="ord-notes" placeholder="Any notes…">
-        </div>
-        <div class="form-group">
-            <label>Tracking Link (optional)</label>
-            <input type="url" id="ord-tracking" placeholder="https://track.royalmail.com/…">
-        </div>
-        <div class="form-group">
-            <label>Stripe Payment ID (optional)</label>
-            <input type="text" id="ord-stripe-id" placeholder="e.g. pi_3ABC… or ch_3ABC…">
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" onclick="closeModal('ord-modal')">Cancel</button>
-            <button class="btn btn-purple" onclick="saveOrder()">Save Order</button>
-        </div>
-    </div>
-</div>
-
 <!-- ── TEAM MODAL ── -->
 <div class="modal-overlay" id="team-modal">
     <div class="modal">
@@ -967,8 +823,8 @@
         <div class="form-group">
             <label>Role</label>
             <select id="team-role">
-                <option value="staff">Staff — Orders</option>
-                <option value="viewer">Viewer — Orders read-only</option>
+                <option value="staff">Staff</option>
+                <option value="viewer">Viewer — read-only</option>
                 <option value="admin">Admin — Full Access</option>
                 <option value="builder">Full Access — All permissions + Site Health</option>
             </select>
@@ -1129,22 +985,11 @@ const DEFAULT_USERS = [
     { id: 'u2', username: 'zjets988',     name: 'Zahra J',  role: 'staff' },
 ];
 
-const DEFAULT_ORDERS = [
-    { id: 'QD-001', customer: 'Fatima Al-Hassan', date: '2026-03-01', items: '2x Standard Pack',              total: 25.98, status: 'delivered',  notes: '' },
-    { id: 'QD-002', customer: 'Mohammed Reza',    date: '2026-03-03', items: '1x Deluxe Pack',                total: 19.99, status: 'shipped',    notes: 'Gift wrap requested' },
-    { id: 'QD-003', customer: 'Zainab Karimi',    date: '2026-03-05', items: '1x Bundle',                    total: 19.99, status: 'packed',     notes: '' },
-    { id: 'QD-004', customer: 'Hassan Al-Amin',   date: '2026-03-06', items: '3x Standard Pack',              total: 38.97, status: 'processing', notes: '' },
-    { id: 'QD-005', customer: 'Mariam Sadiq',     date: '2026-03-07', items: '1x Standard Pack, 1x Expansion',total: 21.98, status: 'processing', notes: 'Urgent' },
-    { id: 'QD-006', customer: 'Ali Hussain',      date: '2026-03-02', items: '1x Deluxe Pack',                total: 19.99, status: 'cancelled',  notes: 'Customer requested cancellation' },
-];
-
 // ─────────────────────────────────────────────
 // STORAGE HELPERS (server-side API)
 // ─────────────────────────────────────────────
 async function getUsers()     { try { const r = await fetch('/api/users');     return r.ok ? r.json() : DEFAULT_USERS;     } catch { return DEFAULT_USERS;     } }
-async function getOrders()    { try { const r = await fetch('/api/orders');    return r.ok ? r.json() : [];               } catch { return [];                  } }
 async function saveUsers(v)     { try { await fetch('/api/users',     { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
-async function saveOrders(v)    { try { const r = await fetch('/api/orders',    { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); return r.ok; } catch { return false; } }
 
 // ─────────────────────────────────────────────
 // AUTH
@@ -1213,10 +1058,8 @@ function showPanel() {
 
     document.getElementById('nav-team').style.display         = isAdmin   ? 'flex'  : 'none';
     document.getElementById('nav-members').style.display      = isAdmin   ? 'flex'  : 'none';
-    document.getElementById('btn-add-order').style.display    = isViewer  ? 'none'  : '';
     document.getElementById('btn-add-member').style.display   = isAdmin   ? ''      : 'none';
     document.getElementById('btn-add-reg-member').style.display = isAdmin ? ''      : 'none';
-    document.getElementById('btn-sync-stripe').style.display  = (!isViewer && getStripeKey()) ? '' : 'none';
 
     showTab('dashboard');
 }
@@ -1241,7 +1084,7 @@ function showPanel() {
 // ─────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────
-const TAB_TITLES = { dashboard: 'Dashboard', orders: 'Orders', team: 'Team', messages: 'Messages', members: 'Members' };
+const TAB_TITLES = { dashboard: 'Dashboard', team: 'Team', messages: 'Messages', members: 'Members' };
 
 function showTab(tab) {
     document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
@@ -1251,7 +1094,6 @@ function showTab(tab) {
     document.getElementById('page-title').textContent = TAB_TITLES[tab];
     closeSidebar();
     if (tab === 'dashboard') renderDashboard();
-    if (tab === 'orders')    { renderOrders(); if (getStripeKey()) syncStripeOrders(); }
     if (tab === 'team')      renderTeam();
     if (tab === 'messages')  loadAllMessages();
     if (tab === 'members')   renderMembers();
@@ -1270,322 +1112,25 @@ function closeSidebar() {
 // DASHBOARD
 // ─────────────────────────────────────────────
 async function renderDashboard() {
-    const orders = await getOrders();
     const allMembers = await getMembers();
     const today = new Date(); today.setHours(0,0,0,0);
     const activeMembers = allMembers.filter(m => m.active !== false && (!m.expiryDate || new Date(m.expiryDate) >= today)).length;
 
-    const visible    = orders.filter(o => !o._deleted);
-    const revenue    = visible.filter(o => o.status !== 'cancelled').reduce((a, o) => a + o.total, 0);
-    const totalOrds  = visible.length;
-    const pending    = visible.filter(o => o.status === 'processing').length;
-
     document.getElementById('stats-grid').innerHTML = `
         <div class="stat-card purple-card">
-            <div class="s-label">Revenue</div>
-            <div class="s-val">£${revenue.toFixed(2)}</div>
-            <div class="s-sub">All non-cancelled orders</div>
-        </div>
-        <div class="stat-card">
-            <div class="s-label">Orders</div>
-            <div class="s-val">${totalOrds}</div>
-            <div class="s-sub">${pending} pending</div>
-        </div>
-        <div class="stat-card">
             <div class="s-label">Members</div>
             <div class="s-val">${activeMembers}</div>
             <div class="s-sub">active memberships</div>
         </div>
     `;
-
-    const recent = [...visible].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
-    document.getElementById('recent-orders-wrap').innerHTML = recent.length
-        ? `<table style="font-size:0.82rem"><thead><tr><th>Customer</th><th>Status</th></tr></thead><tbody>
-           ${recent.map(o => `<tr>
-               <td>${o.customer}</td>
-               <td><span class="badge badge-${o.status}">${cap(o.status)}</span></td>
-           </tr>`).join('')}
-           </tbody></table>`
-        : '<div class="empty-state"><div class="e-icon">🛒</div><p>No orders yet</p></div>';
-
-    const isLiveKey = getStripeKey().startsWith('sk_live') || getStripeKey().startsWith('rk_live');
-    const stripeLinkBase = isLiveKey ? 'https://dashboard.stripe.com/payments/' : 'https://dashboard.stripe.com/test/payments/';
-    const myOrders = visible.filter(o => o.assignee === currentUser.name && o.status !== 'delivered' && !o._deleted)
-                             .sort((a, b) => b.date.localeCompare(a.date));
-    document.getElementById('my-orders-wrap').innerHTML = myOrders.length
-        ? `<table><thead><tr><th>Customer</th><th>Status</th><th>Stripe</th><th>Tracking</th></tr></thead><tbody>
-           ${myOrders.map(o => `<tr>
-               <td>${o.customer || '—'}</td>
-               <td><span class="badge badge-${o.status}">${cap(o.status)}</span></td>
-               <td>${o.stripeId ? `<a href="${stripeLinkBase}${o.stripeId}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">View ↗</a>` : '—'}</td>
-               <td>${o.tracking ? `<a href="${o.tracking}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track ↗</a>` : '—'}</td>
-           </tr>`).join('')}
-           </tbody></table>`
-        : '<div class="empty-state"><div class="e-icon">📋</div><p>No orders assigned to you</p></div>';
-}
-
-
-// ─────────────────────────────────────────────
-// ORDERS
-// ─────────────────────────────────────────────
-const statusStyle = {
-    processing: 'background:#F39C12;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
-    packed:     'background:#3498DB;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
-    shipped:    'background:#8E44AD;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
-    delivered:  'background:#27AE60;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
-    cancelled:  'background:#C0392B;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
-    issue:      'background:#E67E22;color:#fff;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer',
-};
-
-async function quickTracking(id, url) {
-    const orders = await getOrders();
-    const o = orders.find(x => x.id === id);
-    if (o && o.tracking !== url) { o.tracking = url; await saveOrders(orders); }
-}
-
-async function addTracking(id, current) {
-    const url = prompt('Enter tracking link:', current || '');
-    if (url === null) return;          // cancelled
-    const trimmed = url.trim();
-    await quickTracking(id, trimmed);
-    await renderOrders();
-}
-
-async function quickAssign(id, assignee) {
-    const orders = await getOrders();
-    const o = orders.find(x => x.id === id);
-    if (o) { o.assignee = assignee; await saveOrders(orders); }
-}
-
-async function renderOrders() {
-    const _users = await getUsers();
-    const _teamNames = _users.map(u => u.name);
-    const q       = (document.getElementById('ord-search')?.value || '').toLowerCase();
-    const sf      = document.getElementById('ord-status-filter')?.value || '';
-    const canEdit = currentUser.role !== 'viewer';
-
-    document.getElementById('ord-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:#9B7B6E;padding:20px">Loading…</td></tr>';
-    const _orders = await getOrders();
-    const filtered = _orders
-        .filter(o => !o._deleted && o.status !== 'delivered' && (!q || o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)) && (!sf || o.status === sf))
-        .sort((a, b) => b.date.localeCompare(a.date));
-
-    const tbody = document.getElementById('ord-tbody');
-    if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="e-icon">🛒</div><p>No orders found</p></div></td></tr>`;
-        return;
-    }
-
-    const statusOpts = ['processing','packed','shipped','delivered','cancelled','issue'];
-    const isLiveKey = getStripeKey().startsWith('sk_live') || getStripeKey().startsWith('rk_live');
-    const stripeLinkBase = isLiveKey ? 'https://dashboard.stripe.com/payments/' : 'https://dashboard.stripe.com/test/payments/';
-
-    renderFinishedOrders(_orders, canEdit);
-
-    tbody.innerHTML = filtered.map(o => `<tr data-order-id="${o.id}">
-        <td>${o.stripeId
-            ? `<a href="${stripeLinkBase}${o.stripeId}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">View ↗</a>`
-            : (canEdit ? `<button class="btn btn-sm btn-outline" onclick="openEditOrderModal('${o.id}')" style="font-size:0.73rem;padding:3px 8px">+ Add</button>` : '—')
-        }</td>
-        <td>${o.date}</td>
-        <td>${o.items}</td>
-        <td>£${parseFloat(o.total).toFixed(2)}</td>
-        <td>${o.country || '—'}</td>
-        <td>${o.customer || '—'}</td>
-        <td>
-            ${o.tracking
-              ? `<span style="display:flex;align-items:center;gap:4px">
-                  <a href="${o.tracking}" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track ↗</a>
-                  ${canEdit ? `<button class="btn btn-sm" onclick="addTracking('${o.id}','${o.tracking.replace(/'/g,'')}')" style="font-size:0.72rem;padding:2px 6px;background:none;border:1px solid #ddd;border-radius:5px;cursor:pointer;color:#9B7B6E" title="Edit link">✎</button>` : ''}
-                </span>`
-              : (canEdit ? `<button class="btn btn-sm btn-outline" onclick="addTracking('${o.id}','')" style="font-size:0.73rem;padding:3px 8px">+ Add Link</button>` : '—')
-            }
-        </td>
-        <td>
-            ${canEdit
-                ? `<select onchange="this.setAttribute('style',shippingPillStyle(this.value));quickShipping('${o.id}',this.value)" style="${shippingPillStyle(o.shippingType||'')}">
-                    <option value="">— None —</option>
-                    <option value="UK Shipping"${o.shippingType==='UK Shipping'?' selected':''}>UK Shipping</option>
-                    <option value="International Shipping"${o.shippingType==='International Shipping'?' selected':''}>International Shipping</option>
-                    <option value="Collection - Lon"${o.shippingType==='Collection - Lon'?' selected':''}>Collection - Lon</option>
-                   </select>`
-                : (o.shippingType || '—')
-            }
-        </td>
-        <td>
-            ${canEdit
-                ? `<select onchange="quickStatus('${o.id}',this.value)" style="${statusStyle[o.status]||''}">
-                    ${statusOpts.map(s => `<option value="${s}"${o.status===s?' selected':''}>${cap(s)}</option>`).join('')}
-                   </select>`
-                : `<span class="badge badge-${o.status}">${o.status}</span>`
-            }
-        </td>
-        <td>
-            ${canEdit
-              ? `<select onchange="this.setAttribute('style',assigneePillStyle(this.value));quickAssign('${o.id}',this.value)" style="${assigneePillStyle(o.assignee||'')}">
-                  <option value="">${o.assignee||'Unassigned'}</option>
-                  ${_teamNames.map(n => n === (o.assignee||'') ? '' : `<option value="${n}">${n}</option>`).join('')}
-                  ${o.assignee ? '<option value="">— Unassign</option>' : ''}
-                 </select>`
-              : (o.assignee || '—')
-            }
-        </td>
-        <td style="white-space:nowrap">
-            ${canEdit ? `
-                <button class="btn btn-sm btn-outline" onclick="openEditOrderModal('${o.id}')">Edit</button>
-                <button class="btn btn-sm btn-red" style="margin-left:6px;padding:3px 8px" onclick="deleteOrder('${o.id}')">✕</button>
-            ` : '—'}
-        </td>
-    </tr>`).join('');
-}
-
-const SHIP_COLORS = {
-    'UK Shipping':              'background:#27AE60;color:#fff',
-    'International Shipping':   'background:#8E44AD;color:#fff',
-    'Collection - Lon':         'background:#16A085;color:#fff',
-};
-const PILL_BASE = ';appearance:none;-webkit-appearance:none;border:none;border-radius:20px;padding:3px 10px;font-size:0.73rem;font-weight:600;cursor:pointer;outline:none;max-width:160px';
-function shippingPillStyle(v) { return (SHIP_COLORS[v] || 'background:#E8D5C4;color:#5C4033') + PILL_BASE; }
-function assigneePillStyle(v) { return (v ? 'background:#6C5CE7;color:#fff' : 'background:#E8D5C4;color:#5C4033') + PILL_BASE + ';max-width:110px'; }
-
-async function quickShipping(id, shippingType) {
-    const orders = await getOrders();
-    const o = orders.find(x => x.id === id);
-    if (o) { o.shippingType = shippingType; await saveOrders(orders); }
-}
-
-async function quickStatus(id, status) {
-    const orders = await getOrders();
-    const o = orders.find(x => x.id === id);
-    if (o) { o.status = status; await saveOrders(orders); await renderDashboard(); if (status === "delivered") { const row2 = document.querySelector(`#ord-tbody tr[data-order-id="${id}"]`); if (row2) row2.remove(); renderFinishedOrders(orders, currentUser.role !== "viewer"); } }
-}
-
-function openAddOrderModal() {
-    document.getElementById('ord-modal-title').textContent = 'Add Order';
-    document.getElementById('ord-edit-id').value = '';
-    ['ord-customer','ord-items','ord-total','ord-country','ord-notes','ord-tracking','ord-stripe-id'].forEach(f => document.getElementById(f).value = '');
-    document.getElementById('ord-status').value = 'processing';
-    document.getElementById('ord-shipping-type').value = '';
-    document.getElementById('ord-date').value = new Date().toISOString().split('T')[0];
-    openModal('ord-modal');
-}
-
-async function openEditOrderModal(id) {
-    const o = (await getOrders()).find(x => x.id === id);
-    document.getElementById('ord-modal-title').textContent = 'Edit Order';
-    document.getElementById('ord-edit-id').value    = id;
-    document.getElementById('ord-customer').value   = o.customer;
-    document.getElementById('ord-items').value      = o.items;
-    document.getElementById('ord-total').value      = o.total;
-    document.getElementById('ord-status').value     = o.status;
-    document.getElementById('ord-date').value       = o.date;
-    document.getElementById('ord-country').value      = o.country || '';
-    document.getElementById('ord-notes').value        = o.notes || '';
-    document.getElementById('ord-tracking').value     = o.tracking || '';
-    document.getElementById('ord-stripe-id').value    = o.stripeId || '';
-    document.getElementById('ord-shipping-type').value = o.shippingType || '';
-    openModal('ord-modal');
-}
-
-async function saveOrder() {
-    const customer = document.getElementById('ord-customer').value.trim();
-    const items    = document.getElementById('ord-items').value.trim();
-    const total    = parseFloat(document.getElementById('ord-total').value);
-    const status   = document.getElementById('ord-status').value;
-    const date     = document.getElementById('ord-date').value;
-    const country      = document.getElementById('ord-country').value.trim();
-    const notes        = document.getElementById('ord-notes').value.trim();
-    const tracking     = document.getElementById('ord-tracking').value.trim();
-    const stripeId     = document.getElementById('ord-stripe-id').value.trim();
-    const shippingType = document.getElementById('ord-shipping-type').value;
-
-    if (!customer || !items || isNaN(total) || !date) {
-        alert('Please fill in all required fields (Customer, Items, Total, Date).');
-        return;
-    }
-
-    const orders = await getOrders();
-    const editId = document.getElementById('ord-edit-id').value;
-
-    if (editId) {
-        const idx = orders.findIndex(x => x.id === editId);
-        if (idx > -1) orders[idx] = { ...orders[idx], customer, items, total, status, date, country, notes, tracking, stripeId, shippingType };
-    } else {
-        // Generate a unique order ID
-        const nums   = orders.map(o => parseInt(o.id.replace('QD-', '')) || 0);
-        const nextNum = (Math.max(0, ...nums) + 1);
-        const newId   = 'QD-' + String(nextNum).padStart(3, '0');
-        orders.push({ id: newId, customer, items, total, status, date, country, notes, tracking, stripeId, shippingType });
-    }
-
-    await saveOrders(orders);
-    closeModal('ord-modal');
-    await renderOrders();
-    await renderDashboard();
-}
-
-async function deleteOrder(id) {
-    const orders = await getOrders();
-    const order = orders.find(o => o.id === id);
-    // Stripe-linked orders must be soft-deleted so Stripe sync doesn't re-import them
-    const updated = (order && order.stripeId)
-        ? orders.map(o => o.id === id ? { ...o, _deleted: true } : o)
-        : orders.filter(o => o.id !== id);
-    const ok = await saveOrders(updated);
-    if (!ok) { alert('Something went wrong — please contact IT Team.'); return; }
-    document.querySelectorAll(`tr[data-order-id="${id}"]`).forEach(r => r.remove());
-    renderDashboard();
-}
-
-// ─────────────────────────────────────────────
-function renderFinishedOrders(allOrders, canEdit) {
-    var finished = allOrders.filter(function(o) { return !o._deleted && o.status === "delivered"; }).sort(function(a,b){ return b.date.localeCompare(a.date); });
-    var countEl = document.getElementById("finished-count");
-    if (countEl) countEl.textContent = finished.length ? "(" + finished.length + ")" : "";
-    var tbody = document.getElementById("finished-tbody");
-    if (!tbody) return;
-    if (!finished.length) {
-        tbody.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="e-icon">✅</div><p>No finished orders yet</p></div></td></tr>';
-        return;
-    }
-    var isLiveKey = getStripeKey().startsWith("sk_live") || getStripeKey().startsWith("rk_live");
-    var stripeLinkBase = isLiveKey ? "https://dashboard.stripe.com/payments/" : "https://dashboard.stripe.com/test/payments/";
-    tbody.innerHTML = finished.map(function(o) {
-        var trackCell = o.tracking ? '<a href="' + o.tracking + '" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">Track</a>' : '&mdash;';
-        var actCell = canEdit ? '<button class="btn btn-sm btn-red" style="padding:3px 8px" onclick="deleteOrder(' + JSON.stringify(o.id) + ')">x</button>' : '&mdash;';
-        var stripeCell = o.stripeId ? '<a href="' + stripeLinkBase + o.stripeId + '" target="_blank" class="btn btn-sm btn-outline" style="font-size:0.73rem;padding:3px 8px">View ↗</a>' : '&mdash;';
-        return '<tr data-order-id="' + o.id + '">'
-            + '<td>' + stripeCell + '</td>'
-            + '<td>' + o.date + '</td>'
-            + '<td>' + o.items + '</td>'
-            + '<td>&pound;' + parseFloat(o.total).toFixed(2) + '</td>'
-            + '<td>' + (o.country || '&mdash;') + '</td>'
-            + '<td>' + (o.customer || '&mdash;') + '</td>'
-            + '<td>' + trackCell + '</td>'
-            + '<td>' + (o.shippingType || '&mdash;') + '</td>'
-            + '<td><span class="badge badge-delivered">Delivered</span></td>'
-            + '<td>' + (o.assignee || '&mdash;') + '</td>'
-            + '<td>' + actCell + '</td>'
-            + '</tr>';
-    }).join('');
-}
-
-function toggleFinishedOrders() {
-    var section = document.getElementById('finished-orders-section');
-    var btn = document.getElementById('btn-finished-orders');
-    var cntEl = document.getElementById('finished-count');
-    var cnt = cntEl ? cntEl.textContent : '';
-    var showing = section.style.display !== 'none';
-    section.style.display = showing ? 'none' : 'block';
-    btn.innerHTML = (showing ? 'Finished Orders ' : 'Hide Finished ') + '<span id="finished-count">' + cnt + '</span>';
 }
 
 // TEAM
 // ─────────────────────────────────────────────
 const ROLE_LABELS = {
-    admin:   'Full access — orders, team',
-    staff:   'Orders management',
-    viewer:  'Orders view only (read-only)',
+    admin:   'Full access — team, members',
+    staff:   'Staff access',
+    viewer:  'Read-only access',
     builder: 'Full access — all permissions + site health panel',
 };
 
@@ -1730,77 +1275,6 @@ async function saveProfile() {
 // ─────────────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-
-// STRIPE (key storage + order sync only — configuration is in sitemaintenance.html)
-function getStripeKey(){try{return atob(localStorage.getItem('qd_sk')||'');}catch(e){return '';}}
-async function syncStripeOrders(){
-    var key=getStripeKey();
-    if(!key){alert('Connect Stripe first via Site Maintenance (⚙️ in the sidebar).');return;}
-    var btn=document.getElementById('btn-sync-stripe');
-    var origText=btn?btn.textContent:'';
-    if(btn){btn.textContent='⟳ Syncing…';btn.disabled=true;}
-    try{
-        var r=await fetch('https://api.stripe.com/v1/payment_intents?limit=100&expand[]=data.charges',{headers:{'Authorization':'Bearer '+key}});
-        if(!r.ok){var ej=await r.json();throw new Error(ej.error?ej.error.message:'Stripe error '+r.status);}
-        var pd=await r.json();
-        var pays=pd.data||[];
-        var succeeded=pays.filter(function(p){return p.status==='succeeded';});
-        var orders=await getOrders();
-        var existing=orders.filter(function(o){return o.stripeId;}).map(function(o){return o.stripeId;});
-        var newPays=succeeded.filter(function(p){return existing.indexOf(p.id)===-1;});
-        if(!newPays.length){
-            if(btn){btn.textContent='✓ Up to date';setTimeout(function(){if(btn){btn.textContent=origText;btn.disabled=false;}},2000);}
-            return;
-        }
-        var nums=orders.map(function(o){return parseInt(o.id.replace('QD-',''))||0;});
-        var nxt=Math.max.apply(null,[0].concat(nums))+1;
-        newPays.forEach(function(p){
-            var ch=(p.charges&&p.charges.data&&p.charges.data[0])||null;
-            var bd=ch&&ch.billing_details||null;
-            var cust=(p.shipping&&p.shipping.name)||(p.shipping&&p.shipping.address&&p.shipping.address.line1)||(bd&&bd.name)||(p.metadata&&p.metadata.customer_name)||p.receipt_email||'Stripe Customer';
-            var country=(p.shipping&&p.shipping.address&&p.shipping.address.country)||(bd&&bd.address&&bd.address.country)||(p.metadata&&p.metadata.country)||'';
-            var shipping=(p.shipping&&p.shipping.name)||(p.metadata&&p.metadata.shipping_method)||'';
-            var amt=(p.amount_received||p.amount)/100;
-            var dt=new Date(p.created*1000).toISOString().split('T')[0];
-            var dsc=p.description||(p.metadata&&p.metadata.product)||'Stripe Payment';
-            var nid='QD-'+String(nxt).padStart(3,'0');
-            orders.push({id:nid,customer:cust,items:dsc,total:amt,status:'processing',date:dt,notes:'',stripeId:p.id,country:country,shipping:shipping});
-            nxt++;
-        });
-        await saveOrders(orders);
-        await renderOrders();
-        await renderDashboard();
-        if(btn){btn.textContent='✓ +'+newPays.length+' new';setTimeout(function(){if(btn){btn.textContent=origText;btn.disabled=false;}},3000);}
-    }catch(err){
-        if(btn){btn.textContent=origText;btn.disabled=false;}
-        console.error('Stripe sync failed:',err.message);
-    }
-}
-async function importStripeOrder(piId){
-    var key=getStripeKey();
-    try{
-        var r=await fetch('https://api.stripe.com/v1/payment_intents/'+piId+'?expand[]=charges',{headers:{'Authorization':'Bearer '+key}});
-        var pi=await r.json();if(pi.error)throw new Error(pi.error.message);
-        var orders=await getOrders();
-        if(orders.find(function(o){return o.stripeId===piId;})){alert('Already imported.');return;}
-        var nums=orders.map(function(o){return parseInt(o.id.replace('QD-',''))||0;});
-        var nxt=Math.max.apply(null,[0].concat(nums))+1;
-        var nid='QD-'+String(nxt).padStart(3,'0');
-        var ch=(pi.charges&&pi.charges.data&&pi.charges.data[0])||null;
-        var bd=ch&&ch.billing_details||null;
-        var cust=(pi.shipping&&pi.shipping.name)||(pi.shipping&&pi.shipping.address&&pi.shipping.address.line1)||(bd&&bd.name)||(pi.metadata&&pi.metadata.customer_name)||pi.receipt_email||'Stripe Customer';
-        var country=(pi.shipping&&pi.shipping.address&&pi.shipping.address.country)||(bd&&bd.address&&bd.address.country)||(pi.metadata&&pi.metadata.country)||'';
-        var shipping=(pi.shipping&&pi.shipping.name)||(pi.metadata&&pi.metadata.shipping_method)||'';
-        var amt=(pi.amount_received||pi.amount)/100;
-        var dt=new Date(pi.created*1000).toISOString().split('T')[0];
-        var dsc=pi.description||(pi.metadata&&pi.metadata.product)||'Stripe Payment';
-        orders.push({id:nid,customer:cust,items:dsc,total:amt,status:'packed',date:dt,notes:'Imported from Stripe: '+piId,stripeId:piId,country:country,shipping:shipping});
-        await saveOrders(orders);alert('Order '+nid+' created! Go to the Orders tab.');
-        await renderDashboard();
-    }catch(err){alert('Import failed: '+err.message);}
-}
 
 // Close modal when clicking backdrop
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -1876,7 +1350,7 @@ loadGoogleSettings();
 
 
 // ─────────────────────────────────────────────
-// UNIFIED INBOX (contact + interest submissions)
+// UNIFIED INBOX (contact submissions)
 // ─────────────────────────────────────────────
 const MSG_STATUS = {
     received: { bg: '#F3E8F0', color: '#7B3F5E', border: '#7B3F5E', label: 'Received' },
@@ -1884,49 +1358,33 @@ const MSG_STATUS = {
     replied:  { bg: '#EAFAF1', color: '#1E8449', border: '#1E8449', label: 'Replied' },
     resolved: { bg: '#F2F3F4', color: '#7F8C8D', border: '#BDC3C7', label: 'Resolved' },
 };
-const INT_STATUS = {
-    new:      { bg: '#FEF3E2', color: '#E8872A', border: '#E8872A', label: 'New' },
-    read:     { bg: '#EBF5FB', color: '#2471A3', border: '#2471A3', label: 'Read' },
-    contacted:{ bg: '#EAFAF1', color: '#1E8449', border: '#1E8449', label: 'Contacted' },
-    resolved: { bg: '#F2F3F4', color: '#7F8C8D', border: '#BDC3C7', label: 'Resolved' },
-};
-
 // Source badge config
 const SOURCE_LABELS = {
     contact:  { label: '✉️ Contact Us',          bg: '#F3E8F0', color: '#7B3F5E' },
-    interest: { label: '📖 Qur\'an Class Interest', bg: '#FEF3E2', color: '#C4720A' },
 };
 
 async function loadAllMessages() {
     const wrap = document.getElementById('messages-list');
     wrap.innerHTML = '<p style="color:#9B7B6E;padding:20px 0">Loading…</p>';
     try {
-        const [contactsRes, interestsRes] = await Promise.all([fetch('/api/contacts'), fetch('/api/interests')]);
+        const contactsRes = await fetch('/api/contacts');
         if (!contactsRes.ok) throw new Error('Contacts API returned ' + contactsRes.status);
-        if (!interestsRes.ok) throw new Error('Interests API returned ' + interestsRes.status);
         const contacts  = await contactsRes.json();
-        const interests = await interestsRes.json();
         if (!Array.isArray(contacts)) throw new Error('Contacts response is not an array');
-        if (!Array.isArray(interests)) throw new Error('Interests response is not an array');
 
         // Normalise & tag
         contacts.forEach(function(m) {
             if (!m.status) m.status = m.read ? 'read' : 'received';
             m._source = 'contact';
         });
-        interests.forEach(function(i) {
-            if (!i.status) i.status = 'new';
-            i._source = 'interest';
-        });
 
-        // Combine & sort newest first
-        const all = contacts.concat(interests).sort(function(a, b) {
+        // Sort newest first
+        const all = contacts.slice().sort(function(a, b) {
             return new Date(b.date) - new Date(a.date);
         });
 
-        // Badge = unread contacts + new interests
-        const unreadCount = contacts.filter(function(m) { return m.status === 'received'; }).length
-                          + interests.filter(function(i) { return i.status === 'new'; }).length;
+        // Badge = unread contacts
+        const unreadCount = contacts.filter(function(m) { return m.status === 'received'; }).length;
         const badge = document.getElementById('unread-badge');
         if (unreadCount > 0) { badge.textContent = unreadCount; badge.style.display = 'inline'; }
         else badge.style.display = 'none';
@@ -1961,7 +1419,7 @@ async function loadAllMessages() {
 }
 
 function renderInboxCard(item) {
-    return item._source === 'interest' ? renderInterestCard(item) : renderMessageCard(item);
+    return renderMessageCard(item);
 }
 
 function renderSourceBadge(source) {
@@ -1994,38 +1452,6 @@ function renderMessageCard(m) {
     </div>`;
 }
 
-function renderInterestCard(i) {
-    const date = new Date(i.date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const sc = INT_STATUS[i.status] || INT_STATUS.new;
-    const opts = Object.keys(INT_STATUS).map(function(k) {
-        return `<option value="${k}" ${i.status === k ? 'selected' : ''}>${INT_STATUS[k].label}</option>`;
-    }).join('');
-    return `<div style="background:#fff;border-radius:16px;padding:24px 28px;margin-bottom:16px;box-shadow:0 2px 10px rgba(59,36,23,0.07);border-left:4px solid ${sc.border}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                ${renderSourceBadge('interest')}
-                <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;color:#3B2417">${escHtml(i.parentName)}</span>
-                <span style="background:${sc.bg};color:${sc.color};font-size:0.72rem;padding:3px 10px;border-radius:20px;font-weight:700">${sc.label}</span>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-                <select onchange="updateInterestStatus('${i.id}', this.value)" style="font-family:'Poppins',sans-serif;font-size:0.8rem;border:1.5px solid #E8D5C4;border-radius:8px;padding:5px 8px;background:#FAF6F1;color:#3B2417;cursor:pointer">${opts}</select>
-                <button class="btn btn-outline btn-sm" style="color:#C0392B;border-color:#C0392B" onclick="deleteInterest('${i.id}')">Delete</button>
-            </div>
-        </div>
-        <div style="font-size:0.82rem;color:#9B7B6E;margin-bottom:12px">
-            <a href="mailto:${escHtml(i.email)}" style="color:#7B3F5E">${escHtml(i.email)}</a>${i.phone ? ' &nbsp;·&nbsp; 📞 ' + escHtml(i.phone) : ''} &nbsp;·&nbsp; ${date}
-        </div>
-        <div style="font-size:0.88rem;color:#3B2417;margin-bottom:8px">
-            <strong>Child:</strong> ${escHtml(i.childName)}, Age ${escHtml(String(i.childAge))}
-        </div>
-        <div style="font-size:0.85rem;color:#5C4033;margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap">
-            ${i.programme ? `<span style="background:#EBF5FB;color:#2471A3;padding:3px 10px;border-radius:12px;font-size:0.78rem;font-weight:600">📖 ${escHtml(i.programme)}</span>` : ''}
-            ${i.format ? `<span style="background:#F3E8F0;color:#7B3F5E;padding:3px 10px;border-radius:12px;font-size:0.78rem;font-weight:600">📍 ${escHtml(i.format)}</span>` : ''}
-        </div>
-        ${i.message ? `<p style="color:#5C4033;font-size:0.88rem;line-height:1.6;white-space:pre-wrap;margin-top:8px;padding:10px 14px;background:#FAF6F1;border-radius:8px">${escHtml(i.message)}</p>` : ''}
-    </div>`;
-}
-
 function toggleResolvedMessages() {
     const section = document.getElementById('resolved-messages-section');
     const open = section.style.display !== 'none';
@@ -2047,21 +1473,6 @@ async function updateMessageStatus(id, status) {
 async function deleteMessage(id) {
     if (!confirm('Delete this message?')) return;
     await fetch('/api/contacts/' + id, { method: 'DELETE' });
-    loadAllMessages();
-}
-
-async function updateInterestStatus(id, status) {
-    await fetch('/api/interests/' + id, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: status }),
-    });
-    loadAllMessages();
-}
-
-async function deleteInterest(id) {
-    if (!confirm('Delete this interest submission?')) return;
-    await fetch('/api/interests/' + id, { method: 'DELETE' });
     loadAllMessages();
 }
 

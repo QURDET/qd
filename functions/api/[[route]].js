@@ -16,7 +16,6 @@ const DEFAULT_DATA = {
         { id: 'p3', name: 'Shia Deal Expansion Pack',     sku: 'SD-EXP', price:  8.99, qty:  7, threshold: 10, notes: 'Running low — reorder soon' },
         { id: 'p4', name: 'Shia Deal Bundle (Std + Exp)', sku: 'SD-BUN', price: 19.99, qty:  3, threshold:  5, notes: '' },
     ],
-    orders: [],
 };
 
 const CORS = {
@@ -119,16 +118,6 @@ export async function onRequest(context) {
             if (!user) return json({ error: 'Invalid credentials' }, 401);
             const safe = Object.assign({}, user); delete safe.password;
             return json(safe);
-        }
-
-        // GET /api/orders
-        if (route === 'orders' && method === 'GET') return json((await readData()).orders);
-        // PUT /api/orders
-        if (route === 'orders' && method === 'PUT') {
-            const d = await readData();
-            d.orders = await request.json();
-            await writeData(d);
-            return json(d.orders);
         }
 
         // GET /api/inventory
