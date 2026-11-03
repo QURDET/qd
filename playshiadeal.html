@@ -124,6 +124,33 @@
             background:var(--bg);
         }
         #screen-setup.active { display:flex; }
+
+        /* ── ONLINE SCREEN ── */
+        #screen-online {
+            display:none; flex-direction:column; align-items:center;
+            justify-content:center; min-height:100vh; padding:100px 5% 60px;
+            background:var(--bg);
+        }
+        #screen-online.active { display:flex; }
+        .online-divider { display:flex; align-items:center; gap:12px; color:var(--text3); font-size:0.8rem; margin:22px 0 16px; }
+        .online-divider::before, .online-divider::after { content:''; flex:1; height:1px; background:var(--card-border); }
+        #join-code { text-transform:uppercase; letter-spacing:0.25em; text-align:center; font-weight:700; }
+        .room-code { font-family:'Bely Display',serif; font-size:2.6rem; letter-spacing:0.25em; color:var(--gold); text-align:center; margin:2px 0 12px; }
+        .room-players { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+        .room-players li {
+            display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px;
+            background:var(--bg2); border:1.5px solid var(--card-border); font-size:0.92rem; color:var(--text);
+        }
+        .room-players li .you-tag { margin-left:auto; font-size:0.72rem; color:var(--text3); }
+        .btn-secondary {
+            background:none; border:2px solid var(--gold); color:var(--gold); padding:11px 32px;
+            border-radius:12px; font-family:'Poppins',sans-serif; font-size:0.95rem;
+            font-weight:700; cursor:pointer; transition:all 0.2s; width:100%;
+        }
+        .btn-secondary:hover { background:rgba(var(--gold-rgb),0.12); }
+        .btn-primary:disabled, .btn-secondary:disabled { opacity:0.5; cursor:default; transform:none; box-shadow:none; }
+        .online-status { font-size:0.85rem; color:var(--text3); text-align:center; min-height:1.3em; margin-top:14px; }
+        .online-status.error { color:#e05555; }
         .setup-box {
             background:var(--card-bg); border:2px solid var(--card-border);
             border-radius:24px; padding:40px 44px; max-width:480px; width:100%;
@@ -641,11 +668,11 @@
             <div class="mode-badge">Available</div>
         </div>
 
-        <div class="mode-card coming-soon">
+        <div class="mode-card" onclick="startMode('online')">
             <div class="mode-icon">🌐</div>
             <div class="mode-name">Online Multiplayer</div>
-            <div class="mode-desc">Challenge players around the world in real-time matches.</div>
-            <div class="mode-badge soon">Coming Soon</div>
+            <div class="mode-desc">Create a room, share the code, and play with friends anywhere. 2–4 players.</div>
+            <div class="mode-badge">New</div>
         </div>
 
     </div>
@@ -691,6 +718,45 @@
         </div>
 
         <button class="btn-primary" onclick="startGame()">Start Game</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2b: ONLINE ROOM
+══════════════════════════════════════ -->
+<div id="screen-online" class="screen">
+    <div class="setup-box">
+        <button class="btn-back" onclick="goToLobby()">← Back</button>
+
+        <div id="online-join-panel">
+            <h2 class="setup-title">Online Multiplayer</h2>
+            <p class="setup-sub">Create a room and share the code, or join a friend's room. 2–4 players.</p>
+            <div class="form-group">
+                <label for="online-name">Your Name</label>
+                <input type="text" id="online-name" maxlength="20" placeholder="Your name" autocomplete="off">
+            </div>
+            <button class="btn-primary" id="create-room-btn" onclick="createRoom()">Create Room</button>
+            <div class="online-divider">or join a room</div>
+            <div class="form-group">
+                <label for="join-code">Room Code</label>
+                <input type="text" id="join-code" maxlength="5" placeholder="ABCDE" autocomplete="off" onkeydown="if(event.key==='Enter')joinRoom()">
+            </div>
+            <button class="btn-secondary" id="join-room-btn" onclick="joinRoom()">Join Room</button>
+        </div>
+
+        <div id="online-room-panel" style="display:none">
+            <h2 class="setup-title">Game Room</h2>
+            <p class="setup-sub" id="room-sub">Share this code with your friends:</p>
+            <div class="room-code" id="room-code">-----</div>
+            <button class="btn-secondary" id="copy-invite-btn" onclick="copyInvite()" style="margin-bottom:22px;">Copy Invite Link</button>
+            <div class="form-group">
+                <label>Players (<span id="room-count">1</span>/4)</label>
+                <ul class="room-players" id="room-players"></ul>
+            </div>
+            <button class="btn-primary" id="start-online-btn" onclick="startOnlineGame()" style="display:none" disabled>Start Game</button>
+        </div>
+
+        <div class="online-status" id="online-status"></div>
     </div>
 </div>
 
@@ -818,6 +884,8 @@
     </div>
 </footer>
 
+<!-- PeerJS: peer-to-peer connections for online multiplayer -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* ════════════════════════════════════════════════════
    MEMBER GATE — block non-members
@@ -872,6 +940,7 @@ function showScreen(id) {
     window.scrollTo(0, 0);
 }
 function goToLobby() {
+    if (currentMode === 'online') { netTeardown(); currentMode = 'local'; }
     G = null;
     document.getElementById('win-overlay').classList.remove('active');
     document.getElementById('modal-overlay').classList.remove('active');
@@ -984,6 +1053,7 @@ const PLAYER_COLORS = ['#f5c430','#CC2222','#1E90FF','#228B22'];
 let currentMode = 'local';
 
 function startMode(mode) {
+    if (mode === 'online') { openOnlineScreen(); return; }
     currentMode = mode;
     const countGroup = document.getElementById('player-count-group');
     if (mode === 'ai') {
@@ -1052,19 +1122,26 @@ function updateNameInputs() {
 let G = null;
 
 function startGame() {
-    const count = currentMode === 'ai' ? 2 : parseInt(document.getElementById('player-count').value);
     const names = [];
-    for (let i = 0; i < count; i++)
-        names.push(document.getElementById('pname'+i).value.trim() || 'Player '+(i+1));
+    if (currentMode === 'online') {
+        NET.seats.forEach(s => names.push(s.name));
+    } else {
+        const count = currentMode === 'ai' ? 2 : parseInt(document.getElementById('player-count').value);
+        for (let i = 0; i < count; i++)
+            names.push(document.getElementById('pname'+i).value.trim() || 'Player '+(i+1));
+    }
 
     const deck    = buildDeck();
     const players = names.map((name, i) => ({
         name, isAI: currentMode === 'ai' && i === 1,
         color: PLAYER_COLORS[i], hand: [], bank: [], props: {},
+        offline: currentMode === 'online' && i !== NET.myIdx && !NET.seats[i].conn,
     }));
     players.forEach(p => { for (let i = 0; i < 5; i++) if (deck.length) p.hand.push(deck.pop()); });
     const aiDiff = currentMode === 'ai' ? (document.getElementById('ai-difficulty').value) : 'medium';
     G = { deck, discard:[], players, currentPlayer:0, phase:'draw', drawnThisTurn:0, playsThisTurn:0, maxPlays:3, pendingWild:null, aiDifficulty: aiDiff };
+    document.getElementById('game-log').innerHTML = '';
+    if (currentMode === 'online') hostSendStart();
     showScreen('screen-game');
     renderGame();
     addLog(`Game started! ${G.players[0].name}'s turn.`, true);
@@ -1077,11 +1154,16 @@ function startGame() {
 function renderGame() {
     if (!G) return;
     const cp = G.players[G.currentPlayer];
+    const online = currentMode === 'online';
+    const me     = online ? NET.myIdx : G.currentPlayer;   // whose seat this screen shows
+    const mp     = G.players[me];
+    const myTurn = me === G.currentPlayer;
 
-    document.getElementById('turn-info').textContent    = cp.name + "'s Turn";
+    document.getElementById('turn-info').textContent    = online && myTurn ? 'Your Turn' : cp.name + "'s Turn";
     document.getElementById('actions-left').textContent = ` — ${G.maxPlays - G.playsThisTurn} plays left`;
-    document.getElementById('phase-info').textContent   = G.phase === 'draw' ? 'Draw 2 cards' : G.phase === 'play' ? 'Play cards or end turn' : 'Discard to 7';
-    document.getElementById('end-turn-btn').disabled   = G.phase === 'draw' || cp.isAI;
+    document.getElementById('phase-info').textContent   = online && !myTurn ? `Waiting for ${cp.name}…`
+        : G.phase === 'draw' ? 'Draw 2 cards' : G.phase === 'play' ? 'Play cards or end turn' : 'Discard to 7';
+    document.getElementById('end-turn-btn').disabled   = G.phase === 'draw' || cp.isAI || !myTurn || !!G.ending;
     // deck count hidden per design
 
     // Discard pile
@@ -1102,16 +1184,16 @@ function renderGame() {
     const oppRow = document.getElementById('opponents-row');
     oppRow.innerHTML = '';
     G.players.forEach((p, i) => {
-        if (i === G.currentPlayer) return;
+        if (i === me) return;
         const el = document.createElement('div');
-        el.className = 'opponent-panel';
+        el.className = 'opponent-panel' + (online && i === G.currentPlayer ? ' active-turn' : '');
         const bankTotal = p.bank.reduce((s,c) => s+c.value, 0);
         const setsHtml  = Object.entries(p.props).map(([col, cards]) => {
-            const meta = COLOR_META[col]; if (!meta) return '';
+            const meta = COLOR_META.hasOwnProperty(col) && COLOR_META[col]; if (!meta) return '';
             return `<span class="set-pill" style="background:${meta.hex}">${meta.label} ${cards.length}/${meta.needed}</span>`;
         }).join('');
         el.innerHTML = `
-            <div class="opp-name" style="color:${p.color}">${p.name}${p.isAI?' 🤖':''}</div>
+            <div class="opp-name" style="color:${p.color}">${escapeHtml(p.name)}${p.isAI?' 🤖':''}${p.offline?' (left)':''}</div>
             <div class="opp-bank">Bank: £${bankTotal}M &nbsp;|&nbsp; Sets: ${completeSets(p)}/3</div>
             <div class="opp-hand-count">${p.hand.length} cards in hand</div>
             <div class="opp-cards-face-down">${p.hand.map(()=>'<div class="mini-card-back"></div>').join('')}</div>
@@ -1121,25 +1203,27 @@ function renderGame() {
     });
 
     // Current player area
-    document.getElementById('player-area-name').textContent = cp.name + (cp.isAI?' 🤖':'') + "'s Turn";
-    document.getElementById('player-bank-info').textContent = 'Bank: £' + cp.bank.reduce((s,c)=>s+c.value,0) + 'M';
-    document.getElementById('sets-count').textContent = `(${completeSets(cp)}/3 sets)`;
+    document.getElementById('player-area-name').textContent = online ? mp.name + ' (You)' : cp.name + (cp.isAI?' 🤖':'') + "'s Turn";
+    document.getElementById('player-bank-info').textContent = 'Bank: £' + mp.bank.reduce((s,c)=>s+c.value,0) + 'M';
+    document.getElementById('sets-count').textContent = `(${completeSets(mp)}/3 sets)`;
 
-    renderProps(document.getElementById('props-grid'), cp);
-    renderFan(cp, G.phase === 'play');
+    renderProps(document.getElementById('props-grid'), mp);
+    renderFan(mp, G.phase === 'play' && myTurn);
+
+    if (online && NET.isHost) hostBroadcastState();
 }
 
 function renderProps(container, player) {
     container.innerHTML = '';
     Object.entries(player.props).forEach(([col, cards]) => {
-        const meta = COLOR_META[col]; if (!meta) return;
+        const meta = COLOR_META.hasOwnProperty(col) && COLOR_META[col]; if (!meta) return;
         const el   = document.createElement('div');
         el.className = 'color-set';
         el.style.borderColor = meta.hex;
         el.style.background  = meta.hex + '22';
         el.innerHTML = `
             <div class="color-set-title" style="color:${meta.hex}">${meta.icon} ${meta.label} (${cards.length}/${meta.needed})</div>
-            ${cards.map(c => `<div class="color-set-card" style="background:${meta.hex}33">${c.name}</div>`).join('')}
+            ${cards.map(c => `<div class="color-set-card" style="background:${meta.hex}33">${escapeHtml(c.name)}</div>`).join('')}
             ${cards.length >= meta.needed ? `<div class="color-set-card" style="background:${meta.hex};color:#fff;text-align:center;font-weight:700;">✓ Complete</div>` : ''}
         `;
         container.appendChild(el);
@@ -1194,10 +1278,10 @@ function buildCardEl(card, idx, clickable) {
     el.className = 'game-card';
     if (clickable) el.onclick = () => playCard(idx);
     if (card.img) {
-        el.innerHTML = `<img src="${card.img}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;" draggable="false">`;
+        el.innerHTML = `<img src="${escapeHtml(card.img)}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;" draggable="false">`;
     } else {
         el.classList.add('card-' + (card.color || card.type));
-        el.innerHTML = `<div class="card-type-label">${card.type}</div><div class="card-name">${card.name}</div>`;
+        el.innerHTML = `<div class="card-type-label">${escapeHtml(card.type)}</div><div class="card-name">${escapeHtml(card.name)}</div>`;
     }
     // Right-click to zoom
     el.addEventListener('contextmenu', e => {
@@ -1229,6 +1313,7 @@ function completeSets(player) {
 
 function drawCard() {
     if (!G) return;
+    if (netIntercept('draw')) return;
     const cp = G.players[G.currentPlayer];
     if (cp.isAI || G.phase !== 'draw') return;
     if (G.drawnThisTurn >= 2) { addLog('Already drew 2 cards.'); return; }
@@ -1252,7 +1337,9 @@ function reshuffleDeck() {
 
 function playCard(idx) {
     if (!G) return;
+    if (netIntercept('play', idx)) return;
     const cp = G.players[G.currentPlayer];
+    if (!Number.isInteger(idx) || idx < 0 || idx >= cp.hand.length) return;
     if (cp.isAI || G.phase !== 'play') return;
     if (G.playsThisTurn >= G.maxPlays) { addLog('No plays left — end your turn.'); return; }
     executeCard(G.currentPlayer, idx);
@@ -1324,6 +1411,10 @@ function openModal(title, body) {
     document.getElementById('modal-body').textContent  = body;
     document.getElementById('modal-options').innerHTML = '';
     document.getElementById('modal-overlay').classList.add('active');
+    // Online host: choice modals always belong to the player whose turn it is.
+    // If that is a remote player, send them the options once they've been added.
+    if (currentMode === 'online' && NET.isHost && G && G.currentPlayer !== NET.myIdx)
+        queueMicrotask(hostForwardModal);
     return document.getElementById('modal-options');
 }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
@@ -1464,18 +1555,24 @@ function slideFanIn() {
 function checkAutoEndTurn() {
     if (!G) return;
     const cp = G.players[G.currentPlayer];
-    if (!cp.isAI && G.phase === 'play' && G.playsThisTurn >= G.maxPlays) {
+    if (!cp.isAI && G.phase === 'play' && G.playsThisTurn >= G.maxPlays && !G.ending) {
+        G.ending = true;   // stops End Turn being pressed again during the animation
         addLog('3 plays used — turn ended automatically.', true);
+        renderGame();
         setTimeout(() => slideFanOut(nextPlayer), 400);
     }
 }
 
 function endTurn() {
     if (!G) return;
+    if (netIntercept('end')) return;
+    if (G.ending) return;
     const cp = G.players[G.currentPlayer];
     if (G.phase === 'draw') { addLog('Draw your cards first.'); return; }
     if (cp.hand.length > 7) { G.phase = 'discard'; showDiscardModal(cp); return; }
     if (tutorialActive) { const s = TUT_GAME_STEPS[tutGameStep]; if (s?.advanceOn === 'endturn') tutGameAdvance(); }
+    G.ending = true;
+    renderGame();
     slideFanOut(nextPlayer);
 }
 
@@ -1498,8 +1595,12 @@ function showDiscardModal(player) {
 }
 
 function nextPlayer() {
-    G.currentPlayer = (G.currentPlayer+1) % G.players.length;
-    G.phase='draw'; G.drawnThisTurn=0; G.playsThisTurn=0;
+    if (!G) return;
+    // Online: skip anyone who has left the game (the host never leaves mid-game)
+    let tries = 0;
+    do { G.currentPlayer = (G.currentPlayer+1) % G.players.length; }
+    while (G.players[G.currentPlayer].offline && ++tries < G.players.length);
+    G.phase='draw'; G.drawnThisTurn=0; G.playsThisTurn=0; G.ending=false;
     const cp = G.players[G.currentPlayer];
     addLog(`--- ${cp.name}'s turn ---`, true);
     if (currentMode === 'local' && !cp.isAI) {
@@ -1531,6 +1632,8 @@ function checkWin(playerIdx) {
         document.getElementById('win-title').textContent = player.name + ' Wins!';
         document.getElementById('win-sub').textContent   = `${player.name} completed 3 property sets with £${bankTotal}M in the bank!`;
         document.getElementById('win-overlay').classList.add('active');
+        if (currentMode === 'online' && NET.isHost)
+            netBroadcast({ t:'win', title: player.name + ' Wins!', sub: document.getElementById('win-sub').textContent });
     }
 }
 
@@ -1694,9 +1797,406 @@ function addLog(msg, highlight) {
     const el = document.createElement('div');
     el.className = 'log-entry' + (highlight ? ' highlight' : '');
     el.textContent = msg; log.appendChild(el); log.scrollTop = log.scrollHeight;
+    if (currentMode === 'online' && NET.isHost) netBroadcast({ t:'log', msg, hl: !!highlight });
 }
-function restartGame() { document.getElementById('win-overlay').classList.remove('active'); startGame(); }
+function restartGame() {
+    if (currentMode === 'online') {
+        if (!NET.isHost) return;                            // only the host can restart an online game
+        NET.seats = NET.seats.filter((s, i) => i === 0 || s.conn);   // drop anyone who left
+        if (NET.seats.length < 2) { document.getElementById('win-sub').textContent = 'Everyone else has left — go back to the lobby to start a new room.'; return; }
+    }
+    document.getElementById('win-overlay').classList.remove('active');
+    startGame();
+}
 updateNameInputs();
+
+/* ════════════════════════════════════════════════════
+   ONLINE MULTIPLAYER (PeerJS, host-authoritative)
+   ────────────────────────────────────────────────────
+   The host's browser runs the real game (G) exactly as in
+   local mode. Guests connect directly to the host, send
+   their clicks ('act' / 'pick') and receive a copy of the
+   game state with other players' hands hidden.
+════════════════════════════════════════════════════ */
+const ROOM_PREFIX   = 'qd-shiadeal-room-';
+const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const MAX_ONLINE    = 4;
+
+const NET = {
+    peer: null,       // our PeerJS peer
+    isHost: false,
+    hostConn: null,   // guest → host connection
+    seats: [],        // host only: [{ name, conn }] — seat 0 is the host (conn null)
+    myIdx: 0,         // our player index in G.players
+    code: '',
+    started: false,
+    acting: null,     // host only: index of the remote player whose action is being run
+    modalBtns: null,  // host only: buttons of a choice modal forwarded to a remote player
+};
+
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function cleanName(s) { return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 20); }
+function setOnlineStatus(msg, isError) {
+    const el = document.getElementById('online-status');
+    el.textContent = msg || '';
+    el.classList.toggle('error', !!isError);
+}
+function setOnlineBusy(busy) {
+    document.getElementById('create-room-btn').disabled = busy;
+    document.getElementById('join-room-btn').disabled   = busy;
+}
+
+/* ── Screen ── */
+function openOnlineScreen(prefillCode) {
+    netTeardown();
+    currentMode = 'online';
+    document.getElementById('online-join-panel').style.display = '';
+    document.getElementById('online-room-panel').style.display = 'none';
+    setOnlineBusy(false);
+    let saved = '';
+    try { saved = localStorage.getItem('qdOnlineName') || ''; } catch(e) {}
+    const nameEl = document.getElementById('online-name');
+    if (!nameEl.value) nameEl.value = saved;
+    if (prefillCode) document.getElementById('join-code').value = prefillCode;
+    if (typeof Peer === 'undefined') setOnlineStatus("Online play couldn't load. Check your internet connection and refresh the page.", true);
+    else setOnlineStatus('');
+    showScreen('screen-online');
+}
+
+function readOnlineName() {
+    const name = cleanName(document.getElementById('online-name').value);
+    if (!name) { setOnlineStatus('Please enter your name first.', true); document.getElementById('online-name').focus(); return null; }
+    try { localStorage.setItem('qdOnlineName', name); } catch(e) {}
+    return name;
+}
+
+function renderRoom(names, myIdx) {
+    document.getElementById('online-join-panel').style.display = 'none';
+    document.getElementById('online-room-panel').style.display = '';
+    document.getElementById('room-code').textContent = NET.code;
+    document.getElementById('room-count').textContent = names.length;
+    const list = document.getElementById('room-players');
+    list.innerHTML = '';
+    names.forEach((n, i) => {
+        const li  = document.createElement('li');
+        const dot = document.createElement('span'); dot.className = 'player-dot'; dot.style.background = PLAYER_COLORS[i];
+        const nm  = document.createElement('span'); nm.textContent = n;
+        const tag = document.createElement('span'); tag.className = 'you-tag';
+        tag.textContent = [i === 0 ? 'Host' : '', i === myIdx ? 'You' : ''].filter(Boolean).join(' · ');
+        li.append(dot, nm, tag);
+        list.appendChild(li);
+    });
+    const startBtn = document.getElementById('start-online-btn');
+    if (NET.isHost) {
+        startBtn.style.display = '';
+        startBtn.disabled = names.length < 2;
+        document.getElementById('room-sub').textContent = 'Share this code with your friends:';
+        setOnlineStatus(names.length < 2 ? 'Waiting for players to join…' : 'Ready when you are!');
+    } else {
+        startBtn.style.display = 'none';
+        document.getElementById('room-sub').textContent = 'You joined room:';
+        setOnlineStatus('Waiting for the host to start the game…');
+    }
+}
+
+function copyInvite() {
+    const url = location.origin + location.pathname + '?room=' + NET.code;
+    const btn = document.getElementById('copy-invite-btn');
+    const done = () => { btn.textContent = 'Link Copied!'; setTimeout(() => btn.textContent = 'Copy Invite Link', 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => window.prompt('Copy this link:', url));
+    else window.prompt('Copy this link:', url);
+}
+
+/* ── Messaging ── */
+function netSend(msg) { if (NET.hostConn && NET.hostConn.open) NET.hostConn.send(msg); }
+function netSendTo(seat, msg) { if (seat && seat.conn && seat.conn.open) seat.conn.send(msg); }
+function netBroadcast(msg) { NET.seats.forEach(s => netSendTo(s, msg)); }
+
+/* Called at the top of drawCard / playCard / endTurn.
+   Returns true if the click should NOT run locally. */
+function netIntercept(action, i) {
+    if (currentMode !== 'online') return false;
+    if (!NET.isHost) {
+        if (G && G.currentPlayer === NET.myIdx) netSend({ t:'act', a:action, i });
+        return true;
+    }
+    const actor = NET.acting !== null ? NET.acting : NET.myIdx;
+    return actor !== G.currentPlayer;
+}
+
+function netTeardown() {
+    const p = NET.peer;
+    if (p) {   // say goodbye first so the others find out immediately
+        try { if (NET.isHost) netBroadcast({ t:'bye' }); else netSend({ t:'bye' }); } catch(e) {}
+    }
+    NET.peer = null; NET.hostConn = null; NET.seats = []; NET.isHost = false;
+    NET.myIdx = 0; NET.code = ''; NET.started = false; NET.acting = null; NET.modalBtns = null; NET.hostLastSeen = 0;
+    if (p) setTimeout(() => { try { p.destroy(); } catch(e) {} }, 200);
+    document.querySelector('.win-btn-play').style.display = '';
+}
+
+/* Connection lost / refused: back to the online screen with a message */
+function netLost(message) {
+    netTeardown();
+    G = null;
+    document.getElementById('win-overlay').classList.remove('active');
+    document.getElementById('modal-overlay').classList.remove('active');
+    openOnlineScreen();
+    setOnlineStatus(message, true);
+}
+
+/* ── Host ── */
+function createRoom(attempt) {
+    if (typeof Peer === 'undefined') { setOnlineStatus("Online play couldn't load. Refresh the page and try again.", true); return; }
+    const name = readOnlineName(); if (!name) return;
+    netTeardown();
+    currentMode = 'online';
+    setOnlineBusy(true);
+    setOnlineStatus('Creating room…');
+
+    let code = '';
+    for (let i = 0; i < 5; i++) code += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)];
+    const peer = new Peer(ROOM_PREFIX + code);
+    NET.peer = peer; NET.isHost = true; NET.code = code; NET.myIdx = 0;
+    NET.seats = [{ name, conn: null }];
+
+    peer.on('open', () => {
+        if (NET.peer !== peer) return;
+        setOnlineBusy(false);
+        renderRoom(NET.seats.map(s => s.name), 0);
+    });
+    peer.on('connection', conn => {
+        if (NET.peer !== peer) { conn.close(); return; }
+        conn.on('data',  d  => { if (NET.peer === peer) hostOnData(conn, d); });
+        conn.on('close', () => { if (NET.peer === peer) hostOnLeave(conn); });
+        conn.on('error', () => { if (NET.peer === peer) hostOnLeave(conn); });
+    });
+    peer.on('disconnected', () => { if (NET.peer === peer && !peer.destroyed) peer.reconnect(); });
+    peer.on('error', err => {
+        if (NET.peer !== peer) return;
+        if (err.type === 'unavailable-id' && (attempt || 0) < 3) { createRoom((attempt || 0) + 1); return; }
+        if (NET.started) return;   // game in progress: keep going, players already connected
+        netLost("Couldn't create a room (" + (err.type || 'error') + '). Please try again.');
+    });
+}
+
+function hostBroadcastLobby() {
+    const names = NET.seats.map(s => s.name);
+    NET.seats.forEach((s, i) => netSendTo(s, { t:'lobby', names, myIdx:i, code:NET.code }));
+    renderRoom(names, 0);
+}
+
+function hostOnData(conn, d) {
+    if (!d || typeof d !== 'object') return;
+    const i = NET.seats.findIndex(s => s.conn === conn);
+    if (i >= 0) NET.seats[i].lastSeen = Date.now();
+    if (d.t === 'ping') return;
+    if (d.t === 'bye') { hostOnLeave(conn); try { conn.close(); } catch(e) {} return; }
+
+    if (d.t === 'hello') {
+        if (i >= 0) return;
+        let reason = '';
+        if (NET.started) reason = 'That game has already started.';
+        else if (NET.seats.length >= MAX_ONLINE) reason = 'That room is full (4 players max).';
+        if (reason) { conn.send({ t:'reject', reason }); setTimeout(() => conn.close(), 500); return; }
+        NET.seats.push({ name: cleanName(d.name) || 'Player ' + (NET.seats.length + 1), conn, lastSeen: Date.now() });
+        hostBroadcastLobby();
+        return;
+    }
+    if (i < 0 || !G || G.currentPlayer !== i) return;   // only the current player can act
+
+    if (d.t === 'act') {
+        if (NET.modalBtns) return;                       // they must answer the open choice first
+        NET.acting = i;
+        try {
+            if (d.a === 'draw') drawCard();
+            else if (d.a === 'play') playCard(d.i);
+            else if (d.a === 'end') endTurn();
+        } finally { NET.acting = null; }
+    } else if (d.t === 'pick') {
+        const btns = NET.modalBtns;
+        if (!btns || !Number.isInteger(d.i) || !btns[d.i]) return;
+        NET.modalBtns = null;
+        btns[d.i].onclick();
+    }
+}
+
+function hostOnLeave(conn) {
+    const i = NET.seats.findIndex(s => s.conn === conn);
+    if (i < 0) return;
+    if (!NET.started) { NET.seats.splice(i, 1); hostBroadcastLobby(); return; }
+    NET.seats[i].conn = null;
+    if (!G || !G.players[i]) return;
+    G.players[i].offline = true;
+    addLog(`${G.players[i].name} left the game.`, true);
+    if (G.currentPlayer === i && !G.ending) {   // if their turn is already ending, that will move on by itself
+        NET.modalBtns = null; G.pendingWild = null; closeModal();
+        nextPlayer();
+    } else renderGame();
+}
+
+/* Heartbeat: both sides ping every 3s. Silence for 12s = gone
+   (closing a tab doesn't always close the connection straight away). */
+const PING_MS = 3000, TIMEOUT_MS = 12000;
+setInterval(() => {
+    if (currentMode !== 'online' || !NET.peer) return;
+    const now = Date.now();
+    if (NET.isHost) {
+        NET.seats.forEach(s => {
+            if (!s.conn) return;
+            if (now - (s.lastSeen || now) > TIMEOUT_MS) { const c = s.conn; hostOnLeave(c); try { c.close(); } catch(e) {} }
+            else netSendTo(s, { t:'ping' });
+        });
+    } else if (NET.hostConn && NET.hostConn.open) {
+        if (now - (NET.hostLastSeen || now) > TIMEOUT_MS) netLost('Lost connection to the host.');
+        else netSend({ t:'ping' });
+    }
+}, PING_MS);
+/* Tell the others straight away when this tab is closed */
+window.addEventListener('pagehide', () => {
+    if (currentMode !== 'online' || !NET.peer) return;
+    if (NET.isHost) netBroadcast({ t:'bye' }); else netSend({ t:'bye' });
+});
+
+function startOnlineGame() {
+    if (!NET.isHost || NET.seats.length < 2) return;
+    NET.started = true;
+    startGame();
+}
+
+function hostSendStart() {
+    NET.seats.forEach((s, i) => netSendTo(s, { t:'start', myIdx:i }));
+}
+
+/* A copy of the game for player idx: other hands and the deck are hidden */
+function snapshotFor(idx) {
+    return {
+        ...G, deck: [], pendingWild: null,
+        players: G.players.map((p, j) => ({
+            name: p.name, color: p.color, isAI: false, offline: !!p.offline,
+            bank: p.bank, props: p.props,
+            hand: j === idx ? p.hand : p.hand.map(() => ({ hidden: true })),
+        })),
+    };
+}
+function hostBroadcastState() {
+    NET.seats.forEach((s, i) => { if (s.conn) netSendTo(s, { t:'state', g: snapshotFor(i) }); });
+}
+
+/* Runs right after a choice modal is built for a remote player's turn */
+function hostForwardModal() {
+    const ov = document.getElementById('modal-overlay');
+    if (!G || !ov.classList.contains('active')) return;
+    const btns = [...document.getElementById('modal-options').children];
+    NET.modalBtns = btns;
+    ov.classList.remove('active');
+    netSendTo(NET.seats[G.currentPlayer], {
+        t: 'modal',
+        title: document.getElementById('modal-title').textContent,
+        body:  document.getElementById('modal-body').textContent,
+        opts:  btns.map(b => ({ label: b.textContent, color: b.style.borderColor, primary: b.classList.contains('primary') })),
+    });
+}
+
+/* ── Guest ── */
+function joinRoom() {
+    if (typeof Peer === 'undefined') { setOnlineStatus("Online play couldn't load. Refresh the page and try again.", true); return; }
+    const name = readOnlineName(); if (!name) return;
+    const code = document.getElementById('join-code').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== 5) { setOnlineStatus('Enter the 5-letter room code.', true); return; }
+
+    netTeardown();
+    currentMode = 'online';
+    setOnlineBusy(true);
+    setOnlineStatus('Connecting to room ' + code + '…');
+    const peer = new Peer();
+    NET.peer = peer; NET.isHost = false; NET.code = code;
+
+    const timeout = setTimeout(() => {
+        if (NET.peer === peer && !(NET.hostConn && NET.hostConn.open))
+            netLost("Couldn't connect to that room. Check the code, or try a different network (some school/work Wi-Fi blocks online games).");
+    }, 15000);
+
+    peer.on('open', () => {
+        if (NET.peer !== peer) return;
+        const conn = peer.connect(ROOM_PREFIX + code, { reliable: true });
+        NET.hostConn = conn;
+        conn.on('open', () => { if (NET.peer !== peer) return; clearTimeout(timeout); NET.hostLastSeen = Date.now(); conn.send({ t:'hello', name }); });
+        conn.on('data', d => { if (NET.peer === peer) guestOnData(d); });
+        conn.on('close', () => {
+            if (NET.peer !== peer) return;
+            netLost(NET.started ? 'The host left the game.' : 'The host closed the room.');
+        });
+    });
+    peer.on('disconnected', () => { if (NET.peer === peer && !peer.destroyed) peer.reconnect(); });
+    peer.on('error', err => {
+        if (NET.peer !== peer) return;
+        clearTimeout(timeout);
+        if (err.type === 'peer-unavailable') netLost('Room ' + code + ' not found. Check the code and try again.');
+        else if (!NET.started) netLost("Couldn't connect (" + (err.type || 'error') + '). Please try again.');
+    });
+}
+
+function guestOnData(d) {
+    if (!d || typeof d !== 'object') return;
+    NET.hostLastSeen = Date.now();
+    switch (d.t) {
+        case 'bye':
+            netLost(NET.started ? 'The host left the game.' : 'The host closed the room.');
+            break;
+        case 'lobby':
+            NET.myIdx = d.myIdx;
+            setOnlineBusy(false);
+            renderRoom(Array.isArray(d.names) ? d.names.map(String) : [], d.myIdx);
+            break;
+        case 'reject':
+            netLost(String(d.reason || 'Could not join that room.'));
+            break;
+        case 'start':
+            NET.started = true;
+            NET.myIdx = d.myIdx;
+            document.getElementById('game-log').innerHTML = '';
+            document.getElementById('win-overlay').classList.remove('active');
+            document.getElementById('modal-overlay').classList.remove('active');
+            showScreen('screen-game');
+            break;
+        case 'state':
+            G = d.g;
+            if (G && G.currentPlayer !== NET.myIdx) closeModal();
+            renderGame();
+            break;
+        case 'log':
+            addLog(String(d.msg), d.hl);
+            break;
+        case 'modal': {
+            const opts = openModal(String(d.title), String(d.body));
+            (d.opts || []).forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'modal-option-btn' + (o.primary ? ' primary' : '');
+                btn.style.borderColor = o.color || '';
+                btn.textContent = String(o.label);
+                btn.onclick = () => { closeModal(); netSend({ t:'pick', i }); };
+                opts.appendChild(btn);
+            });
+            break;
+        }
+        case 'win':
+            document.getElementById('win-title').textContent = String(d.title);
+            document.getElementById('win-sub').textContent   = String(d.sub);
+            document.querySelector('.win-btn-play').style.display = 'none';   // host restarts
+            document.getElementById('win-overlay').classList.add('active');
+            break;
+    }
+}
+
+/* Invite links: playshiadeal.html?room=ABCDE opens the join screen */
+(function () {
+    const code = new URLSearchParams(location.search).get('room');
+    const gated = document.getElementById('member-gate').classList.contains('active');
+    if (code && !gated) openOnlineScreen(code.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5));
+})();
 
 /* ════════════════════════════════════════════════════
    TUTORIAL SYSTEM — IN-GAME INTERACTIVE WALKTHROUGH

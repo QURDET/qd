@@ -18,7 +18,7 @@ The site is hosted on **Cloudflare Pages**.
 | `index.html` | Qur'an Detectives home page |
 | `shiadeal.html` | Shia Deal game page (shop link, collection info) |
 | `shiadealpage.html` | Redirect to the Shia Deal page |
-| `playshiadeal.html` | Play Shia Deal online |
+| `playshiadeal.html` | Play Shia Deal in the browser: vs AI, local pass-and-play, or online multiplayer (room codes, peer-to-peer via PeerJS; the host's browser runs the game) |
 | `sdrescources.html` | Shia Deal resources (rules, printables) |
 | `contactus.html` | Contact form |
 | `members.html` | Members portal (Google / member login) |
