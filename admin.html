@@ -944,7 +944,7 @@
                         <button class="email-view-btn active" id="ev-inbox" onclick="showEmailView('inbox')">📥 Inbox <span class="email-pill" id="ev-inbox-count" style="display:none"></span></button>
                         <button class="email-view-btn" id="ev-write" onclick="openWrite()">✏️ Write</button>
                         <button class="email-view-btn" id="ev-sent" onclick="showEmailView('sent')">📤 Sent</button>
-                        <button class="email-view-btn" id="ev-settings" onclick="showEmailView('settings')" style="display:none">⚙️ Addresses &amp; Permissions</button>
+                        <a class="email-view-btn" id="ev-settings" href="sitemaintenance.html#email" style="display:none;text-decoration:none">⚙️ Email settings ↗</a>
                     </div>
 
                     <!-- INBOX -->
@@ -1010,14 +1010,6 @@
                             <div class="sig-box">
                                 <div class="sig-box-head">
                                     <span>✍️ Added to the end of your email</span>
-                                    <button class="btn btn-outline btn-sm" onclick="toggleSigEdit()" id="btn-sig-edit">Change sign-off</button>
-                                </div>
-                                <div class="sig-edit" id="sig-edit">
-                                    <div class="form-group" style="max-width:360px"><label>Sign-off</label><input type="text" id="sig-signoff" maxlength="60" placeholder="Best Regards," oninput="queueSigPreview()"></div>
-                                    <div class="email-actions">
-                                        <span id="sig-status" class="email-status"></span>
-                                        <button class="btn btn-purple btn-sm" onclick="saveSignature()">Save signature</button>
-                                    </div>
                                 </div>
                                 <iframe id="sig-preview" sandbox="allow-same-origin" title="Signature preview"></iframe>
                             </div>
@@ -1040,32 +1032,6 @@
                     <div class="table-card" style="margin-bottom:28px" id="email-sent-list"></div>
                     </div><!-- /ep-sent -->
 
-                    <!-- SETTINGS (Full Access only): addresses + who can use them -->
-                    <div class="email-panel" id="ep-settings">
-                    <div id="email-admin" style="display:none">
-                        <div class="table-card email-card">
-                            <div class="form-group">
-                                <label>Contact Us alerts go to</label>
-                                <input type="email" id="email-notify" placeholder="qurandetectives@gmail.com">
-                            </div>
-                            <p class="email-help">When someone fills in the Contact Us form, an alert goes here and they get an automatic "we've received your message" reply. Leave blank to turn alerts off.</p>
-
-                            <label style="display:block;font-size:0.79rem;font-weight:600;color:#5C4033;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">Addresses you can send from</label>
-                            <p class="email-help">Emails sent to any of these addresses arrive in the Inbox. Tick <strong>No-reply</strong> for an address nobody checks (e.g. noreply@) — every email from it says <em>"Please do not reply — this mailbox is not monitored"</em>, and the Contact Us automatic reply is sent from it.</p>
-                            <div id="email-sender-rows"></div>
-                            <button class="btn btn-outline btn-sm" onclick="addSenderRow()" style="margin-bottom:22px">+ Add address</button>
-
-                            <label style="display:block;font-size:0.79rem;font-weight:600;color:#5C4033;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">Who can use each address</label>
-                            <p class="email-help">A tick lets that person send from the address <strong>and</strong> read its inbox. Full Access accounts can always use every address and see every email.</p>
-                            <div style="overflow-x:auto;margin-bottom:18px"><table class="perm-table" id="email-perm-table"></table></div>
-
-                            <div class="email-actions">
-                                <span id="email-admin-status" class="email-status"></span>
-                                <button class="btn btn-purple" onclick="saveEmailConfig()">Save Email Settings</button>
-                            </div>
-                        </div>
-                    </div>
-                    </div><!-- /ep-settings -->
                 </div>
 
             </div><!-- /page-content -->
@@ -1899,8 +1865,6 @@ async function deleteMessage(id) {
 // EMAIL
 // ─────────────────────────────────────────────
 let _contactsById = {};
-let _emailCfg = null;
-let _teamForEmail = [];
 
 async function renderEmailTab() {
     // Refresh which addresses this person can use (a builder may have just changed them)
@@ -1919,14 +1883,12 @@ async function renderEmailTab() {
     if (prev && senders.some(s => s.address === prev)) sel.value = prev;
     sel.onchange = queueSigPreview;
     updateFromChip();
-    loadSigFields();
     queueSigPreview();
     document.getElementById('email-no-senders').style.display = senders.length ? 'none' : 'block';
     document.getElementById('email-compose').style.display    = senders.length ? 'block' : 'none';
 
     const builder = currentUser.role === 'builder';
     document.getElementById('email-sent-title').textContent = builder ? 'Sent (everyone)' : 'Sent by you';
-    document.getElementById('email-admin').style.display = builder ? 'block' : 'none';
     document.getElementById('ev-settings').style.display = builder ? '' : 'none';
 
     // Inbox address filter
@@ -1939,7 +1901,6 @@ async function renderEmailTab() {
 
     loadInbox();
     loadSentEmails();
-    if (builder) loadEmailConfig();
 }
 
 // ── POP-UPS ──
@@ -2026,20 +1987,6 @@ function updateFromChip() {
 }
 
 // ── SIGNATURE ──
-function loadSigFields() {
-    const sig = currentUser.signature || {};
-    document.getElementById('sig-signoff').value = sig.signOff !== undefined ? sig.signOff : 'Best Regards,';
-}
-function readSigFields() {
-    return {
-        signOff: document.getElementById('sig-signoff').value,
-    };
-}
-function toggleSigEdit() {
-    const el = document.getElementById('sig-edit');
-    el.classList.toggle('open');
-    document.getElementById('btn-sig-edit').textContent = el.classList.contains('open') ? 'Close' : 'Change sign-off';
-}
 let _sigTimer = null;
 function queueSigPreview() {
     clearTimeout(_sigTimer);
@@ -2050,7 +1997,7 @@ async function renderSigPreview() {
     const frame = document.getElementById('sig-preview');
     if (!from) { frame.srcdoc = ''; return; }
     try {
-        const r = await api('/api/email/preview', { method: 'POST', body: JSON.stringify({ from: from, body: '', signature: readSigFields() }) });
+        const r = await api('/api/email/preview', { method: 'POST', body: JSON.stringify({ from: from, body: '' }) });
         const data = r.ok ? await r.json() : { html: '' };
         frame.srcdoc = data.html;
         frame.onload = function () {
@@ -2058,19 +2005,8 @@ async function renderSigPreview() {
         };
     } catch {}
 }
-async function saveSignature() {
-    try {
-        const r = await api('/api/me/signature', { method: 'PUT', body: JSON.stringify(readSigFields()) });
-        if (!r.ok) { setEmailStatus('sig-status', 'Could not save.', false); return; }
-        currentUser.signature = await r.json();
-        sessionStorage.setItem('qd_sess', JSON.stringify(currentUser));
-        setEmailStatus('sig-status', '✓ Saved', true);
-        renderSigPreview();
-    } catch { setEmailStatus('sig-status', 'Could not save.', false); }
-}
-
 function showEmailView(v) {
-    ['inbox', 'write', 'sent', 'settings'].forEach(k => {
+    ['inbox', 'write', 'sent'].forEach(k => {
         document.getElementById('ep-' + k).classList.toggle('active', k === v);
         document.getElementById('ev-' + k).classList.toggle('active', k === v);
     });
@@ -2284,11 +2220,6 @@ async function sendEmailFromForm() {
         </div>`,
     });
     if (!go) return;
-    // Unsaved signature changes? Save them so the email matches the preview
-    const sigNow = readSigFields(), sigSaved = currentUser.signature || {};
-    if (sigNow.signOff !== (sigSaved.signOff !== undefined ? sigSaved.signOff : 'Best Regards,')) {
-        await saveSignature();
-    }
     const btn = document.getElementById('btn-send-email');
     btn.disabled = true; btn.textContent = 'Sending…';
     try {
@@ -2324,92 +2255,6 @@ async function loadSentEmails() {
         }).join('');
     } catch {
         wrap.innerHTML = '<div class="email-empty">Could not load sent emails.</div>';
-    }
-}
-
-// ── Full Access: addresses + permissions ──
-const EMAIL_DOMAIN = 'qurandetectives.co.uk';
-
-async function loadEmailConfig() {
-    try {
-        const [cfgRes, users] = await Promise.all([api('/api/email/config'), getUsers()]);
-        if (!cfgRes.ok) return;
-        _emailCfg = await cfgRes.json();
-        _teamForEmail = users;
-        document.getElementById('email-notify').value = _emailCfg.notifyTo || '';
-        document.getElementById('email-sender-rows').innerHTML = '';
-        (_emailCfg.senders || []).forEach(s => addSenderRow(s));
-        if (!_emailCfg.senders.length) addSenderRow();
-        renderPermTable();
-    } catch (e) { logSiteError('Email settings', e.message); }
-}
-
-function addSenderRow(s) {
-    s = s || { address: '', name: '' };
-    const local = (s.address || '').split('@')[0];
-    const row = document.createElement('div');
-    row.className = 'sender-row form-group';
-    row.style.marginBottom = '10px';
-    row.innerHTML = `
-        <div class="sender-addr"><input type="text" class="sr-local" placeholder="e.g. orders" value="${escHtml(local)}"><span>@${EMAIL_DOMAIN}</span></div>
-        <input type="text" class="sr-name" placeholder="Name shown (e.g. Qur'an Detectives)" value="${escHtml(s.name || '')}">
-        <label class="sr-noreply" title="Nobody reads this mailbox"><input type="checkbox" class="sr-nr" ${s.noReply ? 'checked' : ''}> No-reply</label>
-        <button class="btn btn-sm btn-red" title="Remove">✕</button>`;
-    row.querySelector('button').onclick = function () { row.remove(); renderPermTable(); };
-    row.querySelector('.sr-local').addEventListener('change', function () {
-        if (/^no-?reply$/i.test(this.value.trim())) row.querySelector('.sr-nr').checked = true;
-        renderPermTable();
-    });
-    document.getElementById('email-sender-rows').appendChild(row);
-}
-
-function readSenderRows() {
-    return Array.from(document.querySelectorAll('#email-sender-rows .sender-row')).map(row => ({
-        address: row.querySelector('.sr-local').value.trim().toLowerCase().replace(/@.*$/, '').replace(/\s/g, '') ,
-        name: row.querySelector('.sr-name').value.trim(),
-        noReply: row.querySelector('.sr-nr').checked,
-    })).filter(s => s.address).map(s => ({ address: s.address + '@' + EMAIL_DOMAIN, name: s.name, noReply: s.noReply }));
-}
-
-function readPermTable() {
-    const perms = {};
-    document.querySelectorAll('#email-perm-table input[type=checkbox]').forEach(cb => {
-        if (!perms[cb.dataset.user]) perms[cb.dataset.user] = [];
-        if (cb.checked) perms[cb.dataset.user].push(cb.dataset.addr);
-    });
-    return perms;
-}
-
-function renderPermTable() {
-    // keep any ticks made before re-drawing
-    const current = document.querySelector('#email-perm-table input') ? readPermTable() : (_emailCfg ? _emailCfg.permissions : {});
-    const senders = readSenderRows();
-    const team = _teamForEmail.filter(u => u.role !== 'builder');
-    const table = document.getElementById('email-perm-table');
-    if (!senders.length || !team.length) {
-        table.innerHTML = `<tr><td style="color:#9B7B6E">${!senders.length ? 'Add an address above first.' : 'No other team members yet.'}</td></tr>`;
-        return;
-    }
-    table.innerHTML = `<thead><tr><th>Team member</th>${senders.map(s => `<th>${escHtml(s.address.split('@')[0])}@</th>`).join('')}</tr></thead>
-        <tbody>${team.map(u => `<tr><td><strong>${escHtml(u.name)}</strong> <span class="role-tag ${escHtml(u.role)}">${escHtml(u.role)}</span></td>
-            ${senders.map(s => `<td><input type="checkbox" data-user="${escHtml(u.id)}" data-addr="${escHtml(s.address)}" ${(current[u.id] || []).includes(s.address) ? 'checked' : ''}></td>`).join('')}
-        </tr>`).join('')}</tbody>`;
-}
-
-async function saveEmailConfig() {
-    const payload = {
-        senders: readSenderRows(),
-        permissions: readPermTable(),
-        notifyTo: document.getElementById('email-notify').value.trim(),
-    };
-    try {
-        const r = await api('/api/email/config', { method: 'PUT', body: JSON.stringify(payload) });
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) { setEmailStatus('email-admin-status', data.error || 'Could not save.', false); return; }
-        setEmailStatus('email-admin-status', '✓ Saved', true);
-        renderEmailTab();
-    } catch {
-        setEmailStatus('email-admin-status', 'Could not save — try again.', false);
     }
 }
 

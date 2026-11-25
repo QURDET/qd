@@ -174,6 +174,30 @@
     }
     .suggestion-item h4 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.92rem; color: var(--text); margin-bottom: 4px; }
     .suggestion-item p  { font-size: 0.82rem; color: var(--text3); }
+
+    /* ── EMAIL SETTINGS ── */
+    .em-input {
+        width: 100%; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 9px;
+        font-family: 'Poppins', sans-serif; font-size: 0.86rem; color: var(--text); background: var(--bg);
+        outline: none; transition: border-color 0.2s;
+    }
+    .em-input:focus { border-color: var(--purple); }
+    .em-label { display: block; font-size: 0.74rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .sender-row { display: grid; grid-template-columns: 1.4fr 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .sender-addr { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: 9px; background: var(--bg); overflow: hidden; }
+    .sender-addr:focus-within { border-color: var(--purple); }
+    .sender-addr input { border: none; background: transparent; padding: 9px 4px 9px 13px; font-family: 'Poppins', sans-serif; font-size: 0.86rem; color: var(--text); outline: none; min-width: 0; flex: 1; }
+    .sender-addr span { padding-right: 12px; color: var(--text3); font-size: 0.82rem; white-space: nowrap; }
+    .sr-noreply { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text2); white-space: nowrap; cursor: pointer; }
+    .sr-noreply input, .perm-table input { width: 17px; height: 17px; accent-color: #7B3F5E; cursor: pointer; }
+    .perm-table td, .perm-table th { text-align: center; }
+    .perm-table td:first-child, .perm-table th:first-child { text-align: left; }
+    .role-pill { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: var(--bg); color: var(--text3); margin-left: 6px; text-transform: capitalize; }
+    .signoff-preview { margin-top: 12px; padding: 12px 16px; background: var(--bg); border-radius: 10px; font-family: Arial, Helvetica, sans-serif; font-size: 0.86rem; line-height: 1.5; color: var(--text); }
+    .em-save-bar { position: sticky; bottom: 0; background: var(--card); border-top: 1.5px solid var(--border); padding: 14px 24px; display: flex; justify-content: flex-end; align-items: center; gap: 14px; border-radius: 14px 14px 0 0; box-shadow: 0 -4px 14px rgba(59,36,23,0.06); }
+    .em-status { font-size: 0.84rem; margin-right: auto; }
+    .em-status.ok { color: #1E8449; } .em-status.err { color: #C0392B; }
+    @media (max-width: 700px) { .sender-row { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -214,6 +238,7 @@
         <button class="tab-btn active" onclick="switchTab('health')">📊 Site Health</button>
         <button class="tab-btn" onclick="switchTab('stripe')">💳 Stripe</button>
         <button class="tab-btn" onclick="switchTab('google')">🔐 Google Sign-In</button>
+        <button class="tab-btn" onclick="switchTab('email')">📧 Email</button>
     </div>
 
     <!-- ── HEALTH TAB ── -->
@@ -348,6 +373,59 @@
         </main>
     </div>
 
+    <!-- ── EMAIL TAB ── -->
+    <div class="tab-pane" id="pane-email">
+        <main>
+            <div class="section">
+                <div class="section-title">Sign-off</div>
+                <div class="config-card">
+                    <h3>✍️ Sign-off for every email</h3>
+                    <p>This line goes above the sender's name on <strong>every</strong> email sent from the site — by any team member, and on automatic emails. Leave it blank for no sign-off.</p>
+                    <input type="text" class="em-input" id="em-signoff" maxlength="60" placeholder="Best Regards," style="max-width:360px" oninput="renderSignoffPreview()">
+                    <div class="signoff-preview" id="em-signoff-preview"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Contact Us alerts</div>
+                <div class="config-card">
+                    <h3>🔔 Where Contact Us alerts go</h3>
+                    <p>When someone fills in the Contact Us form, an alert is sent here and they get an automatic "we've received your message" reply. Leave blank to turn the alerts off.</p>
+                    <input type="email" class="em-input" id="em-notify" placeholder="qurandetectives@gmail.com" style="max-width:360px">
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    Email addresses
+                    <button class="btn btn-outline btn-sm" onclick="addSenderRow()">+ Add address</button>
+                </div>
+                <div class="config-card">
+                    <h3>📧 Addresses</h3>
+                    <p>Emails sent to any of these addresses arrive in the dashboard Inbox, and staff you allow can send from them. Tick <strong>No-reply</strong> for an address nobody checks (e.g. noreply@) — every email from it says <em>"Please do not reply — this mailbox is not monitored"</em>, and the Contact Us automatic reply is sent from it.</p>
+                    <div style="display:grid;grid-template-columns:1.4fr 1fr auto auto;gap:10px;margin-bottom:6px" class="em-head-row">
+                        <span class="em-label">Address</span><span class="em-label">Name people see</span><span></span><span></span>
+                    </div>
+                    <div id="em-sender-rows"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Permissions</div>
+                <div class="config-card">
+                    <h3>👥 Who can use each address</h3>
+                    <p>A tick lets that person send from the address <strong>and</strong> read its inbox. Full Access accounts can always use every address and see every email.</p>
+                    <div class="table-wrap" style="margin-top:0"><table class="perm-table" id="em-perm-table"></table></div>
+                </div>
+            </div>
+        </main>
+        <div class="em-save-bar">
+            <span class="em-status" id="em-status"></span>
+            <button class="btn btn-outline" onclick="loadEmailSettings()">Undo changes</button>
+            <button class="btn btn-purple" onclick="saveEmailSettings()">Save email settings</button>
+        </div>
+    </div>
+
 </div><!-- /maint-page -->
 
 <script>
@@ -365,6 +443,21 @@ function toggleTheme() {
 applyTheme(localStorage.getItem('qdTheme') === 'dark');
 
 var maintUser = null;
+
+// Sends the sign-in token with every request so the server knows who is asking
+async function mApi(url, opts) {
+    opts = opts || {};
+    var headers = Object.assign({}, opts.headers || {});
+    if (maintUser && maintUser.token) headers['Authorization'] = 'Bearer ' + maintUser.token;
+    if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    var r = await fetch(url, Object.assign({}, opts, { headers: headers }));
+    if (r.status === 401 && maintUser) {
+        sessionStorage.removeItem('qd_sess');
+        alert('Your sign-in has expired — please sign in again.');
+        location.reload();
+    }
+    return r;
+}
 
 // ── AUTH ────────────────────────────────────────────────────────────────────
 async function doShLogin() {
@@ -417,6 +510,7 @@ function showMaintPage() {
     runSiteHealth();
     renderStripeStatus();
     loadGoogleStatus();
+    if (location.hash === '#email') switchTab('email');
 }
 
 // ── GOOGLE GSI LOADER ────────────────────────────────────────────────────────
@@ -447,7 +541,14 @@ function _setupShGoogleBtn(clientId) {
         var s = sessionStorage.getItem('qd_sess');
         if (s) {
             var stored = JSON.parse(s);
-            if (stored && stored.role === 'builder') { maintUser = stored; showMaintPage(); return; }
+            if (stored && stored.role === 'builder' && stored.token) {
+                // Check the sign-in is still valid before showing the page
+                fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + stored.token } }).then(function(r) {
+                    if (r.ok) { maintUser = stored; showMaintPage(); }
+                    else { sessionStorage.removeItem('qd_sess'); loadGoogleSignIn(); }
+                }).catch(function() { loadGoogleSignIn(); });
+                return;
+            }
         }
     } catch {}
     loadGoogleSignIn();
@@ -456,7 +557,7 @@ function _setupShGoogleBtn(clientId) {
 // ── INNER TAB SWITCHING ───────────────────────────────────────────────────────
 function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(function(b,i) {
-        var names = ['health','stripe','google'];
+        var names = ['health','stripe','google','email'];
         b.classList.toggle('active', names[i] === name);
     });
     document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
@@ -464,6 +565,7 @@ function switchTab(name) {
     if (name === 'health')  runSiteHealth();
     if (name === 'stripe')  renderStripeStatus();
     if (name === 'google')  loadGoogleStatus();
+    if (name === 'email')   loadEmailSettings();
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -503,7 +605,7 @@ async function runSiteHealth() {
     var results = await Promise.all(APIS.map(async function(a) {
         var t0 = Date.now();
         try {
-            var r = await fetch(a.url);
+            var r = await mApi(a.url);
             var ms = Date.now() - t0;
             var data = r.ok ? await r.json() : null;
             return { label:a.label, ok:r.ok, status:r.status, ms:ms, data:data };
@@ -748,8 +850,8 @@ async function saveGoogleClientId() {
     if (!clientId) { alert('Please enter a Google Client ID.'); return; }
     if (!clientId.includes('.apps.googleusercontent.com')) { alert('Invalid format. Google Client IDs end with .apps.googleusercontent.com'); return; }
     try {
-        var r = await fetch('/api/settings', {
-            method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ((maintUser && maintUser.token) || '') },
+        var r = await mApi('/api/settings', {
+            method: 'PUT',
             body: JSON.stringify({ googleClientId: clientId }),
         });
         if (r.ok) { document.getElementById('google-form').style.display = 'none'; loadGoogleStatus(); alert('Google Sign-In updated successfully.'); }
@@ -761,12 +863,123 @@ async function saveGoogleClientId() {
 async function doDisconnectGoogle() {
     if (!confirm('Remove Google Sign-In? Staff and members will no longer be able to sign in with Google.')) return;
     try {
-        var r = await fetch('/api/settings', {
-            method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ((maintUser && maintUser.token) || '') },
+        var r = await mApi('/api/settings', {
+            method: 'PUT',
             body: JSON.stringify({ googleClientId: '' }),
         });
         if (r.ok) { loadGoogleStatus(); }
     } catch { alert('Failed to remove settings.'); }
+}
+
+// ── EMAIL SETTINGS ───────────────────────────────────────────────────────────
+var EMAIL_DOMAIN = 'qurandetectives.co.uk';
+var _emCfg = null, _emTeam = [];
+
+function emStatus(text, ok) {
+    var el = document.getElementById('em-status');
+    el.textContent = text; el.className = 'em-status ' + (ok ? 'ok' : 'err');
+}
+
+async function loadEmailSettings() {
+    emStatus('', true);
+    try {
+        var res = await Promise.all([mApi('/api/email/config'), mApi('/api/users')]);
+        if (!res[0].ok) { emStatus('Could not load email settings.', false); return; }
+        _emCfg = await res[0].json();
+        _emTeam = res[1].ok ? await res[1].json() : [];
+        document.getElementById('em-signoff').value = _emCfg.signOff || '';
+        document.getElementById('em-notify').value = _emCfg.notifyTo || '';
+        document.getElementById('em-sender-rows').innerHTML = '';
+        (_emCfg.senders || []).forEach(function(s) { addSenderRow(s); });
+        if (!(_emCfg.senders || []).length) addSenderRow();
+        renderPermTable(_emCfg.permissions || {});
+        renderSignoffPreview();
+    } catch (e) { emStatus('Could not load email settings.', false); }
+}
+
+function renderSignoffPreview() {
+    var so = document.getElementById('em-signoff').value.trim();
+    var name = (maintUser && maintUser.name) || 'Your Name';
+    document.getElementById('em-signoff-preview').innerHTML =
+        '<div style="color:var(--text3);font-size:0.74rem;font-family:Poppins,sans-serif;margin-bottom:6px">PREVIEW</div>' +
+        (so ? esc(so) + '<br><br>' : '') + '<strong>' + esc(name) + '</strong><br>' +
+        '<span style="color:#7B3F5E;text-decoration:underline">contact@' + EMAIL_DOMAIN + '</span>';
+}
+
+function addSenderRow(s) {
+    s = s || { address: '', name: '', noReply: false };
+    var local = (s.address || '').split('@')[0];
+    var row = document.createElement('div');
+    row.className = 'sender-row';
+    row.innerHTML =
+        '<div class="sender-addr"><input type="text" class="sr-local" placeholder="e.g. orders" value="' + esc(local) + '"><span>@' + EMAIL_DOMAIN + '</span></div>' +
+        '<input type="text" class="em-input sr-name" placeholder="e.g. Qur\'an Detectives" value="' + esc(s.name || '') + '">' +
+        '<label class="sr-noreply" title="Nobody reads this mailbox"><input type="checkbox" class="sr-nr"' + (s.noReply ? ' checked' : '') + '> No-reply</label>' +
+        '<button class="btn btn-red btn-sm" title="Remove this address">✕</button>';
+    row.querySelector('button').onclick = function() { row.remove(); renderPermTable(); };
+    row.querySelector('.sr-local').addEventListener('change', function() {
+        if (/^no-?reply$/i.test(this.value.trim())) row.querySelector('.sr-nr').checked = true;
+        renderPermTable();
+    });
+    document.getElementById('em-sender-rows').appendChild(row);
+    if (!s.address) row.querySelector('.sr-local').focus();
+}
+
+function readSenderRows() {
+    return Array.prototype.map.call(document.querySelectorAll('#em-sender-rows .sender-row'), function(row) {
+        return {
+            local: row.querySelector('.sr-local').value.trim().toLowerCase().replace(/@.*$/, '').replace(/\s/g, ''),
+            name: row.querySelector('.sr-name').value.trim(),
+            noReply: row.querySelector('.sr-nr').checked,
+        };
+    }).filter(function(s) { return s.local; }).map(function(s) {
+        return { address: s.local + '@' + EMAIL_DOMAIN, name: s.name, noReply: s.noReply };
+    });
+}
+
+function readPermTable() {
+    var perms = {};
+    document.querySelectorAll('#em-perm-table input[type=checkbox]').forEach(function(cb) {
+        if (!perms[cb.dataset.user]) perms[cb.dataset.user] = [];
+        if (cb.checked) perms[cb.dataset.user].push(cb.dataset.addr);
+    });
+    return perms;
+}
+
+function renderPermTable(initial) {
+    var current = initial || (document.querySelector('#em-perm-table input') ? readPermTable() : {});
+    var senders = readSenderRows();
+    var team = _emTeam.filter(function(u) { return u.role !== 'builder'; });
+    var table = document.getElementById('em-perm-table');
+    if (!senders.length || !team.length) {
+        table.innerHTML = '<tr><td style="color:var(--text3)">' + (!senders.length ? 'Add an address first.' : 'No other team members yet — add them in the admin Team page.') + '</td></tr>';
+        return;
+    }
+    table.innerHTML = '<thead><tr><th>Team member</th>' + senders.map(function(s) { return '<th>' + esc(s.address.split('@')[0]) + '@</th>'; }).join('') + '</tr></thead><tbody>' +
+        team.map(function(u) {
+            return '<tr><td><strong>' + esc(u.name) + '</strong><span class="role-pill">' + esc(u.role) + '</span></td>' +
+                senders.map(function(s) {
+                    var on = (current[u.id] || []).indexOf(s.address) > -1;
+                    return '<td><input type="checkbox" data-user="' + esc(u.id) + '" data-addr="' + esc(s.address) + '"' + (on ? ' checked' : '') + '></td>';
+                }).join('') + '</tr>';
+        }).join('') + '</tbody>';
+}
+
+async function saveEmailSettings() {
+    var payload = {
+        signOff: document.getElementById('em-signoff').value,
+        notifyTo: document.getElementById('em-notify').value.trim(),
+        senders: readSenderRows(),
+        permissions: readPermTable(),
+    };
+    emStatus('Saving…', true);
+    try {
+        var r = await mApi('/api/email/config', { method: 'PUT', body: JSON.stringify(payload) });
+        var data = await r.json().catch(function() { return {}; });
+        if (!r.ok) { emStatus(data.error || 'Could not save.', false); return; }
+        emStatus('✓ Saved — changes apply to the next email sent.', true);
+        loadEmailSettings().then(function() { emStatus('✓ Saved — changes apply to the next email sent.', true); });
+    } catch (e) { emStatus('Could not save — try again.', false); }
 }
 </script>
 </body>

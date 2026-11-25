@@ -24,6 +24,7 @@ const DEFAULT_EMAIL  = {
     senders: [{ address: 'contact@' + EMAIL_DOMAIN, name: "Qur'an Detectives" }],
     permissions: {},                       // { userId: ['address@qurandetectives.co.uk', ...] }
     notifyTo: 'qurandetectives@gmail.com', // where Contact Us alerts go
+    signOff: 'Best Regards,',              // sign-off used on every email (set by builders)
     sent: [],                              // log of emails sent from the dashboard
 };
 const SESSION_TTL = 60 * 60 * 12;          // staff sign-ins last 12 hours
@@ -219,6 +220,7 @@ export async function onRequest(context) {
         if (!d.email.permissions) d.email.permissions = {};
         if (!Array.isArray(d.email.sent)) d.email.sent = [];
         if (d.email.notifyTo === undefined) d.email.notifyTo = DEFAULT_EMAIL.notifyTo;
+        if (typeof d.email.signOff !== 'string') d.email.signOff = DEFAULT_EMAIL.signOff;
         return d.email;
     }
     // The address people should write to (first sender that isn't a no-reply address)
@@ -226,13 +228,9 @@ export async function onRequest(context) {
         const s = emailCfg(d).senders.find(x => !x.noReply);
         return s ? s.address : 'contact@' + EMAIL_DOMAIN;
     }
-    // A team member's signature details
-    function userSignature(user, senderAddress) {
-        const sig = user.signature || {};
-        return {
-            signOff: sig.signOff !== undefined ? sig.signOff : 'Best Regards,',
-            name: user.name, email: senderAddress,
-        };
+    // A team member's signature (the sign-off is the same for everyone — set by builders)
+    function userSignature(d, user, senderAddress) {
+        return { signOff: emailCfg(d).signOff, name: user.name, email: senderAddress };
     }
     // Which "from" addresses this person may send from
     function allowedSenders(d, user) {
@@ -372,27 +370,14 @@ export async function onRequest(context) {
             return json({ ...m, read: true, readBy: undefined, text: body.text || '', html: body.html || '' });
         }
 
-        // PUT /api/me/signature — your own email signature
-        if (route === 'me/signature' && method === 'PUT') {
-            const b = await request.json();
-            const d = await readData();
-            const u = d.users.find(x => x.id === me.id);
-            u.signature = {
-                signOff: String(b.signOff ?? 'Best Regards,').slice(0, 60),
-            };
-            await writeData(d);
-            return json(u.signature);
-        }
-
         // POST /api/email/preview — what an email will look like (signature, no-reply note)
         if (route === 'email/preview' && method === 'POST') {
             const b = await request.json();
             const d = await readData();
             const sender = allowedSenders(d, me).find(s => s.address.toLowerCase() === String(b.from || '').toLowerCase());
             if (!sender) return json({ html: '' });
-            const tmpUser = { ...me, signature: b.signature || me.signature };
             const built = buildEmail(String(b.body || ''), {
-                signature: userSignature(tmpUser, sender.noReply ? contactAddress(d) : sender.address),
+                signature: userSignature(d, me, sender.noReply ? contactAddress(d) : sender.address),
                 noReplyContact: sender.noReply ? contactAddress(d) : '',
             });
             return json({ html: built.html });
@@ -425,7 +410,7 @@ export async function onRequest(context) {
             if (replyTo && !EMAIL_RE.test(replyTo)) return json({ error: 'The reply-to address doesn\'t look right.' }, 400);
 
             const built = buildEmail(body, {
-                signature: userSignature(me, sender.noReply ? contactAddress(d) : sender.address),
+                signature: userSignature(d, me, sender.noReply ? contactAddress(d) : sender.address),
                 noReplyContact: sender.noReply ? contactAddress(d) : '',
             });
             const msg = {
@@ -468,7 +453,7 @@ export async function onRequest(context) {
         if (route === 'email/config' && method === 'GET') {
             if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
             const cfg = emailCfg(await readData());
-            return json({ senders: cfg.senders, permissions: cfg.permissions, notifyTo: cfg.notifyTo, domain: EMAIL_DOMAIN });
+            return json({ senders: cfg.senders, permissions: cfg.permissions, notifyTo: cfg.notifyTo, signOff: cfg.signOff, domain: EMAIL_DOMAIN });
         }
 
         // PUT /api/email/config — builder only: sender addresses + who can use them
@@ -502,6 +487,7 @@ export async function onRequest(context) {
             cfg.senders = senders;
             cfg.permissions = permissions;
             cfg.notifyTo = notifyTo;
+            if (typeof b.signOff === 'string') cfg.signOff = b.signOff.trim().slice(0, 60);
             await writeData(d);
             return json({ ok: true });
         }
@@ -646,7 +632,7 @@ export async function onRequest(context) {
             const auto = buildEmail(
                 `Assalamu alaikum ${firstName},\n\nThank you for getting in touch with Qur'an Detectives. We've received your message and will get back to you as soon as we can, insha'Allah.`,
                 {
-                    signature: { signOff: 'Best Regards,', name: "The Qur'an Detectives Team", email: contactAddr },
+                    signature: { signOff: cfg.signOff, name: "The Qur'an Detectives Team", email: contactAddr },
                     noReplyContact: autoSender.noReply ? contactAddr : '',
                 });
             jobs.push(sendEmail(env, {
