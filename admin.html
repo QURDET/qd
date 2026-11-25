@@ -670,7 +670,18 @@
         .sent-item .s-subj { font-weight: 700; color: #3B2417; font-size: 0.92rem; margin: 3px 0; }
         .sent-item .s-body { display: none; white-space: pre-wrap; font-size: 0.86rem; color: #5C4033; margin-top: 8px; line-height: 1.55; }
         .sent-item.open .s-body { display: block; }
-        .sender-row { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .sender-row { display: grid; grid-template-columns: 1.3fr 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .sr-noreply { display: flex !important; align-items: center; gap: 6px; font-size: 0.8rem !important; color: #5C4033; white-space: nowrap; cursor: pointer; text-transform: none !important; letter-spacing: 0 !important; margin: 0 !important; font-weight: 500 !important; }
+        .sr-noreply input { width: 17px !important; height: 17px; accent-color: #7B3F5E; padding: 0 !important; }
+        .sig-box { margin: 4px 0 18px; border: 2px dashed #E8D5C4; border-radius: 12px; padding: 12px 16px; }
+        .sig-box-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.79rem; font-weight: 600; color: #5C4033; text-transform: uppercase; letter-spacing: 0.4px; }
+        .sig-box iframe { width: 100%; border: none; background: #fff; border-radius: 8px; margin-top: 8px; height: 230px; }
+        .sig-edit { display: none; margin-top: 12px; }
+        .sig-edit.open { display: block; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        @media (max-width: 700px) { .three-col { grid-template-columns: 1fr; } }
+        [data-theme="dark"] .sig-box { border-color: #4a3020; }
+        [data-theme="dark"] .sig-box-head, [data-theme="dark"] .sr-noreply { color: #C8A882; }
         .sender-addr { display: flex; align-items: center; border: 2px solid #E8D5C4; border-radius: 10px; background: #FAF6F1; overflow: hidden; }
         .sender-addr input { border: none !important; border-radius: 0 !important; min-width: 0; }
         .sender-addr span { padding: 0 12px 0 2px; color: #9B7B6E; font-size: 0.84rem; white-space: nowrap; }
@@ -925,6 +936,24 @@
                                 <label>Message</label>
                                 <textarea id="email-body" placeholder="Write your message… Leave a blank line between paragraphs."></textarea>
                             </div>
+                            <div class="sig-box">
+                                <div class="sig-box-head">
+                                    <span>✍️ Added to the end of your email</span>
+                                    <button class="btn btn-outline btn-sm" onclick="toggleSigEdit()" id="btn-sig-edit">Edit my signature</button>
+                                </div>
+                                <div class="sig-edit" id="sig-edit">
+                                    <div class="three-col">
+                                        <div class="form-group"><label>Sign-off</label><input type="text" id="sig-signoff" maxlength="60" placeholder="Best Regards," oninput="queueSigPreview()"></div>
+                                        <div class="form-group"><label>Job title</label><input type="text" id="sig-title" maxlength="80" placeholder="e.g. Founder" oninput="queueSigPreview()"></div>
+                                        <div class="form-group"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input type="text" id="sig-phone" maxlength="30" placeholder="+44 7…" oninput="queueSigPreview()"></div>
+                                    </div>
+                                    <div class="email-actions">
+                                        <span id="sig-status" class="email-status"></span>
+                                        <button class="btn btn-purple btn-sm" onclick="saveSignature()">Save signature</button>
+                                    </div>
+                                </div>
+                                <iframe id="sig-preview" sandbox="allow-same-origin" title="Signature preview"></iframe>
+                            </div>
                             <div class="email-actions">
                                 <span id="email-status" class="email-status"></span>
                                 <button class="btn btn-outline" onclick="clearEmailForm()">Clear</button>
@@ -955,7 +984,7 @@
                             <p class="email-help">When someone fills in the Contact Us form, an alert goes here and they get an automatic "we've received your message" reply. Leave blank to turn alerts off.</p>
 
                             <label style="display:block;font-size:0.79rem;font-weight:600;color:#5C4033;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">Addresses you can send from</label>
-                            <p class="email-help">The first address is used for Contact Us emails. Emails sent to any of these addresses arrive in the Inbox.</p>
+                            <p class="email-help">Emails sent to any of these addresses arrive in the Inbox. Tick <strong>No-reply</strong> for an address nobody checks (e.g. noreply@) — every email from it says <em>"Please do not reply — this mailbox is not monitored"</em>, and the Contact Us automatic reply is sent from it.</p>
                             <div id="email-sender-rows"></div>
                             <button class="btn btn-outline btn-sm" onclick="addSenderRow()" style="margin-bottom:22px">+ Add address</button>
 
@@ -1705,8 +1734,11 @@ async function renderEmailTab() {
     const sel = document.getElementById('email-from');
     const prev = sel.value;
     sel.innerHTML = senders.map(s =>
-        `<option value="${escHtml(s.address)}">${escHtml(s.name ? s.name + ' — ' : '')}${escHtml(s.address)}</option>`).join('');
+        `<option value="${escHtml(s.address)}">${escHtml(s.name ? s.name + ' — ' : '')}${escHtml(s.address)}${s.noReply ? ' (no-reply)' : ''}</option>`).join('');
     if (prev && senders.some(s => s.address === prev)) sel.value = prev;
+    sel.onchange = queueSigPreview;
+    loadSigFields();
+    queueSigPreview();
     document.getElementById('email-no-senders').style.display = senders.length ? 'none' : 'block';
     document.getElementById('email-compose').style.display    = senders.length ? 'block' : 'none';
 
@@ -1725,6 +1757,54 @@ async function renderEmailTab() {
     loadInbox();
     loadSentEmails();
     if (builder) loadEmailConfig();
+}
+
+// ── SIGNATURE ──
+function loadSigFields() {
+    const sig = currentUser.signature || {};
+    document.getElementById('sig-signoff').value = sig.signOff !== undefined ? sig.signOff : 'Best Regards,';
+    document.getElementById('sig-title').value   = sig.title || '';
+    document.getElementById('sig-phone').value   = sig.phone || '';
+}
+function readSigFields() {
+    return {
+        signOff: document.getElementById('sig-signoff').value,
+        title:   document.getElementById('sig-title').value.trim(),
+        phone:   document.getElementById('sig-phone').value.trim(),
+    };
+}
+function toggleSigEdit() {
+    const el = document.getElementById('sig-edit');
+    el.classList.toggle('open');
+    document.getElementById('btn-sig-edit').textContent = el.classList.contains('open') ? 'Close' : 'Edit my signature';
+}
+let _sigTimer = null;
+function queueSigPreview() {
+    clearTimeout(_sigTimer);
+    _sigTimer = setTimeout(renderSigPreview, 250);
+}
+async function renderSigPreview() {
+    const from = document.getElementById('email-from').value;
+    const frame = document.getElementById('sig-preview');
+    if (!from) { frame.srcdoc = ''; return; }
+    try {
+        const r = await api('/api/email/preview', { method: 'POST', body: JSON.stringify({ from: from, body: '', signature: readSigFields() }) });
+        const data = r.ok ? await r.json() : { html: '' };
+        frame.srcdoc = data.html;
+        frame.onload = function () {
+            try { frame.style.height = (frame.contentDocument.body.scrollHeight + 16) + 'px'; } catch (e) {}
+        };
+    } catch {}
+}
+async function saveSignature() {
+    try {
+        const r = await api('/api/me/signature', { method: 'PUT', body: JSON.stringify(readSigFields()) });
+        if (!r.ok) { setEmailStatus('sig-status', 'Could not save.', false); return; }
+        currentUser.signature = await r.json();
+        sessionStorage.setItem('qd_sess', JSON.stringify(currentUser));
+        setEmailStatus('sig-status', '✓ Saved', true);
+        renderSigPreview();
+    } catch { setEmailStatus('sig-status', 'Could not save.', false); }
 }
 
 function showEmailView(v) {
@@ -1862,9 +1942,10 @@ function replyToInboxMessage(m) {
     const quoted = original.trim().split('\n').slice(0, 60).map(l => '> ' + l).join('\n');
     const fromName = m.from.includes('<') ? m.from.split('<')[0].replace(/"/g, '').trim() : '';
     const greet = 'Assalamu alaikum' + (fromName ? ' ' + fromName.split(/\s+/)[0] : '') + ',\n\n';
-    document.getElementById('email-body').value = `${greet}\n\nWith salaams,\n${currentUser.name}\nQur'an Detectives\n\n— On ${when}, ${m.from} wrote:\n${quoted}`;
+    document.getElementById('email-body').value = `${greet}\n\n— On ${when}, ${m.from} wrote:\n${quoted}`;
     document.getElementById('email-reply-text').textContent = 'Replying to ' + m.from;
     document.getElementById('email-reply-note').style.display = 'flex';
+    queueSigPreview();
     const body = document.getElementById('email-body');
     body.focus(); body.setSelectionRange(greet.length, greet.length); body.scrollTop = 0;
 }
@@ -1893,9 +1974,10 @@ function replyToMessage(id) {
     const when = new Date(m.date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
     const quoted = m.message.split('\n').map(l => '> ' + l).join('\n');
     const first = (m.name || '').split(/\s+/)[0];
-    document.getElementById('email-body').value = `Assalamu alaikum ${first},\n\n\n\nWith salaams,\n${currentUser.name}\nQur'an Detectives\n\n— On ${when}, ${m.name} wrote:\n${quoted}`;
+    document.getElementById('email-body').value = `Assalamu alaikum ${first},\n\n\n\n— On ${when}, ${m.name} wrote:\n${quoted}`;
     document.getElementById('email-reply-text').textContent = 'Replying to ' + m.name + ' — the message will be marked as Replied.';
     document.getElementById('email-reply-note').style.display = 'flex';
+    queueSigPreview();
     const body = document.getElementById('email-body');
     body.focus();
     const pos = ('Assalamu alaikum ' + first + ',\n\n').length;
@@ -1915,6 +1997,11 @@ async function sendEmailFromForm() {
         setEmailStatus('email-status', 'Please fill in To, Subject and Message.', false); return;
     }
     if (!confirm('Send this email to ' + payload.to + '?')) return;
+    // Unsaved signature changes? Save them so the email matches the preview
+    const sigNow = readSigFields(), sigSaved = currentUser.signature || {};
+    if (sigNow.signOff !== (sigSaved.signOff !== undefined ? sigSaved.signOff : 'Best Regards,') || sigNow.title !== (sigSaved.title || '') || sigNow.phone !== (sigSaved.phone || '')) {
+        await saveSignature();
+    }
     const btn = document.getElementById('btn-send-email');
     btn.disabled = true; btn.textContent = 'Sending…';
     try {
@@ -1979,9 +2066,13 @@ function addSenderRow(s) {
     row.innerHTML = `
         <div class="sender-addr"><input type="text" class="sr-local" placeholder="e.g. orders" value="${escHtml(local)}"><span>@${EMAIL_DOMAIN}</span></div>
         <input type="text" class="sr-name" placeholder="Name shown (e.g. Qur'an Detectives)" value="${escHtml(s.name || '')}">
+        <label class="sr-noreply" title="Nobody reads this mailbox"><input type="checkbox" class="sr-nr" ${s.noReply ? 'checked' : ''}> No-reply</label>
         <button class="btn btn-sm btn-red" title="Remove">✕</button>`;
     row.querySelector('button').onclick = function () { row.remove(); renderPermTable(); };
-    row.querySelector('.sr-local').addEventListener('change', renderPermTable);
+    row.querySelector('.sr-local').addEventListener('change', function () {
+        if (/^no-?reply$/i.test(this.value.trim())) row.querySelector('.sr-nr').checked = true;
+        renderPermTable();
+    });
     document.getElementById('email-sender-rows').appendChild(row);
 }
 
@@ -1989,7 +2080,8 @@ function readSenderRows() {
     return Array.from(document.querySelectorAll('#email-sender-rows .sender-row')).map(row => ({
         address: row.querySelector('.sr-local').value.trim().toLowerCase().replace(/@.*$/, '').replace(/\s/g, '') ,
         name: row.querySelector('.sr-name').value.trim(),
-    })).filter(s => s.address).map(s => ({ address: s.address + '@' + EMAIL_DOMAIN, name: s.name }));
+        noReply: row.querySelector('.sr-nr').checked,
+    })).filter(s => s.address).map(s => ({ address: s.address + '@' + EMAIL_DOMAIN, name: s.name, noReply: s.noReply }));
 }
 
 function readPermTable() {

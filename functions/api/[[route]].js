@@ -34,18 +34,80 @@ function escHtml(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
-// Wraps a plain-text message in a simple branded email layout
-function emailHtml(bodyText) {
-    const paras = escHtml(bodyText).split(/\n{2,}/).map(p => `<p style="margin:0 0 14px">${p.replace(/\n/g, '<br>')}</p>`).join('');
-    return `<div style="background:#FAF6F1;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #F0E6DC">
-    <div style="background:#7B3F5E;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:bold">Qur'an Detectives</div>
-    <div style="padding:24px;color:#3B2417;font-size:15px;line-height:1.6">${paras}</div>
-    <div style="padding:14px 24px;background:#FAF6F1;color:#9B7B6E;font-size:12px;text-align:center">
-      <a href="https://${EMAIL_DOMAIN}" style="color:#7B3F5E;text-decoration:none">${EMAIL_DOMAIN}</a>
-    </div>
-  </div>
-</div>`;
+const SITE   = 'https://' + EMAIL_DOMAIN;
+const SOCIAL = [
+    { label: 'Instagram', url: 'https://www.instagram.com/qurandetectives/' },
+    { label: 'WhatsApp',  url: 'https://wa.me/447879682345' },
+];
+const LINK = 'color:#7B3F5E;text-decoration:underline';
+
+// Splits "message ... — On <date>, X wrote: > quoted" so the signature can go above the quote
+function splitQuote(body) {
+    const m = String(body).match(/\n*(— On [^\n]* wrote:\n[\s\S]*)$/);
+    return m ? { main: body.slice(0, m.index), quote: m[1] } : { main: body, quote: '' };
+}
+
+function paragraphsHtml(text) {
+    return escHtml(text).split(/\n{2,}/).filter(p => p.trim()).map(p =>
+        `<p style="margin:0 0 14px">${p.replace(/\n/g, '<br>')}</p>`).join('');
+}
+
+// sig: { signOff, name, title, email, phone }
+function signatureHtml(sig) {
+    const phoneHref = String(sig.phone || '').replace(/[^\d+]/g, '');
+    const lines = [];
+    if (sig.signOff) lines.push(`<div style="margin-bottom:14px">${escHtml(sig.signOff)}</div>`);
+    lines.push(`<div style="font-weight:bold;color:#111">${escHtml(sig.name)}</div>`);
+    if (sig.title) lines.push(`<div>${escHtml(sig.title)}</div>`);
+    lines.push('<div style="height:10px;line-height:10px">&nbsp;</div>');
+    if (sig.email) lines.push(`<div><a href="mailto:${escHtml(sig.email)}" style="${LINK}">${escHtml(sig.email)}</a></div>`);
+    if (sig.phone) lines.push(`<div><a href="tel:${escHtml(phoneHref)}" style="${LINK}">${escHtml(sig.phone)}</a></div>`);
+    lines.push(`<div><a href="${SITE}" style="${LINK}">${EMAIL_DOMAIN}</a></div>`);
+    lines.push(`<div style="margin-top:14px"><a href="${SITE}"><img src="${SITE}/email-logo.png" width="72" height="72" alt="Qur'an Detectives" style="display:block;border:0;width:72px;height:72px"></a></div>`);
+    lines.push(`<div style="margin-top:12px;font-size:13px">${SOCIAL.map(s =>
+        `<a href="${s.url}" style="color:#7B3F5E;text-decoration:none;font-weight:bold">${s.label}</a>`).join('&nbsp;&nbsp;|&nbsp;&nbsp;')}</div>`);
+    return `<div style="margin-top:22px;color:#222">${lines.join('')}</div>`;
+}
+
+function signatureText(sig) {
+    const out = [];
+    if (sig.signOff) out.push(sig.signOff, '');
+    out.push(sig.name);
+    if (sig.title) out.push(sig.title);
+    out.push('');
+    if (sig.email) out.push(sig.email);
+    if (sig.phone) out.push(sig.phone);
+    out.push(EMAIL_DOMAIN);
+    return out.join('\n');
+}
+
+function noReplyHtml(contactAddr) {
+    return `<div style="margin-top:28px;padding-top:12px;border-top:1px solid #e3e3e3;font-size:12px;color:#777;line-height:1.5">
+<strong>Please do not reply to this email — this mailbox is not monitored.</strong><br>
+If you need to get in touch, email <a href="mailto:${escHtml(contactAddr)}" style="color:#7B3F5E">${escHtml(contactAddr)}</a> or use our <a href="${SITE}/contactus.html" style="color:#7B3F5E">contact form</a>.</div>`;
+}
+function noReplyText(contactAddr) {
+    return `Please do not reply to this email — this mailbox is not monitored.\nIf you need to get in touch, email ${contactAddr} or use our contact form: ${SITE}/contactus.html`;
+}
+
+// Builds a normal-looking email: message, signature, (quoted original), (no-reply notice)
+// opts: { signature, noReplyContact }
+function buildEmail(bodyText, opts = {}) {
+    const { main, quote } = splitQuote(String(bodyText || ''));
+    let html = paragraphsHtml(main);
+    let text = main.trim();
+    if (opts.signature) { html += signatureHtml(opts.signature); text += '\n\n' + signatureText(opts.signature); }
+    if (quote) {
+        const [first, ...rest] = quote.split('\n');
+        html += `<div style="margin-top:24px;color:#666;font-size:13px">${escHtml(first)}</div>
+<div style="margin-top:6px;padding-left:12px;border-left:3px solid #ddd;color:#666;font-size:13px">${escHtml(rest.map(l => l.replace(/^> ?/, '')).join('\n')).replace(/\n/g, '<br>')}</div>`;
+        text += '\n\n' + quote;
+    }
+    if (opts.noReplyContact) { html += noReplyHtml(opts.noReplyContact); text += '\n\n---\n' + noReplyText(opts.noReplyContact); }
+    return {
+        text,
+        html: `<!DOCTYPE html><html><body style="margin:0;padding:0"><div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#222;max-width:640px;padding:4px 2px">${html}</div></body></html>`,
+    };
 }
 
 async function sendEmail(env, msg) {
@@ -164,6 +226,19 @@ export async function onRequest(context) {
         if (!Array.isArray(d.email.sent)) d.email.sent = [];
         if (d.email.notifyTo === undefined) d.email.notifyTo = DEFAULT_EMAIL.notifyTo;
         return d.email;
+    }
+    // The address people should write to (first sender that isn't a no-reply address)
+    function contactAddress(d) {
+        const s = emailCfg(d).senders.find(x => !x.noReply);
+        return s ? s.address : 'contact@' + EMAIL_DOMAIN;
+    }
+    // A team member's signature details
+    function userSignature(user, senderAddress) {
+        const sig = user.signature || {};
+        return {
+            signOff: sig.signOff !== undefined ? sig.signOff : 'Best Regards,',
+            name: user.name, title: sig.title || '', phone: sig.phone || '', email: senderAddress,
+        };
     }
     // Which "from" addresses this person may send from
     function allowedSenders(d, user) {
@@ -303,6 +378,34 @@ export async function onRequest(context) {
             return json({ ...m, read: true, readBy: undefined, text: body.text || '', html: body.html || '' });
         }
 
+        // PUT /api/me/signature — your own email signature
+        if (route === 'me/signature' && method === 'PUT') {
+            const b = await request.json();
+            const d = await readData();
+            const u = d.users.find(x => x.id === me.id);
+            u.signature = {
+                signOff: String(b.signOff ?? 'Best Regards,').slice(0, 60),
+                title:   String(b.title || '').trim().slice(0, 80),
+                phone:   String(b.phone || '').trim().slice(0, 30),
+            };
+            await writeData(d);
+            return json(u.signature);
+        }
+
+        // POST /api/email/preview — what an email will look like (signature, no-reply note)
+        if (route === 'email/preview' && method === 'POST') {
+            const b = await request.json();
+            const d = await readData();
+            const sender = allowedSenders(d, me).find(s => s.address.toLowerCase() === String(b.from || '').toLowerCase());
+            if (!sender) return json({ html: '' });
+            const tmpUser = { ...me, signature: b.signature || me.signature };
+            const built = buildEmail(String(b.body || ''), {
+                signature: userSignature(tmpUser, sender.noReply ? contactAddress(d) : sender.address),
+                noReplyContact: sender.noReply ? contactAddress(d) : '',
+            });
+            return json({ html: built.html });
+        }
+
         // GET /api/email/senders — addresses the signed-in person can send from
         if (route === 'email/senders' && method === 'GET') {
             return json(allowedSenders(await readData(), me));
@@ -329,9 +432,13 @@ export async function onRequest(context) {
             const replyTo = String(b.replyTo || '').trim();
             if (replyTo && !EMAIL_RE.test(replyTo)) return json({ error: 'The reply-to address doesn\'t look right.' }, 400);
 
+            const built = buildEmail(body, {
+                signature: userSignature(me, sender.noReply ? contactAddress(d) : sender.address),
+                noReplyContact: sender.noReply ? contactAddress(d) : '',
+            });
             const msg = {
                 from: `${sender.name ? sender.name.replace(/[<>"]/g, '') + ' ' : ''}<${sender.address}>`,
-                to, subject, text: body, html: emailHtml(body),
+                to, subject, text: built.text, html: built.html,
             };
             if (replyTo) msg.reply_to = replyTo;
             // Replying to an inbox email? Keep it in the same conversation thread for the customer
@@ -389,7 +496,7 @@ export async function onRequest(context) {
                 }
                 if (seen.has(address)) continue;
                 seen.add(address);
-                senders.push({ address, name: String(s.name || '').trim().slice(0, 80) });
+                senders.push({ address, name: String(s.name || '').trim().slice(0, 80), noReply: !!s.noReply });
             }
             const userIds = new Set((d.users || []).map(u => u.id));
             const permissions = {};
@@ -529,25 +636,31 @@ export async function onRequest(context) {
 
             // Send the emails in the background so the form responds straight away
             const cfg = emailCfg(d);
-            const fromAddr = (cfg.senders[0] && cfg.senders[0].address) || ('contact@' + EMAIL_DOMAIN);
-            const from = `Qur'an Detectives <${fromAddr}>`;
+            const autoSender = cfg.senders.find(x => x.noReply) || cfg.senders[0] || { address: 'contact@' + EMAIL_DOMAIN };
+            const from = `Qur'an Detectives <${autoSender.address}>`;
+            const contactAddr = contactAddress(d);
             const jobs = [];
             if (cfg.notifyTo) {
                 // 1) Alert to the team — press Reply to answer the customer directly
+                const alertText = `New Contact Us message\n\nFrom: ${name} <${email}>\nSubject: ${subject}\n\n${message}\n\nReply to this email to answer them, or open the staff dashboard: ${SITE}/admin.html`;
+                const alert = buildEmail(alertText);
                 jobs.push(sendEmail(env, {
                     from, to: [cfg.notifyTo], reply_to: email,
-                    subject: `New message: ${subject}`,
-                    text: `New Contact Us message\n\nFrom: ${name} <${email}>\nSubject: ${subject}\n\n${message}\n\nReply to this email to answer them, or open the staff dashboard: https://${EMAIL_DOMAIN}/admin.html`,
-                    html: emailHtml(`New Contact Us message\n\nFrom: ${name} <${email}>\nSubject: ${subject}\n\n${message}\n\nReply to this email to answer them, or open the staff dashboard: https://${EMAIL_DOMAIN}/admin.html`),
+                    subject: `New message: ${subject}`, text: alert.text, html: alert.html,
                 }));
             }
             // 2) Automatic reply to the person (fixed wording — their message is not repeated back)
             const firstName = name.split(/\s+/)[0].slice(0, 40);
-            const autoText = `Assalamu alaikum ${firstName},\n\nThank you for getting in touch with Qur'an Detectives. We've received your message and will get back to you as soon as we can, insha'Allah.\n\nWith salaams,\nThe Qur'an Detectives team`;
+            const auto = buildEmail(
+                `Assalamu alaikum ${firstName},\n\nThank you for getting in touch with Qur'an Detectives. We've received your message and will get back to you as soon as we can, insha'Allah.`,
+                {
+                    signature: { signOff: 'Best Regards,', name: "The Qur'an Detectives Team", title: '', phone: '', email: contactAddr },
+                    noReplyContact: autoSender.noReply ? contactAddr : '',
+                });
             jobs.push(sendEmail(env, {
                 from, to: [email], subject: "We've received your message",
-                ...(cfg.notifyTo ? { reply_to: cfg.notifyTo } : {}),
-                text: autoText, html: emailHtml(autoText),
+                ...(autoSender.noReply ? {} : (cfg.notifyTo ? { reply_to: cfg.notifyTo } : {})),
+                text: auto.text, html: auto.html,
             }));
             context.waitUntil(Promise.allSettled(jobs).then(rs => rs.forEach(r => {
                 if (r.status === 'rejected') console.error('Contact email failed:', r.reason && r.reason.message);
