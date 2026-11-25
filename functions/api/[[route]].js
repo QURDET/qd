@@ -37,7 +37,6 @@ function escHtml(s) {
 const SITE   = 'https://' + EMAIL_DOMAIN;
 const SOCIAL = [
     { label: 'Instagram', url: 'https://www.instagram.com/qurandetectives/' },
-    { label: 'WhatsApp',  url: 'https://wa.me/447879682345' },
 ];
 const LINK = 'color:#7B3F5E;text-decoration:underline';
 
@@ -52,16 +51,13 @@ function paragraphsHtml(text) {
         `<p style="margin:0 0 14px">${p.replace(/\n/g, '<br>')}</p>`).join('');
 }
 
-// sig: { signOff, name, title, email, phone }
+// sig: { signOff, name, email }
 function signatureHtml(sig) {
-    const phoneHref = String(sig.phone || '').replace(/[^\d+]/g, '');
     const lines = [];
     if (sig.signOff) lines.push(`<div style="margin-bottom:14px">${escHtml(sig.signOff)}</div>`);
     lines.push(`<div style="font-weight:bold;color:#111">${escHtml(sig.name)}</div>`);
-    if (sig.title) lines.push(`<div>${escHtml(sig.title)}</div>`);
     lines.push('<div style="height:10px;line-height:10px">&nbsp;</div>');
     if (sig.email) lines.push(`<div><a href="mailto:${escHtml(sig.email)}" style="${LINK}">${escHtml(sig.email)}</a></div>`);
-    if (sig.phone) lines.push(`<div><a href="tel:${escHtml(phoneHref)}" style="${LINK}">${escHtml(sig.phone)}</a></div>`);
     lines.push(`<div><a href="${SITE}" style="${LINK}">${EMAIL_DOMAIN}</a></div>`);
     lines.push(`<div style="margin-top:14px"><a href="${SITE}"><img src="${SITE}/email-logo.png" width="72" height="72" alt="Qur'an Detectives" style="display:block;border:0;width:72px;height:72px"></a></div>`);
     lines.push(`<div style="margin-top:12px;font-size:13px">${SOCIAL.map(s =>
@@ -73,10 +69,8 @@ function signatureText(sig) {
     const out = [];
     if (sig.signOff) out.push(sig.signOff, '');
     out.push(sig.name);
-    if (sig.title) out.push(sig.title);
     out.push('');
     if (sig.email) out.push(sig.email);
-    if (sig.phone) out.push(sig.phone);
     out.push(EMAIL_DOMAIN);
     return out.join('\n');
 }
@@ -237,7 +231,7 @@ export async function onRequest(context) {
         const sig = user.signature || {};
         return {
             signOff: sig.signOff !== undefined ? sig.signOff : 'Best Regards,',
-            name: user.name, title: sig.title || '', phone: sig.phone || '', email: senderAddress,
+            name: user.name, email: senderAddress,
         };
     }
     // Which "from" addresses this person may send from
@@ -385,8 +379,6 @@ export async function onRequest(context) {
             const u = d.users.find(x => x.id === me.id);
             u.signature = {
                 signOff: String(b.signOff ?? 'Best Regards,').slice(0, 60),
-                title:   String(b.title || '').trim().slice(0, 80),
-                phone:   String(b.phone || '').trim().slice(0, 30),
             };
             await writeData(d);
             return json(u.signature);
@@ -654,7 +646,7 @@ export async function onRequest(context) {
             const auto = buildEmail(
                 `Assalamu alaikum ${firstName},\n\nThank you for getting in touch with Qur'an Detectives. We've received your message and will get back to you as soon as we can, insha'Allah.`,
                 {
-                    signature: { signOff: 'Best Regards,', name: "The Qur'an Detectives Team", title: '', phone: '', email: contactAddr },
+                    signature: { signOff: 'Best Regards,', name: "The Qur'an Detectives Team", email: contactAddr },
                     noReplyContact: autoSender.noReply ? contactAddr : '',
                 });
             jobs.push(sendEmail(env, {

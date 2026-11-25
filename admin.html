@@ -939,14 +939,10 @@
                             <div class="sig-box">
                                 <div class="sig-box-head">
                                     <span>✍️ Added to the end of your email</span>
-                                    <button class="btn btn-outline btn-sm" onclick="toggleSigEdit()" id="btn-sig-edit">Edit my signature</button>
+                                    <button class="btn btn-outline btn-sm" onclick="toggleSigEdit()" id="btn-sig-edit">Change sign-off</button>
                                 </div>
                                 <div class="sig-edit" id="sig-edit">
-                                    <div class="three-col">
-                                        <div class="form-group"><label>Sign-off</label><input type="text" id="sig-signoff" maxlength="60" placeholder="Best Regards," oninput="queueSigPreview()"></div>
-                                        <div class="form-group"><label>Job title</label><input type="text" id="sig-title" maxlength="80" placeholder="e.g. Founder" oninput="queueSigPreview()"></div>
-                                        <div class="form-group"><label>Phone <span style="text-transform:none;font-weight:400">(optional)</span></label><input type="text" id="sig-phone" maxlength="30" placeholder="+44 7…" oninput="queueSigPreview()"></div>
-                                    </div>
+                                    <div class="form-group" style="max-width:360px"><label>Sign-off</label><input type="text" id="sig-signoff" maxlength="60" placeholder="Best Regards," oninput="queueSigPreview()"></div>
                                     <div class="email-actions">
                                         <span id="sig-status" class="email-status"></span>
                                         <button class="btn btn-purple btn-sm" onclick="saveSignature()">Save signature</button>
@@ -1763,20 +1759,16 @@ async function renderEmailTab() {
 function loadSigFields() {
     const sig = currentUser.signature || {};
     document.getElementById('sig-signoff').value = sig.signOff !== undefined ? sig.signOff : 'Best Regards,';
-    document.getElementById('sig-title').value   = sig.title || '';
-    document.getElementById('sig-phone').value   = sig.phone || '';
 }
 function readSigFields() {
     return {
         signOff: document.getElementById('sig-signoff').value,
-        title:   document.getElementById('sig-title').value.trim(),
-        phone:   document.getElementById('sig-phone').value.trim(),
     };
 }
 function toggleSigEdit() {
     const el = document.getElementById('sig-edit');
     el.classList.toggle('open');
-    document.getElementById('btn-sig-edit').textContent = el.classList.contains('open') ? 'Close' : 'Edit my signature';
+    document.getElementById('btn-sig-edit').textContent = el.classList.contains('open') ? 'Close' : 'Change sign-off';
 }
 let _sigTimer = null;
 function queueSigPreview() {
@@ -1999,7 +1991,7 @@ async function sendEmailFromForm() {
     if (!confirm('Send this email to ' + payload.to + '?')) return;
     // Unsaved signature changes? Save them so the email matches the preview
     const sigNow = readSigFields(), sigSaved = currentUser.signature || {};
-    if (sigNow.signOff !== (sigSaved.signOff !== undefined ? sigSaved.signOff : 'Best Regards,') || sigNow.title !== (sigSaved.title || '') || sigNow.phone !== (sigSaved.phone || '')) {
+    if (sigNow.signOff !== (sigSaved.signOff !== undefined ? sigSaved.signOff : 'Best Regards,')) {
         await saveSignature();
     }
     const btn = document.getElementById('btn-send-email');
