@@ -147,6 +147,47 @@ function addrList(v) {
 
 const INBOX_MAX = 1000;
 
+// ── Instagram (Instagram API with Instagram Login) ──
+const IG_API        = 'https://graph.instagram.com';
+const IG_CACHE_MINS = 30;     // fetch fresh posts from Instagram at most every 30 minutes
+const IG_MAX_POSTS  = 600;
+const IG_MEDIA_FIELDS = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{media_type,media_url,thumbnail_url}';
+
+async function igGet(path, token) {
+    const sep = path.includes('?') ? '&' : '?';
+    const r = await fetch(`${IG_API}${path}${sep}access_token=${encodeURIComponent(token)}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.error) throw new Error((data.error && data.error.message) || ('Instagram error ' + r.status));
+    return data;
+}
+
+// Gets the profile and every post (following Instagram's pages of 50)
+async function igFetchAll(token) {
+    const profile = await igGet('/me?fields=user_id,username,name,profile_picture_url,followers_count,media_count', token);
+    const posts = [];
+    let next = `${IG_API}/me/media?fields=${encodeURIComponent(IG_MEDIA_FIELDS)}&limit=50&access_token=${encodeURIComponent(token)}`;
+    while (next && posts.length < IG_MAX_POSTS) {
+        const r = await fetch(next);
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || data.error) throw new Error((data.error && data.error.message) || ('Instagram error ' + r.status));
+        for (const m of (data.data || [])) {
+            posts.push({
+                id: m.id, type: m.media_type, url: m.media_url || '', thumb: m.thumbnail_url || m.media_url || '',
+                caption: m.caption || '', link: m.permalink, date: m.timestamp,
+                children: ((m.children && m.children.data) || []).map(c => ({ type: c.media_type, url: c.media_url || '', thumb: c.thumbnail_url || c.media_url || '' })),
+            });
+        }
+        next = data.paging && data.paging.next;
+    }
+    return {
+        profile: {
+            username: profile.username, name: profile.name || '', picture: profile.profile_picture_url || '',
+            followers: profile.followers_count ?? null, postCount: profile.media_count ?? posts.length,
+        },
+        posts,
+    };
+}
+
 const CORS = {
     'Access-Control-Allow-Origin':  '*',
     'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
@@ -255,12 +296,40 @@ export async function onRequest(context) {
         return [...(m.to || []), ...(m.cc || [])].some(a => mine.includes(a));
     }
 
+    // ── Instagram helpers ──
+    async function igToken() {
+        const raw = await env.QD_DATA.get('ig:token');
+        return raw ? JSON.parse(raw) : null;
+    }
+    // Long-lived tokens last 60 days. Swap for a fresh one once it's a week old, so it never runs out.
+    async function igMaybeRefresh(t) {
+        if (!t || Date.now() - (t.refreshedAt || t.savedAt) < 7 * 86400000) return;
+        try {
+            const data = await igGet('/refresh_access_token?grant_type=ig_refresh_token', t.token);
+            if (data.access_token) {
+                await env.QD_DATA.put('ig:token', JSON.stringify({
+                    ...t, token: data.access_token, refreshedAt: Date.now(),
+                    expiresAt: Date.now() + (data.expires_in || 5184000) * 1000, lastError: '',
+                }));
+            }
+        } catch (e) {
+            await env.QD_DATA.put('ig:token', JSON.stringify({ ...t, lastError: 'Refresh failed: ' + e.message }));
+        }
+    }
+    async function igRefreshCache(t) {
+        const fresh = await igFetchAll(t.token);
+        const cache = { ...fresh, fetchedAt: Date.now() };
+        await env.QD_DATA.put('ig:cache', JSON.stringify(cache));
+        return cache;
+    }
+
     const isAdmin   = u => u && (u.role === 'admin' || u.role === 'builder');
     const isBuilder = u => u && u.role === 'builder';
 
     // Routes anyone can use. Everything else needs a signed-in staff member.
+    const isPublicGet = method === 'GET' && route === 'instagram';
     const PUBLIC_POST = ['login', 'google-login', 'member-login', 'member-google-login', 'contact', 'interest', 'email/inbound'];
-    const isPublic = route === 'health'
+    const isPublic = route === 'health' || isPublicGet
         || (route === 'settings' && method === 'GET')
         || (method === 'POST' && PUBLIC_POST.includes(route));
 
@@ -272,6 +341,91 @@ export async function onRequest(context) {
             if (me.role === 'viewer' && method !== 'GET' && route !== 'logout') {
                 return json({ error: 'Your account is read-only.' }, 403);
             }
+        }
+
+        // ── INSTAGRAM ──────────────────────────────────────
+
+        // GET /api/instagram — public: profile + all posts for the Instagram page
+        if (route === 'instagram' && method === 'GET') {
+            const t = await igToken();
+            const cacheRaw = await env.QD_DATA.get('ig:cache');
+            let cache = cacheRaw ? JSON.parse(cacheRaw) : null;
+            if (!t) return json({ connected: false, profile: null, posts: [] });
+            const stale = !cache || Date.now() - cache.fetchedAt > IG_CACHE_MINS * 60000;
+            if (stale) {
+                if (!cache) {
+                    try { cache = await igRefreshCache(t); }
+                    catch (e) { console.error('Instagram fetch failed:', e.message); return json({ connected: true, error: 'Could not load posts right now.', profile: null, posts: [] }, 502); }
+                } else {
+                    // Serve what we have straight away, update in the background
+                    context.waitUntil(igRefreshCache(t).catch(e => console.error('Instagram refresh failed:', e.message)));
+                }
+            }
+            context.waitUntil(igMaybeRefresh(t));
+            return new Response(JSON.stringify({ connected: true, profile: cache.profile, posts: cache.posts, fetchedAt: cache.fetchedAt }), {
+                headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
+            });
+        }
+
+        // GET /api/instagram/status — builders: is it connected and working?
+        if (route === 'instagram/status' && method === 'GET') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const t = await igToken();
+            const cacheRaw = await env.QD_DATA.get('ig:cache');
+            const cache = cacheRaw ? JSON.parse(cacheRaw) : null;
+            return json({
+                connected: !!t,
+                username: t ? t.username : '',
+                savedAt: t ? t.savedAt : null,
+                expiresAt: t ? t.expiresAt : null,
+                lastError: t ? (t.lastError || '') : '',
+                fetchedAt: cache ? cache.fetchedAt : null,
+                postCount: cache ? cache.posts.length : 0,
+            });
+        }
+
+        // PUT /api/instagram/token — builders: connect (checks the token works first)
+        if (route === 'instagram/token' && method === 'PUT') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const b = await request.json();
+            let token = String(b.token || '').trim();
+            if (!token) return json({ error: 'Paste the access token first.' }, 400);
+            let profile;
+            try { profile = await igGet('/me?fields=user_id,username', token); }
+            catch (e) { return json({ error: 'Instagram didn\'t accept that token: ' + e.message }, 400); }
+            let expiresAt = Date.now() + 60 * 86400000;
+            // A short-lived token (1 hour) can't be refreshed — try swapping it for a 60-day one when an app secret is set
+            if (env.INSTAGRAM_APP_SECRET) {
+                try {
+                    const ex = await igGet('/access_token?grant_type=ig_exchange_token&client_secret=' + encodeURIComponent(env.INSTAGRAM_APP_SECRET), token);
+                    if (ex.access_token) { token = ex.access_token; expiresAt = Date.now() + (ex.expires_in || 5184000) * 1000; }
+                } catch (e) { /* already long-lived */ }
+            }
+            const t = { token, username: profile.username, savedAt: Date.now(), refreshedAt: Date.now(), expiresAt, lastError: '' };
+            await env.QD_DATA.put('ig:token', JSON.stringify(t));
+            try {
+                const cache = await igRefreshCache(t);
+                return json({ ok: true, username: profile.username, postCount: cache.posts.length });
+            } catch (e) {
+                return json({ ok: true, username: profile.username, postCount: 0, warning: 'Connected, but posts could not be loaded yet: ' + e.message });
+            }
+        }
+
+        // POST /api/instagram/refresh — builders: fetch the latest posts now
+        if (route === 'instagram/refresh' && method === 'POST') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const t = await igToken();
+            if (!t) return json({ error: 'Instagram is not connected.' }, 400);
+            try { const cache = await igRefreshCache(t); return json({ ok: true, postCount: cache.posts.length }); }
+            catch (e) { return json({ error: e.message }, 502); }
+        }
+
+        // DELETE /api/instagram/token — builders: disconnect
+        if (route === 'instagram/token' && method === 'DELETE') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            await env.QD_DATA.delete('ig:token');
+            await env.QD_DATA.delete('ig:cache');
+            return json({ ok: true });
         }
 
         // GET /api/me — who is signed in (used to restore a session)

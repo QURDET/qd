@@ -230,6 +230,7 @@
         <button class="tab-btn active" onclick="switchTab('health')">📊 Site Health</button>
         <button class="tab-btn" onclick="switchTab('google')">🔐 Google Sign-In</button>
         <button class="tab-btn" onclick="switchTab('email')">📧 Email</button>
+        <button class="tab-btn" onclick="switchTab('instagram')">📸 Instagram</button>
     </div>
 
     <!-- ── HEALTH TAB ── -->
@@ -359,6 +360,45 @@
             <button class="btn btn-outline" onclick="loadEmailSettings()">Undo changes</button>
             <button class="btn btn-purple" onclick="saveEmailSettings()">Save email settings</button>
         </div>
+    </div>
+
+    <!-- ── INSTAGRAM TAB ── -->
+    <div class="tab-pane" id="pane-instagram">
+        <main>
+            <div class="section">
+                <div class="section-title">Instagram page</div>
+                <div class="config-card">
+                    <h3>📸 Connection</h3>
+                    <p>Shows all your Instagram posts on <a href="instagram.html" target="_blank" style="color:var(--purple)">qurandetectives.co.uk/instagram</a>. New posts appear within about 30 minutes. The connection renews itself automatically.</p>
+                    <div id="ig-status" style="margin:6px 0 16px;font-size:0.88rem">Checking…</div>
+                    <div id="ig-connected-actions" style="display:none;gap:10px;flex-wrap:wrap">
+                        <button class="btn btn-purple btn-sm" onclick="igRefreshNow()">↻ Get latest posts now</button>
+                        <button class="btn btn-outline btn-sm" onclick="document.getElementById('ig-connect').style.display='block'">Replace token</button>
+                        <button class="btn btn-red btn-sm" onclick="igDisconnect()">Disconnect</button>
+                    </div>
+                    <div id="ig-connect" style="display:none;margin-top:16px">
+                        <label class="em-label" for="ig-token">Instagram access token</label>
+                        <input type="password" class="em-input" id="ig-token" placeholder="Paste the long token from Meta (starts with IG…)" autocomplete="off">
+                        <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+                            <button class="btn btn-purple btn-sm" onclick="igConnect()">Connect</button>
+                            <span class="em-status" id="ig-msg"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-title">How to get the token (one-off, about 15 minutes)</div>
+                <div class="config-card">
+                    <ol style="padding-left:20px;font-size:0.88rem;line-height:1.8;color:var(--text2)">
+                        <li>In the Instagram app: <strong>Settings → Account type and tools → Switch to professional account</strong> (Business or Creator — it's free).</li>
+                        <li>Go to <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener" style="color:var(--purple)">developers.facebook.com/apps</a>, log in with Facebook, and click <strong>Create app</strong>. Choose the Instagram use case (managing messages and content on Instagram).</li>
+                        <li>In the app, open <strong>Instagram → API setup with Instagram business login</strong>.</li>
+                        <li>Under <strong>Generate access tokens</strong>, click <strong>Add account</strong>, log in to the Qur'an Detectives Instagram and allow access.</li>
+                        <li>Click <strong>Generate token</strong> next to the account, copy it, and paste it above.</li>
+                    </ol>
+                </div>
+            </div>
+        </main>
     </div>
 
 </div><!-- /maint-page -->
@@ -492,7 +532,7 @@ function _setupShGoogleBtn(clientId) {
 // ── INNER TAB SWITCHING ───────────────────────────────────────────────────────
 function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(function(b,i) {
-        var names = ['health','google','email'];
+        var names = ['health','google','email','instagram'];
         b.classList.toggle('active', names[i] === name);
     });
     document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
@@ -500,6 +540,7 @@ function switchTab(name) {
     if (name === 'health')  runSiteHealth();
     if (name === 'google')  loadGoogleStatus();
     if (name === 'email')   loadEmailSettings();
+    if (name === 'instagram') loadIgStatus();
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -810,6 +851,64 @@ async function saveEmailSettings() {
         emStatus('✓ Saved — changes apply to the next email sent.', true);
         loadEmailSettings().then(function() { emStatus('✓ Saved — changes apply to the next email sent.', true); });
     } catch (e) { emStatus('Could not save — try again.', false); }
+}
+
+// ── INSTAGRAM ────────────────────────────────────────────────────────────────
+function igMsg(text, ok) {
+    var el = document.getElementById('ig-msg');
+    el.textContent = text; el.className = 'em-status ' + (ok ? 'ok' : 'err');
+}
+function fmtWhen(ms) {
+    if (!ms) return '—';
+    return new Date(ms).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+async function loadIgStatus() {
+    var box = document.getElementById('ig-status');
+    try {
+        var r = await mApi('/api/instagram/status');
+        var st = await r.json();
+        var actions = document.getElementById('ig-connected-actions');
+        if (!st.connected) {
+            box.innerHTML = '<span style="color:var(--text3)">⚪ Not connected yet — follow the steps below, then paste your token.</span>';
+            actions.style.display = 'none';
+            document.getElementById('ig-connect').style.display = 'block';
+            return;
+        }
+        var days = st.expiresAt ? Math.round((st.expiresAt - Date.now()) / 86400000) : null;
+        box.innerHTML =
+            '<div>✅ Connected to <strong>@' + esc(st.username) + '</strong> · ' + st.postCount + ' posts on the page</div>' +
+            '<div style="color:var(--text3);margin-top:4px">Posts last fetched: ' + fmtWhen(st.fetchedAt) +
+            (days != null ? ' · Token renews automatically (current one valid ' + days + ' more days)' : '') + '</div>' +
+            (st.lastError ? '<div style="color:#C0392B;margin-top:6px">⚠️ ' + esc(st.lastError) + ' — if this keeps happening, generate a new token and replace it.</div>' : '');
+        actions.style.display = 'flex';
+        document.getElementById('ig-connect').style.display = 'none';
+    } catch (e) { box.textContent = 'Could not check the Instagram connection.'; }
+}
+async function igConnect() {
+    var token = document.getElementById('ig-token').value.trim();
+    if (!token) { igMsg('Paste the token first.', false); return; }
+    igMsg('Connecting…', true);
+    try {
+        var r = await mApi('/api/instagram/token', { method: 'PUT', body: JSON.stringify({ token: token }) });
+        var d = await r.json().catch(function() { return {}; });
+        if (!r.ok) { igMsg(d.error || 'Could not connect.', false); return; }
+        document.getElementById('ig-token').value = '';
+        igMsg(d.warning || ('✓ Connected to @' + d.username + ' — ' + d.postCount + ' posts loaded.'), !d.warning);
+        loadIgStatus();
+    } catch (e) { igMsg('Could not connect — try again.', false); }
+}
+async function igRefreshNow() {
+    var box = document.getElementById('ig-status');
+    box.insertAdjacentHTML('beforeend', '<div style="color:var(--text3);margin-top:4px" id="ig-refreshing">Fetching latest posts…</div>');
+    var r = await mApi('/api/instagram/refresh', { method: 'POST' });
+    var d = await r.json().catch(function() { return {}; });
+    if (!r.ok) alert('Could not fetch posts: ' + (d.error || 'unknown error'));
+    loadIgStatus();
+}
+async function igDisconnect() {
+    if (!confirm('Disconnect Instagram? The Instagram page will show "posts will appear here soon" until you connect again.')) return;
+    await mApi('/api/instagram/token', { method: 'DELETE' });
+    loadIgStatus();
 }
 </script>
 </body>

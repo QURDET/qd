@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){var s=localStorage.getItem('qdTheme');if(s==='dark'||(s===null&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}());</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram - Qur'an Detectives</title>
+
+    <meta name="description" content="See all of Qur'an Detectives' latest posts from Instagram.">
+    <link rel="icon" type="image/jpeg" href="qdlogo.jpg">
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&family=Bubblegum+Sans&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #FAF6F1;
+            color: #3B2417;
+            min-height: 100vh;
+        }
+
+        /* ── Navigation ── */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 0.8rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(59, 36, 23, 0.1);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-brand img {
+            height: 50px;
+            width: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .nav-brand span {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #3B2417;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-family: 'Nunito', sans-serif;
+            color: #5C4033;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #7B3F5E;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 26px;
+            height: 3px;
+            background: #3B2417;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+
+        /* ── Page header ── */
+        .page-header {
+            background: linear-gradient(135deg, #F5E8D6 0%, #EFE0CE 40%, #E8D5C4 100%);
+            padding: 140px 5% 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(123, 63, 94, 0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(107, 123, 141, 0.06) 0%, transparent 50%);
+        }
+
+        .page-header .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header h1 {
+            font-family: 'Nunito', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #3B2417;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .page-header p {
+            font-size: 1.05rem;
+            color: #5C4033;
+            font-weight: 400;
+        }
+
+        /* ── Contact section ── */
+
+        /* ── Instagram page ── */
+        .ig-section { max-width: 1000px; margin: 0 auto; padding: 40px 5% 70px; }
+
+        .ig-profile {
+            display: flex; align-items: center; gap: 22px; background: #fff; border-radius: 22px;
+            padding: 22px 26px; box-shadow: 0 4px 20px rgba(59,36,23,0.08); margin-bottom: 28px; flex-wrap: wrap;
+        }
+        .ig-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid #F3E8F0; background: #F3E8F0; flex-shrink: 0; }
+        .ig-who { flex: 1; min-width: 180px; }
+        .ig-who h2 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.35rem; color: #3B2417; }
+        .ig-who .ig-handle { color: #9B7B6E; font-size: 0.92rem; }
+        .ig-stats { display: flex; gap: 22px; margin-top: 8px; font-size: 0.9rem; color: #5C4033; }
+        .ig-stats strong { font-family: 'Nunito', sans-serif; font-weight: 800; color: #3B2417; }
+        .ig-follow {
+            display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 14px;
+            background: #7B3F5E; color: #fff; text-decoration: none; font-family: 'Nunito', sans-serif; font-weight: 800;
+            font-size: 0.95rem; transition: background 0.2s, transform 0.2s;
+        }
+        .ig-follow:hover { background: #6A3450; transform: translateY(-1px); }
+
+        .ig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .ig-post {
+            position: relative; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; cursor: pointer;
+            background: #F0E6DC; border: none; padding: 0; display: block; width: 100%;
+            box-shadow: 0 3px 14px rgba(59,36,23,0.08);
+        }
+        .ig-post img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s; }
+        .ig-post:hover img, .ig-post:focus-visible img { transform: scale(1.04); }
+        .ig-post:focus-visible { outline: 3px solid #7B3F5E; outline-offset: 2px; }
+        .ig-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff; border-radius: 8px; padding: 3px 7px; font-size: 0.75rem; }
+        .ig-hover {
+            position: absolute; inset: 0; background: linear-gradient(to top, rgba(59,36,23,0.85), rgba(59,36,23,0) 60%);
+            color: #fff; display: flex; align-items: flex-end; padding: 14px; font-size: 0.82rem; line-height: 1.4;
+            text-align: left; opacity: 0; transition: opacity 0.25s;
+        }
+        .ig-hover span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .ig-post:hover .ig-hover, .ig-post:focus-visible .ig-hover { opacity: 1; }
+
+        .ig-more { text-align: center; margin-top: 30px; }
+        .ig-more button {
+            font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.95rem; padding: 12px 28px; border-radius: 14px;
+            border: 2px solid #7B3F5E; background: transparent; color: #7B3F5E; cursor: pointer; transition: all 0.2s;
+        }
+        .ig-more button:hover { background: #7B3F5E; color: #fff; }
+
+        .ig-message { text-align: center; padding: 60px 20px; color: #9B7B6E; background: #fff; border-radius: 22px; }
+        .ig-message .big { font-size: 2.4rem; margin-bottom: 10px; }
+        .ig-skeleton { aspect-ratio: 1/1; border-radius: 16px; background: linear-gradient(90deg, #F0E6DC 25%, #F7F0E9 50%, #F0E6DC 75%); background-size: 200% 100%; animation: igShimmer 1.2s infinite; }
+        @keyframes igShimmer { to { background-position: -200% 0; } }
+
+        /* Post viewer */
+        .ig-viewer { position: fixed; inset: 0; background: rgba(20,12,8,0.82); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .ig-viewer.open { display: flex; }
+        .ig-box { background: #fff; border-radius: 20px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr); max-width: 1000px; width: 100%; max-height: 90vh; }
+        .ig-media { background: #000; position: relative; display: flex; align-items: center; justify-content: center; min-height: 300px; }
+        .ig-media img, .ig-media video { max-width: 100%; max-height: 90vh; display: block; }
+        .ig-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; color: #3B2417; }
+        .ig-nav.prev { left: 10px; } .ig-nav.next { right: 10px; }
+        .ig-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; }
+        .ig-dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+        .ig-dots span.on { background: #fff; }
+        .ig-side { padding: 22px; display: flex; flex-direction: column; min-height: 0; }
+        .ig-side-head { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #F0E6DC; }
+        .ig-side-head img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .ig-side-head strong { font-family: 'Nunito', sans-serif; color: #3B2417; }
+        .ig-caption { flex: 1; overflow-y: auto; padding: 14px 0; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; color: #3B2417; }
+        .ig-date { font-size: 0.78rem; color: #9B7B6E; margin-bottom: 12px; }
+        .ig-open { display: block; text-align: center; padding: 11px; border-radius: 12px; background: #7B3F5E; color: #fff; text-decoration: none; font-weight: 600; font-size: 0.88rem; }
+        .ig-close { position: fixed; top: 16px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; z-index: 2001; }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            background: #ffffff;
+            color: #6B5B4F;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+
+        @media (max-width: 760px) {
+            .ig-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .ig-post, .ig-skeleton { border-radius: 10px; }
+            .ig-box { grid-template-columns: 1fr; overflow-y: auto; }
+            .ig-media img, .ig-media video { max-height: 60vh; }
+            .ig-profile { padding: 18px; gap: 14px; }
+            .ig-avatar { width: 64px; height: 64px; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 0; right: 0;
+                width: 260px;
+                height: 100vh;
+                background: #ffffff;
+                flex-direction: column;
+                padding: 80px 30px 30px;
+                gap: 1.5rem;
+                box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+                z-index: 999;
+            }
+
+            .nav-links.active { display: flex; }
+
+            .hamburger {
+                display: flex;
+                z-index: 1001;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+                letter-spacing: 1px;
+            }
+        }
+
+        /* ── Theme toggle ── */
+
+        .theme-toggle { background: none; border: none; cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 2px 6px; border-radius: 6px; flex-shrink: 0; }
+        .theme-toggle:hover { opacity: 0.7; }
+
+        /* ── Dark mode ── */
+        [data-theme="dark"] body { background: #1a1310; color: #EFE0CE; }
+        [data-theme="dark"] nav { background: #241b14; box-shadow: 0 2px 15px rgba(0,0,0,0.5); }
+        [data-theme="dark"] .nav-brand span { color: #EFE0CE; }
+        [data-theme="dark"] .nav-links { background: #241b14; }
+        [data-theme="dark"] .nav-links a { color: #C8A882; }
+        [data-theme="dark"] .nav-links a:hover, [data-theme="dark"] .nav-links a.active { color: #D4899E; }
+        [data-theme="dark"] .hamburger span { background: #EFE0CE; }
+        [data-theme="dark"] .page-header { background: linear-gradient(135deg, #2a1f16 0%, #201610 40%, #1a1310 100%); }
+        [data-theme="dark"] .page-header h1 { color: #EFE0CE; }
+        [data-theme="dark"] .page-header p { color: #C8A882; }
+
+        [data-theme="dark"] .ig-profile, [data-theme="dark"] .ig-message, [data-theme="dark"] .ig-box { background: #241b14; }
+        [data-theme="dark"] .ig-who h2, [data-theme="dark"] .ig-stats strong, [data-theme="dark"] .ig-side-head strong, [data-theme="dark"] .ig-caption { color: #EFE0CE; }
+        [data-theme="dark"] .ig-stats { color: #C8A882; }
+        [data-theme="dark"] .ig-avatar { border-color: #3a2a1f; }
+        [data-theme="dark"] .ig-post { background: #2a1f14; }
+        [data-theme="dark"] .ig-side-head { border-bottom-color: #3a2a1f; }
+        [data-theme="dark"] .ig-more button { color: #D4A574; border-color: #D4A574; }
+        [data-theme="dark"] .ig-more button:hover { background: #D4A574; color: #1a1310; }
+        [data-theme="dark"] .ig-skeleton { background: linear-gradient(90deg, #241b14 25%, #2e2219 50%, #241b14 75%); background-size: 200% 100%; }
+        [data-theme="dark"] footer { background: #241b14; color: #9E8071; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a class="nav-brand" href="index.html">
+            <img src="qdlogo.jpg" alt="Qur'an Detectives Logo">
+            <span>Qur'an Detectives</span>
+        </a>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="shiadeal.html">Shia Deal</a></li>
+            <li><a href="instagram.html" class="active">Instagram</a></li>
+            <li><a href="contactus.html">Contact</a></li>
+            <li><button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <div class="content">
+            <h1>Instagram</h1>
+            <p>Our latest posts — follow along for news, games and behind the scenes</p>
+        </div>
+    </div>
+
+    <section class="ig-section">
+        <div id="ig-profile"></div>
+        <div class="ig-grid" id="ig-grid">
+            <div class="ig-skeleton"></div><div class="ig-skeleton"></div><div class="ig-skeleton"></div>
+            <div class="ig-skeleton"></div><div class="ig-skeleton"></div><div class="ig-skeleton"></div>
+        </div>
+        <div class="ig-more" id="ig-more" style="display:none"><button onclick="showMore()">Show more posts</button></div>
+    </section>
+
+    <!-- Post viewer -->
+    <div class="ig-viewer" id="ig-viewer" role="dialog" aria-modal="true" aria-label="Instagram post">
+        <button class="ig-close" onclick="closePost()" aria-label="Close">&times;</button>
+        <div class="ig-box">
+            <div class="ig-media" id="ig-media"></div>
+            <div class="ig-side">
+                <div class="ig-side-head" id="ig-side-head"></div>
+                <div class="ig-caption" id="ig-caption"></div>
+                <div class="ig-date" id="ig-date"></div>
+                <a class="ig-open" id="ig-open" target="_blank" rel="noopener">View on Instagram ↗</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Qur'an Detectives. All rights reserved.</p>
+        <a href="admin.html" style="display:inline-block;margin-top:12px;padding:7px 18px;background:#3B2417;color:#fff;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:600;text-decoration:none;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">Staff</a>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+            document.querySelector('.hamburger').classList.toggle('active');
+        }
+        function toggleTheme() {
+            var d = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (d) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('qdTheme', 'light'); }
+            else   { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('qdTheme', 'dark'); }
+            updateThemeBtn();
+        }
+        function updateThemeBtn() {
+            var b = document.getElementById('theme-toggle');
+            if (b) b.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            if (!localStorage.getItem('qdTheme')) {
+                if (e.matches) document.documentElement.setAttribute('data-theme', 'dark');
+                else document.documentElement.removeAttribute('data-theme');
+                updateThemeBtn();
+            }
+        });
+        document.addEventListener('DOMContentLoaded', updateThemeBtn);
+
+
+        // ── Instagram feed ──
+        var IG_PAGE = 24;
+        var igPosts = [], igProfile = null, igShown = 0, igOpen = null, igSlide = 0;
+        var IG_URL = 'https://www.instagram.com/qurandetectives/';
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function fmtNum(n) {
+            if (n == null) return '';
+            return n >= 10000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1).replace(/\.0$/, '') + 'k' : n.toLocaleString('en-GB');
+        }
+
+        async function loadInstagram() {
+            var grid = document.getElementById('ig-grid');
+            try {
+                var r = await fetch('/api/instagram');
+                var data = await r.json();
+                if (!data.connected || (!data.posts.length && !data.profile)) { showMessage('📸', 'Our posts will appear here soon.'); return; }
+                if (data.error) { showMessage('📸', data.error); return; }
+                igProfile = data.profile;
+                igPosts = data.posts || [];
+                if (igProfile) { IG_URL = 'https://www.instagram.com/' + encodeURIComponent(igProfile.username) + '/'; renderProfile(); }
+                grid.innerHTML = '';
+                if (!igPosts.length) { showMessage('📸', 'No posts yet — check back soon!'); return; }
+                showMore();
+            } catch (e) {
+                showMessage('📸', 'Posts couldn\'t be loaded right now. <a href="https://www.instagram.com/qurandetectives/" target="_blank" rel="noopener" style="color:#7B3F5E">See them on Instagram ↗</a>');
+            }
+        }
+
+        function showMessage(icon, html) {
+            document.getElementById('ig-grid').outerHTML = '<div class="ig-message" id="ig-grid"><div class="big">' + icon + '</div>' + html + '</div>';
+        }
+
+        function renderProfile() {
+            var p = igProfile;
+            document.getElementById('ig-profile').innerHTML =
+                '<div class="ig-profile">' +
+                    (p.picture ? '<img class="ig-avatar" src="' + esc(p.picture) + '" alt="">' : '<img class="ig-avatar" src="qdlogo.jpg" alt="">') +
+                    '<div class="ig-who"><h2>' + esc(p.name || "Qur'an Detectives") + '</h2>' +
+                        '<div class="ig-handle">@' + esc(p.username) + '</div>' +
+                        '<div class="ig-stats"><span><strong>' + fmtNum(p.postCount) + '</strong> posts</span>' +
+                        (p.followers != null ? '<span><strong>' + fmtNum(p.followers) + '</strong> followers</span>' : '') + '</div></div>' +
+                    '<a class="ig-follow" href="' + esc(IG_URL) + '" target="_blank" rel="noopener">Follow us on Instagram ↗</a>' +
+                '</div>';
+        }
+
+        function showMore() {
+            var grid = document.getElementById('ig-grid');
+            var next = igPosts.slice(igShown, igShown + IG_PAGE);
+            next.forEach(function(p, i) {
+                var idx = igShown + i;
+                var img = p.type === 'VIDEO' ? p.thumb : (p.url || p.thumb);
+                var badge = p.type === 'VIDEO' ? '▶' : (p.type === 'CAROUSEL_ALBUM' ? '❐' : '');
+                var alt = (p.caption || 'Instagram post').split('\n')[0].slice(0, 120);
+                var b = document.createElement('button');
+                b.className = 'ig-post';
+                b.setAttribute('aria-label', 'Open post: ' + alt);
+                b.onclick = function() { openPost(idx); };
+                b.innerHTML = '<img src="' + esc(img) + '" alt="' + esc(alt) + '" loading="lazy">' +
+                    (badge ? '<span class="ig-badge">' + badge + '</span>' : '') +
+                    (p.caption ? '<div class="ig-hover"><span>' + esc(p.caption) + '</span></div>' : '');
+                grid.appendChild(b);
+            });
+            igShown += next.length;
+            document.getElementById('ig-more').style.display = igShown < igPosts.length ? 'block' : 'none';
+        }
+
+        function slidesOf(p) {
+            if (p.type === 'CAROUSEL_ALBUM' && p.children && p.children.length) return p.children;
+            return [{ type: p.type, url: p.url, thumb: p.thumb }];
+        }
+
+        function renderSlide() {
+            var p = igPosts[igOpen], slides = slidesOf(p), s = slides[igSlide];
+            var media = document.getElementById('ig-media');
+            var html = s.type === 'VIDEO'
+                ? '<video src="' + esc(s.url) + '" poster="' + esc(s.thumb) + '" controls playsinline autoplay muted></video>'
+                : '<img src="' + esc(s.url || s.thumb) + '" alt="">';
+            if (slides.length > 1) {
+                html += (igSlide > 0 ? '<button class="ig-nav prev" onclick="moveSlide(-1)" aria-label="Previous">‹</button>' : '') +
+                        (igSlide < slides.length - 1 ? '<button class="ig-nav next" onclick="moveSlide(1)" aria-label="Next">›</button>' : '') +
+                        '<div class="ig-dots">' + slides.map(function(_, i) { return '<span class="' + (i === igSlide ? 'on' : '') + '"></span>'; }).join('') + '</div>';
+            }
+            media.innerHTML = html;
+        }
+        function moveSlide(d) { igSlide = Math.max(0, Math.min(slidesOf(igPosts[igOpen]).length - 1, igSlide + d)); renderSlide(); }
+
+        function openPost(i) {
+            igOpen = i; igSlide = 0;
+            var p = igPosts[i];
+            renderSlide();
+            var pic = igProfile && igProfile.picture ? igProfile.picture : 'qdlogo.jpg';
+            document.getElementById('ig-side-head').innerHTML = '<img src="' + esc(pic) + '" alt=""><strong>' + esc(igProfile ? igProfile.username : 'qurandetectives') + '</strong>';
+            document.getElementById('ig-caption').textContent = p.caption || '';
+            document.getElementById('ig-date').textContent = p.date ? new Date(p.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+            document.getElementById('ig-open').href = p.link || IG_URL;
+            document.getElementById('ig-viewer').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closePost() {
+            document.getElementById('ig-viewer').classList.remove('open');
+            document.getElementById('ig-media').innerHTML = '';   // stops any video playing
+            document.body.style.overflow = '';
+        }
+        document.getElementById('ig-viewer').addEventListener('click', function(e) { if (e.target === this) closePost(); });
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('ig-viewer').classList.contains('open')) return;
+            if (e.key === 'Escape') closePost();
+            if (e.key === 'ArrowRight') moveSlide(1);
+            if (e.key === 'ArrowLeft') moveSlide(-1);
+        });
+
+        loadInstagram();
+    </script>
+
+</body>
+</html>
