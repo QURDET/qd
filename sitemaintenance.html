@@ -153,20 +153,12 @@
     .config-toggle { display: none; }
     .key-preview { font-family: monospace; font-size: 0.78rem; color: var(--text3); margin-top: 6px; }
 
-    /* ── STRIPE TABLE ── */
+    /* ── TABLES ── */
     .table-wrap { overflow-x: auto; margin-top: 16px; }
     table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
     th { padding: 10px 14px; text-align: left; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.78rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
     td { padding: 12px 14px; border-bottom: 1px solid #F5EDE6; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    .badge { font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
-    .badge-succeeded  { background: #D4EDDA; color: #155724; }
-    .badge-processing { background: #FFF3CD; color: #856404; }
-    .badge-pending    { background: #FFF3CD; color: #856404; }
-    .badge-failed     { background: #F8D7DA; color: #721C24; }
-    .badge-canceled   { background: #E2E3E5; color: #383D41; }
-    .mode-badge-live { background: #D4EDDA; color: #155724; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
-    .mode-badge-test { background: #FFF3CD; color: #856404; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
 
     .suggestion-item {
         background: var(--card); border-radius: 12px; padding: 16px 20px;
@@ -236,7 +228,6 @@
     <!-- Inner tab bar -->
     <div class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('health')">📊 Site Health</button>
-        <button class="tab-btn" onclick="switchTab('stripe')">💳 Stripe</button>
         <button class="tab-btn" onclick="switchTab('google')">🔐 Google Sign-In</button>
         <button class="tab-btn" onclick="switchTab('email')">📧 Email</button>
     </div>
@@ -275,62 +266,6 @@
                     <button class="btn btn-outline btn-sm" onclick="clearErrorLog()">🗑 Clear</button>
                 </div>
                 <div id="health-errors"></div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ── STRIPE TAB ── -->
-    <div class="tab-pane" id="pane-stripe">
-        <main>
-            <!-- Connection config -->
-            <div class="section">
-                <div class="section-title">Connection</div>
-                <div class="config-card" id="stripe-config-card">
-                    <h3>💳 Stripe API Key</h3>
-                    <p>Add your Stripe API key to view real payment data, track revenue, and sync orders into the admin panel. Use a Restricted Key with read-only access to Charges, Customers, and Payment Intents.</p>
-                    <div id="stripe-status-badge"></div>
-                    <div id="stripe-key-preview-wrap" style="display:none">
-                        <div class="key-preview" id="stripe-key-preview-sm"></div>
-                    </div>
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-                        <a href="https://dashboard.stripe.com/acct_1T17HbGy09Zuy5jo/dashboard" target="_blank" class="btn btn-outline btn-sm">↗ Open Stripe Dashboard</a>
-                        <button class="btn btn-purple btn-sm" onclick="toggleStripeForm()">⚙ Update Key</button>
-                        <button class="btn btn-red btn-sm" id="stripe-disconnect-btn" style="display:none" onclick="doDisconnectStripe()">Disconnect</button>
-                    </div>
-                    <div id="stripe-form" style="display:none;margin-top:16px">
-                        <div class="form-inline">
-                            <input type="password" id="stripe-key-input" placeholder="sk_live_… or rk_live_…">
-                            <button class="btn btn-purple btn-sm" onclick="saveStripeKey()">Save</button>
-                            <button class="btn btn-outline btn-sm" onclick="toggleStripeForm()">Cancel</button>
-                        </div>
-                        <label style="font-size:0.78rem;color:var(--text3);margin-top:8px;display:flex;align-items:center;gap:6px;cursor:pointer">
-                            <input type="checkbox" id="stripe-key-show" onchange="document.getElementById('stripe-key-input').type=this.checked?'text':'password'">
-                            Show key
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payments view -->
-            <div id="stripe-payments-section" style="display:none">
-                <div class="section">
-                    <div class="section-title">
-                        Payments
-                        <div style="display:flex;gap:8px;align-items:center">
-                            <span id="stripe-mode-badge"></span>
-                            <button class="btn btn-purple btn-sm" onclick="loadStripePayments()">↻ Refresh</button>
-                        </div>
-                    </div>
-                    <div class="grid-sm" id="stripe-stats" style="margin-bottom:20px"></div>
-                    <div style="background:var(--card);border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(59,36,23,0.07)">
-                        <div id="stripe-loading-msg" style="text-align:center;padding:40px;color:var(--text3)">⏳ Loading payments…</div>
-                        <div id="stripe-error-msg" style="display:none;color:#C0392B;font-size:0.85rem;padding:16px;background:#FDEDEC;border-radius:10px"></div>
-                        <div class="table-wrap" id="stripe-table-wrap" style="display:none">
-                            <table><thead><tr><th>Date</th><th>Customer</th><th>Location</th><th>Amount</th><th>Description</th><th>Status</th><th></th></tr></thead>
-                            <tbody id="stripe-tbody"></tbody></table>
-                        </div>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
@@ -443,6 +378,7 @@ function toggleTheme() {
 applyTheme(localStorage.getItem('qdTheme') === 'dark');
 
 var maintUser = null;
+try { localStorage.removeItem('qd_sk'); } catch (e) {}   // clear any old saved payment key from this browser
 
 // Sends the sign-in token with every request so the server knows who is asking
 async function mApi(url, opts) {
@@ -508,7 +444,6 @@ function showMaintPage() {
     document.getElementById('auth-gate').style.display = 'none';
     document.getElementById('maint-page').style.display = 'block';
     runSiteHealth();
-    renderStripeStatus();
     loadGoogleStatus();
     if (location.hash === '#email') switchTab('email');
 }
@@ -557,13 +492,12 @@ function _setupShGoogleBtn(clientId) {
 // ── INNER TAB SWITCHING ───────────────────────────────────────────────────────
 function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(function(b,i) {
-        var names = ['health','stripe','google','email'];
+        var names = ['health','google','email'];
         b.classList.toggle('active', names[i] === name);
     });
     document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
     document.getElementById('pane-' + name).classList.add('active');
     if (name === 'health')  runSiteHealth();
-    if (name === 'stripe')  renderStripeStatus();
     if (name === 'google')  loadGoogleStatus();
     if (name === 'email')   loadEmailSettings();
 }
@@ -709,110 +643,6 @@ function loadErrorLog() {
 function clearErrorLog() {
     localStorage.removeItem('qdSiteErrors');
     loadErrorLog();
-}
-
-// ── STRIPE ────────────────────────────────────────────────────────────────────
-function getStripeKey() { try { return atob(localStorage.getItem('qd_sk')||''); } catch { return ''; } }
-function setStripeKey(k) { localStorage.setItem('qd_sk', btoa(k)); }
-function clearStripeKey() { localStorage.removeItem('qd_sk'); }
-
-function renderStripeStatus() {
-    var key = getStripeKey();
-    var badge = document.getElementById('stripe-status-badge');
-    var previewWrap = document.getElementById('stripe-key-preview-wrap');
-    var preview = document.getElementById('stripe-key-preview-sm');
-    var disconnBtn = document.getElementById('stripe-disconnect-btn');
-
-    if (key) {
-        var isLive = key.startsWith('sk_live') || key.startsWith('rk_live');
-        badge.innerHTML = '<span class="config-status '+(isLive?'status-active':'status-active')+'">'+(isLive?'🟢 Live Mode':'🟡 Test Mode')+'</span>';
-        preview.textContent = key.slice(0,8) + '••••••••' + key.slice(-4);
-        previewWrap.style.display = 'block';
-        disconnBtn.style.display = 'inline-flex';
-        document.getElementById('stripe-payments-section').style.display = 'block';
-        loadStripePayments();
-    } else {
-        badge.innerHTML = '<span class="config-status status-inactive">⚫ Not connected</span>';
-        previewWrap.style.display = 'none';
-        disconnBtn.style.display = 'none';
-        document.getElementById('stripe-payments-section').style.display = 'none';
-    }
-}
-
-function toggleStripeForm() {
-    var f = document.getElementById('stripe-form');
-    f.style.display = f.style.display === 'none' ? 'block' : 'none';
-}
-
-function saveStripeKey() {
-    var key = document.getElementById('stripe-key-input').value.trim();
-    if (!key) { alert('Please enter a Stripe API key.'); return; }
-    if (!key.startsWith('sk_') && !key.startsWith('rk_')) { alert('Invalid key format. Use sk_ or rk_ prefix.'); return; }
-    setStripeKey(key);
-    document.getElementById('stripe-form').style.display = 'none';
-    document.getElementById('stripe-key-input').value = '';
-    renderStripeStatus();
-}
-
-function doDisconnectStripe() {
-    if (!confirm('Remove Stripe API key?')) return;
-    clearStripeKey();
-    renderStripeStatus();
-}
-
-async function loadStripePayments() {
-    var key = getStripeKey();
-    if (!key) return;
-    var loadMsg  = document.getElementById('stripe-loading-msg');
-    var errMsg   = document.getElementById('stripe-error-msg');
-    var tableWrap = document.getElementById('stripe-table-wrap');
-    loadMsg.style.display = 'block'; errMsg.style.display = 'none'; tableWrap.style.display = 'none';
-
-    try {
-        var r = await fetch('https://api.stripe.com/v1/payment_intents?limit=100&expand[]=data.charges', {
-            headers: { 'Authorization': 'Bearer ' + key }
-        });
-        if (!r.ok) { var ej = await r.json(); throw new Error(ej.error ? ej.error.message : 'Stripe error ' + r.status); }
-        var pd = await r.json();
-        var pays = pd.data || [];
-
-        // Stats
-        var succeeded = pays.filter(function(p){ return p.status==='succeeded'; });
-        var rev = succeeded.reduce(function(s,p){ return s+(p.amount_received||p.amount); }, 0);
-        var cur = (pays[0]&&pays[0].currency)||'gbp';
-        var isLive = key.startsWith('sk_live')||key.startsWith('rk_live');
-        document.getElementById('stripe-mode-badge').innerHTML = isLive
-            ? '<span class="mode-badge-live">🟢 Live</span>'
-            : '<span class="mode-badge-test">🟡 Test</span>';
-
-        document.getElementById('stripe-stats').innerHTML = [
-            shCard('💰','Total Revenue',fmtAmt(rev,cur),'#EAFAF1','#1E8449'),
-            shCard('✅','Succeeded',succeeded.length,'#D4EDDA','#155724'),
-            shCard('📋','All Payments',pays.length,'#EBF5FB','#2471A3'),
-        ].join('');
-
-        var stripeLinkBase = isLive ? 'https://dashboard.stripe.com/payments/' : 'https://dashboard.stripe.com/test/payments/';
-        var sm = {succeeded:'badge-succeeded',requires_payment_method:'badge-failed',processing:'badge-processing',canceled:'badge-canceled',requires_capture:'badge-processing'};
-        document.getElementById('stripe-tbody').innerHTML = pays.length ? pays.map(function(p) {
-            var ch = (p.charges&&p.charges.data&&p.charges.data[0])||null;
-            var bd = ch&&ch.billing_details||null;
-            var nm = (p.shipping&&p.shipping.name)||(bd&&bd.name)||p.receipt_email||'—';
-            var country = (p.shipping&&p.shipping.address&&p.shipping.address.country)||(bd&&bd.address&&bd.address.country)||'—';
-            var dt = new Date(p.created*1000).toLocaleDateString('en-GB');
-            var dsc = p.description||(p.metadata&&p.metadata.product)||'—';
-            var bc = sm[p.status]||'badge-pending';
-            return '<tr><td>'+dt+'</td><td>'+esc(nm)+'</td><td>'+esc(country)+'</td><td><strong>'+fmtAmt(p.amount_received||p.amount,p.currency)+'</strong></td>'
-                +'<td style="color:var(--text3);font-size:0.82rem">'+esc(dsc)+'</td>'
-                +'<td><span class="badge '+bc+'">'+cap(p.status.replace(/_/g,' '))+'</span></td>'
-                +'<td><a href="'+stripeLinkBase+p.id+'" target="_blank" class="btn btn-outline btn-sm">View ↗</a></td></tr>';
-        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)">No payments found.</td></tr>';
-
-        loadMsg.style.display = 'none'; tableWrap.style.display = 'block';
-    } catch(err) {
-        loadMsg.style.display = 'none';
-        errMsg.textContent = '⚠️ ' + err.message;
-        errMsg.style.display = 'block';
-    }
 }
 
 // ── GOOGLE CONFIG ─────────────────────────────────────────────────────────────

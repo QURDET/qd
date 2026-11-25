@@ -516,7 +516,7 @@
         /* ============================================
            PRE-ORDER SECTION
            Contains the image slideshow, price, features
-           list, and Stripe buy button for purchasing
+           list, and Buy Now button (opens the SumUp store)
            ============================================ */
         #preorder {
             background: #f9f9f9;
@@ -668,57 +668,6 @@
             content: '✓';
             color: var(--gold);
             font-weight: 700;
-        }
-
-        /* Quantity selector with +/- buttons (currently not visible - Stripe handles it) */
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .quantity-selector label {
-            font-family: 'Bely Display', serif;
-            color: var(--gold);
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .quantity-btn {
-            width: 40px;
-            height: 40px;
-            border: 2px solid var(--gold);
-            background: transparent;
-            color: var(--gold);
-            font-size: 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .quantity-btn:hover {
-            background: var(--gold);
-            color: white;
-        }
-
-        .quantity-display {
-            width: 60px;
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #333333;
-            background: #ffffff;
-            padding: 0.5rem;
-            border-radius: 8px;
-            border: 2px solid #eeeeee;
         }
 
         .checkout-btn {
@@ -1301,7 +1250,6 @@
         [data-theme="dark"] #preorder { background: #242424; }
         [data-theme="dark"] .preorder-details h3 { color: #e8d9c5; }
         [data-theme="dark"] .preorder-features li { color: #e8d9c5; }
-        [data-theme="dark"] .quantity-display { background: #2e2e2e; border-color: #3e3e3e; color: #e8d9c5; }
         [data-theme="dark"] #faq { background: #242424; }
         [data-theme="dark"] .faq-item { background: #2e2e2e; border-color: #3e3e3e; }
         [data-theme="dark"] .faq-question { color: #e8d9c5; }
@@ -1329,8 +1277,6 @@
         [data-theme="dark"] .checkout-btn { background: linear-gradient(90deg, #c47f0a, #c98a10); box-shadow: 0 10px 30px rgba(196,127,10,0.3); }
         [data-theme="dark"] .faq-question .arrow { color: #c47f0a; }
         [data-theme="dark"] .slide-dot.active { background: #c47f0a; }
-        [data-theme="dark"] .quantity-btn { border-color: #c47f0a; color: #c47f0a; }
-        [data-theme="dark"] .quantity-btn:hover { background: #c47f0a; }
         [data-theme="dark"] .promo-banner { background: linear-gradient(90deg, #3a2805, #4a3508); }
         [data-theme="dark"] .promo-banner .code { background: #c47f0a; }
         [data-theme="dark"] .promo-preorder { background: linear-gradient(90deg, #c47f0a, #c98a10); }
@@ -1465,7 +1411,7 @@
         </div>
     </section>
 
-    <!-- ========== PRE-ORDER SECTION - Image slideshow + price + Stripe buy button ========== -->
+    <!-- ========== PRE-ORDER SECTION - Image slideshow + price + Buy Now button ========== -->
     <section id="preorder">
         <h2 class="section-title">Buy Shia Deal Now</h2>
         <p class="section-subtitle">Buy a pack of Shia Deal cards, and become a caretaker for the holy lands</p>
@@ -1792,37 +1738,9 @@
         startAutoSlide();  // Begin auto-switching when the page loads
 
         /* ============================================
-           STRIPE PAYMENT (backup link)
-           These are backup functions in case the Stripe
-           buy button doesn't load. The main payment is
-           handled by the <stripe-buy-button> element above.
-           ============================================ */
-        const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/14AaEX88N1vG5dKchp3AY01';
-
-        let quantity = 1;           // Current quantity selected by the user
-        const MIN_QUANTITY = 1;     // Minimum order of 1
-        const MAX_QUANTITY = 10;    // Maximum order of 10
-
-        // Increase or decrease the quantity; clamps between MIN and MAX
-        function updateQuantity(change) {
-            const newQuantity = quantity + change;
-            if (newQuantity >= MIN_QUANTITY && newQuantity <= MAX_QUANTITY) {
-                quantity = newQuantity;
-                document.getElementById('quantity').textContent = quantity; // Update display
-            }
-        }
-
-        // Opens the Stripe payment link in a new tab with the chosen quantity
-        function handleCheckout() {
-            const url = STRIPE_PAYMENT_LINK + '?quantity=' + quantity;
-            window.open(url, '_blank');
-        }
-
-        /* ============================================
            COUNTRY SELECTOR MODAL
-           countryLinks maps each country code to its
-           own Stripe payment link. Swap in the real
-           per-country links when they are ready.
+           countryLinks maps each country code to the
+           shop link for that country (SumUp store).
            ============================================ */
         const countryLinks = {
             ukusau: 'https://quran-detectives.sumupstore.com/product/shia-deal',
@@ -1838,7 +1756,7 @@
             document.getElementById('countryModalOverlay').classList.remove('active');
         }
 
-        /* Redirect to the correct Stripe link for the chosen country */
+        /* Open the shop for the chosen country */
         function goToCheckout(countryCode) {
             closeCountryModal();
             window.open(countryLinks[countryCode], '_blank');
