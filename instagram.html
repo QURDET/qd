@@ -182,6 +182,12 @@
         .ig-hover span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .ig-post:hover .ig-hover, .ig-post:focus-visible .ig-hover { opacity: 1; }
 
+        /* Posts added by link: Instagram's own embeds */
+        .ig-embeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; align-items: start; }
+        .ig-embeds .instagram-media { min-width: 0 !important; width: 100% !important; margin: 0 !important; border-radius: 16px !important; box-shadow: 0 3px 14px rgba(59,36,23,0.08) !important; }
+        .ig-embed-placeholder { background: #fff; border-radius: 16px; min-height: 420px; display: flex; align-items: center; justify-content: center; color: #9B7B6E; font-size: 0.88rem; text-decoration: none; }
+        [data-theme="dark"] .ig-embed-placeholder { background: #241b14; color: #C8A882; }
+
         .ig-more { text-align: center; margin-top: 30px; }
         .ig-more button {
             font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.95rem; padding: 12px 28px; border-radius: 14px;
@@ -388,6 +394,15 @@
             try {
                 var r = await fetch('/api/instagram');
                 var data = await r.json();
+                if (data.mode === 'links') {
+                    renderSimpleProfile();
+                    if (!data.posts.length) { showMessage('📸', 'Our posts will appear here soon.'); return; }
+                    igPosts = data.posts;
+                    grid.className = 'ig-embeds';
+                    grid.innerHTML = '';
+                    showMoreEmbeds();
+                    return;
+                }
                 if (!data.connected || (!data.posts.length && !data.profile)) { showMessage('📸', 'Our posts will appear here soon.'); return; }
                 if (data.error) { showMessage('📸', data.error); return; }
                 igProfile = data.profile;
@@ -418,7 +433,41 @@
                 '</div>';
         }
 
+        // ── Posts added by link (shown with Instagram's own embed) ──
+        var IG_EMBED_PAGE = 12;
+        function renderSimpleProfile() {
+            document.getElementById('ig-profile').innerHTML =
+                '<div class="ig-profile">' +
+                    '<img class="ig-avatar" src="qdlogo.jpg" alt="">' +
+                    '<div class="ig-who"><h2>Qur\'an Detectives</h2><div class="ig-handle">@qurandetectives</div></div>' +
+                    '<a class="ig-follow" href="' + IG_URL + '" target="_blank" rel="noopener">Follow us on Instagram ↗</a>' +
+                '</div>';
+        }
+        function showMoreEmbeds() {
+            var grid = document.getElementById('ig-grid');
+            var next = igPosts.slice(igShown, igShown + IG_EMBED_PAGE);
+            next.forEach(function(p) {
+                var wrap = document.createElement('div');
+                wrap.innerHTML = '<blockquote class="instagram-media" data-instgrm-permalink="' + esc(p.url) + '?utm_source=ig_embed" data-instgrm-version="14">' +
+                    '<a class="ig-embed-placeholder" href="' + esc(p.url) + '" target="_blank" rel="noopener">Loading post… (tap to open on Instagram)</a></blockquote>';
+                grid.appendChild(wrap);
+            });
+            igShown += next.length;
+            document.getElementById('ig-more').style.display = igShown < igPosts.length ? 'block' : 'none';
+            loadEmbedScript();
+        }
+        function loadEmbedScript() {
+            if (window.instgrm) { window.instgrm.Embeds.process(); return; }
+            if (document.getElementById('ig-embed-js')) return;
+            var sc = document.createElement('script');
+            sc.id = 'ig-embed-js';
+            sc.async = true;
+            sc.src = 'https://www.instagram.com/embed.js';
+            document.body.appendChild(sc);
+        }
+
         function showMore() {
+            if (document.getElementById('ig-grid').className === 'ig-embeds') { showMoreEmbeds(); return; }
             var grid = document.getElementById('ig-grid');
             var next = igPosts.slice(igShown, igShown + IG_PAGE);
             next.forEach(function(p, i) {

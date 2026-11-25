@@ -153,6 +153,21 @@ const IG_CACHE_MINS = 30;     // fetch fresh posts from Instagram at most every 
 const IG_MAX_POSTS  = 600;
 const IG_MEDIA_FIELDS = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{media_type,media_url,thumbnail_url}';
 
+// "https://www.instagram.com/p/ABC123/?igsh=..." -> { kind: 'p', code: 'ABC123', url: 'https://www.instagram.com/p/ABC123/' }
+function igParseLink(raw) {
+    const m = String(raw || '').trim().match(/^https?:\/\/(?:www\.)?instagram\.com\/(?:[A-Za-z0-9._]+\/)?(p|reel|reels|tv)\/([A-Za-z0-9_-]{5,40})/i);
+    if (!m) return null;
+    const kind = m[1].toLowerCase() === 'reels' ? 'reel' : m[1].toLowerCase();
+    return { kind, code: m[2], url: `https://www.instagram.com/${kind}/${m[2]}/` };
+}
+function safeEqual(a, b) {
+    a = String(a || ''); b = String(b || '');
+    if (!a || a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+}
+
 async function igGet(path, token) {
     const sep = path.includes('?') ? '&' : '?';
     const r = await fetch(`${IG_API}${path}${sep}access_token=${encodeURIComponent(token)}`);
@@ -328,8 +343,9 @@ export async function onRequest(context) {
 
     // Routes anyone can use. Everything else needs a signed-in staff member.
     const isPublicGet = method === 'GET' && route === 'instagram';
+    const isIgAddPost = method === 'POST' && route === 'instagram/posts';   // checks its own key or sign-in
     const PUBLIC_POST = ['login', 'google-login', 'member-login', 'member-google-login', 'contact', 'interest', 'email/inbound'];
-    const isPublic = route === 'health' || isPublicGet
+    const isPublic = route === 'health' || isPublicGet || isIgAddPost
         || (route === 'settings' && method === 'GET')
         || (method === 'POST' && PUBLIC_POST.includes(route));
 
@@ -350,7 +366,13 @@ export async function onRequest(context) {
             const t = await igToken();
             const cacheRaw = await env.QD_DATA.get('ig:cache');
             let cache = cacheRaw ? JSON.parse(cacheRaw) : null;
-            if (!t) return json({ connected: false, profile: null, posts: [] });
+            if (!t) {
+                // No Instagram connection: show the posts added by link (by hand or by an automation)
+                const links = JSON.parse((await env.QD_DATA.get('ig:links')) || '[]');
+                return new Response(JSON.stringify({ connected: false, mode: 'links', posts: links.map(l => ({ url: l.url, code: l.code, kind: l.kind })) }), {
+                    headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=120' },
+                });
+            }
             const stale = !cache || Date.now() - cache.fetchedAt > IG_CACHE_MINS * 60000;
             if (stale) {
                 if (!cache) {
@@ -365,6 +387,79 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ connected: true, profile: cache.profile, posts: cache.posts, fetchedAt: cache.fetchedAt }), {
                 headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
             });
+        }
+
+        // POST /api/instagram/posts — add post links. Used by builders in Site Maintenance,
+        // or by an automation (e.g. Instinct) sending the secret key in the X-QD-Key header.
+        if (route === 'instagram/posts' && method === 'POST') {
+            let viaKey = false;
+            const keyHeader = request.headers.get('X-QD-Key') || '';
+            if (keyHeader) {
+                const stored = await env.QD_DATA.get('ig:addKey');
+                if (!stored || !safeEqual(keyHeader, stored)) return json({ error: 'Invalid key' }, 401);
+                viaKey = true;
+            } else {
+                me = await sessionUser(await readData());
+                if (!me) return json({ error: 'Please sign in again, or send the X-QD-Key header.' }, 401);
+                if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            }
+            const b = await request.json().catch(() => ({}));
+            const incoming = [].concat(b.urls || [], b.url || [], b.posts || []).map(x => typeof x === 'string' ? x : (x && x.url));
+            if (!incoming.length) return json({ error: 'Send "url" or "urls" with Instagram post links.' }, 400);
+            if (incoming.length > 100) return json({ error: 'Maximum 100 links at a time.' }, 400);
+            const links = JSON.parse((await env.QD_DATA.get('ig:links')) || '[]');
+            const have = new Set(links.map(l => l.code));
+            const added = [], skipped = [], invalid = [];
+            // Links are given newest-first; add them so the newest ends up at the top
+            for (const raw of incoming.slice().reverse()) {
+                const p = igParseLink(raw);
+                if (!p) { invalid.push(String(raw).slice(0, 200)); continue; }
+                if (have.has(p.code)) { skipped.push(p.url); continue; }
+                have.add(p.code);
+                links.unshift({ ...p, addedAt: Date.now(), addedBy: viaKey ? 'automation' : me.name });
+                added.push(p.url);
+            }
+            await env.QD_DATA.put('ig:links', JSON.stringify(links.slice(0, 1000)));
+            return json({ ok: true, added: added.length, alreadyThere: skipped.length, invalid, total: Math.min(links.length, 1000) });
+        }
+
+        // GET /api/instagram/posts — builders: the list of added links
+        if (route === 'instagram/posts' && method === 'GET') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            return json(JSON.parse((await env.QD_DATA.get('ig:links')) || '[]'));
+        }
+
+        // PUT /api/instagram/posts — builders: save a new order (list of codes, top first)
+        if (route === 'instagram/posts' && method === 'PUT') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const b = await request.json();
+            const links = JSON.parse((await env.QD_DATA.get('ig:links')) || '[]');
+            const byCode = new Map(links.map(l => [l.code, l]));
+            const ordered = (b.order || []).map(c => byCode.get(c)).filter(Boolean);
+            links.forEach(l => { if (!ordered.includes(l)) ordered.push(l); });
+            await env.QD_DATA.put('ig:links', JSON.stringify(ordered));
+            return json({ ok: true });
+        }
+
+        // DELETE /api/instagram/posts/:code — builders: remove a link
+        if (route.startsWith('instagram/posts/') && method === 'DELETE') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const code = route.slice('instagram/posts/'.length);
+            const links = JSON.parse((await env.QD_DATA.get('ig:links')) || '[]');
+            await env.QD_DATA.put('ig:links', JSON.stringify(links.filter(l => l.code !== code)));
+            return json({ ok: true });
+        }
+
+        // GET /api/instagram/key — builders: see the automation key (creates one if needed)
+        // POST /api/instagram/key — builders: make a new key (the old one stops working)
+        if (route === 'instagram/key' && (method === 'GET' || method === 'POST')) {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            let key = method === 'GET' ? await env.QD_DATA.get('ig:addKey') : null;
+            if (!key) {
+                key = 'qdig_' + crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+                await env.QD_DATA.put('ig:addKey', key);
+            }
+            return json({ key });
         }
 
         // GET /api/instagram/status — builders: is it connected and working?

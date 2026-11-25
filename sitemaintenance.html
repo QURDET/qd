@@ -366,37 +366,63 @@
     <div class="tab-pane" id="pane-instagram">
         <main>
             <div class="section">
-                <div class="section-title">Instagram page</div>
+                <div class="section-title">Posts on the Instagram page</div>
                 <div class="config-card">
-                    <h3>📸 Connection</h3>
-                    <p>Shows all your Instagram posts on <a href="instagram.html" target="_blank" style="color:var(--purple)">qurandetectives.co.uk/instagram</a>. New posts appear within about 30 minutes. The connection renews itself automatically.</p>
-                    <div id="ig-status" style="margin:6px 0 16px;font-size:0.88rem">Checking…</div>
-                    <div id="ig-connected-actions" style="display:none;gap:10px;flex-wrap:wrap">
-                        <button class="btn btn-purple btn-sm" onclick="igRefreshNow()">↻ Get latest posts now</button>
-                        <button class="btn btn-outline btn-sm" onclick="document.getElementById('ig-connect').style.display='block'">Replace token</button>
-                        <button class="btn btn-red btn-sm" onclick="igDisconnect()">Disconnect</button>
+                    <h3>📸 Add posts</h3>
+                    <p>Paste Instagram post links (one per line) — on Instagram tap <strong>⋯ → Copy link</strong> on a post. They show on <a href="instagram.html" target="_blank" style="color:var(--purple)">qurandetectives.co.uk/instagram</a> using Instagram's own player. Put the <strong>newest first</strong>.</p>
+                    <textarea class="em-input" id="ig-add-links" rows="4" placeholder="https://www.instagram.com/p/…&#10;https://www.instagram.com/reel/…" style="resize:vertical"></textarea>
+                    <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+                        <button class="btn btn-purple btn-sm" onclick="igAddLinks()">Add posts</button>
+                        <span class="em-status" id="ig-add-msg"></span>
                     </div>
-                    <div id="ig-connect" style="display:none;margin-top:16px">
-                        <label class="em-label" for="ig-token">Instagram access token</label>
-                        <input type="password" class="em-input" id="ig-token" placeholder="Paste the long token from Meta (starts with IG…)" autocomplete="off">
-                        <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
-                            <button class="btn btn-purple btn-sm" onclick="igConnect()">Connect</button>
-                            <span class="em-status" id="ig-msg"></span>
-                        </div>
-                    </div>
+                </div>
+                <div class="config-card">
+                    <h3>📋 On the page now <span id="ig-count" style="color:var(--text3);font-weight:500"></span></h3>
+                    <p>Top of the list shows first. Use the arrows to move a post, or ✕ to take it off the page (it stays on Instagram).</p>
+                    <div id="ig-list"></div>
                 </div>
             </div>
+
             <div class="section">
-                <div class="section-title">How to get the token (one-off, about 15 minutes)</div>
+                <div class="section-title">Automatic adding (Instinct)</div>
                 <div class="config-card">
-                    <ol style="padding-left:20px;font-size:0.88rem;line-height:1.8;color:var(--text2)">
-                        <li>In the Instagram app: <strong>Settings → Account type and tools → Switch to professional account</strong> (Business or Creator — it's free).</li>
-                        <li>Go to <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener" style="color:var(--purple)">developers.facebook.com/apps</a>, log in with Facebook, and click <strong>Create app</strong>. Choose the Instagram use case (managing messages and content on Instagram).</li>
-                        <li>In the app, open <strong>Instagram → API setup with Instagram business login</strong>.</li>
-                        <li>Under <strong>Generate access tokens</strong>, click <strong>Add account</strong>, log in to the Qur'an Detectives Instagram and allow access.</li>
-                        <li>Click <strong>Generate token</strong> next to the account, copy it, and paste it above.</li>
-                    </ol>
+                    <h3>🤖 Let Instinct add new posts every day</h3>
+                    <p>Give Instinct the instructions below. It sends new post links to your website with a secret key, and they appear on the page straight away. Posts already on the page are ignored, so it's fine if it sends the same link twice.</p>
+                    <label class="em-label">Secret key</label>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <input type="password" class="em-input" id="ig-key" readonly style="flex:1;min-width:220px;font-family:monospace">
+                        <button class="btn btn-outline btn-sm" onclick="igToggleKey()" id="ig-key-show">Show</button>
+                        <button class="btn btn-outline btn-sm" onclick="igCopy('ig-key')">Copy</button>
+                        <button class="btn btn-red btn-sm" onclick="igNewKey()" title="The old key stops working">New key</button>
+                    </div>
+                    <p style="font-size:0.78rem;color:var(--text3);margin-top:6px">Keep this private — anyone with it can add posts to the page. Press <strong>New key</strong> if it's ever shared by mistake (then update Instinct).</p>
+                    <label class="em-label" style="margin-top:16px">Instructions to paste into Instinct</label>
+                    <textarea class="em-input" id="ig-prompt" rows="14" readonly style="font-family:monospace;font-size:0.78rem;resize:vertical"></textarea>
+                    <div style="margin-top:10px"><button class="btn btn-purple btn-sm" onclick="igCopy('ig-prompt')">Copy instructions</button> <span class="em-status" id="ig-copy-msg"></span></div>
                 </div>
+            </div>
+
+            <div class="section">
+                <details>
+                    <summary class="section-title" style="cursor:pointer;list-style:none">▸ Advanced: connect directly to Instagram (needs Facebook)</summary>
+                    <div class="config-card" style="margin-top:12px">
+                        <p>If someone with a Facebook account creates a Meta developer app, the page can load <strong>every</strong> post automatically instead of using the list above. Steps: switch Instagram to a professional account → <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener" style="color:var(--purple)">developers.facebook.com/apps</a> → Create app (Instagram use case) → Instagram → API setup with Instagram business login → Add account (log in with the Qur'an Detectives Instagram) → Generate token → paste below.</p>
+                        <div id="ig-status" style="margin:6px 0 16px;font-size:0.88rem">Checking…</div>
+                        <div id="ig-connected-actions" style="display:none;gap:10px;flex-wrap:wrap">
+                            <button class="btn btn-purple btn-sm" onclick="igRefreshNow()">↻ Get latest posts now</button>
+                            <button class="btn btn-outline btn-sm" onclick="document.getElementById('ig-connect').style.display='block'">Replace token</button>
+                            <button class="btn btn-red btn-sm" onclick="igDisconnect()">Disconnect</button>
+                        </div>
+                        <div id="ig-connect" style="display:none;margin-top:16px">
+                            <label class="em-label" for="ig-token">Instagram access token</label>
+                            <input type="password" class="em-input" id="ig-token" placeholder="Paste the long token from Meta" autocomplete="off">
+                            <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+                                <button class="btn btn-purple btn-sm" onclick="igConnect()">Connect</button>
+                                <span class="em-status" id="ig-msg"></span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
             </div>
         </main>
     </div>
@@ -540,7 +566,7 @@ function switchTab(name) {
     if (name === 'health')  runSiteHealth();
     if (name === 'google')  loadGoogleStatus();
     if (name === 'email')   loadEmailSettings();
-    if (name === 'instagram') loadIgStatus();
+    if (name === 'instagram') { loadIgLinks(); loadIgKey(); loadIgStatus(); }
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -909,6 +935,97 @@ async function igDisconnect() {
     if (!confirm('Disconnect Instagram? The Instagram page will show "posts will appear here soon" until you connect again.')) return;
     await mApi('/api/instagram/token', { method: 'DELETE' });
     loadIgStatus();
+}
+
+// ── INSTAGRAM: posts by link + automation key ────────────────────────────────
+var _igLinks = [];
+function igAddMsg(t, ok) { var el = document.getElementById('ig-add-msg'); el.textContent = t; el.className = 'em-status ' + (ok ? 'ok' : 'err'); }
+
+async function loadIgLinks() {
+    var r = await mApi('/api/instagram/posts');
+    _igLinks = r.ok ? await r.json() : [];
+    renderIgLinks();
+}
+function renderIgLinks() {
+    document.getElementById('ig-count').textContent = '(' + _igLinks.length + ')';
+    var box = document.getElementById('ig-list');
+    if (!_igLinks.length) { box.innerHTML = '<p style="color:var(--text3)">No posts yet — add some above.</p>'; return; }
+    box.innerHTML = '<div class="table-wrap" style="margin-top:0"><table><tbody>' + _igLinks.map(function(l, i) {
+        return '<tr>' +
+            '<td style="width:34px;color:var(--text3)">' + (i + 1) + '</td>' +
+            '<td><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:var(--purple)">' + esc(l.url.replace('https://www.instagram.com', '')) + '</a>' +
+                (l.kind === 'reel' ? ' <span class="role-pill">reel</span>' : '') + '</td>' +
+            '<td style="color:var(--text3);font-size:0.78rem;white-space:nowrap">added ' + new Date(l.addedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' by ' + esc(l.addedBy) + '</td>' +
+            '<td style="white-space:nowrap;text-align:right">' +
+                '<button class="btn btn-outline btn-sm" onclick="igMove(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + ' title="Move up">↑</button> ' +
+                '<button class="btn btn-outline btn-sm" onclick="igMove(' + i + ',1)"' + (i === _igLinks.length - 1 ? ' disabled' : '') + ' title="Move down">↓</button> ' +
+                '<button class="btn btn-red btn-sm" onclick="igRemove(\'' + esc(l.code) + '\')" title="Remove from page">✕</button>' +
+            '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+}
+async function igAddLinks() {
+    var urls = document.getElementById('ig-add-links').value.split(/\s+/).filter(Boolean);
+    if (!urls.length) { igAddMsg('Paste at least one link.', false); return; }
+    var r = await mApi('/api/instagram/posts', { method: 'POST', body: JSON.stringify({ urls: urls }) });
+    var d = await r.json().catch(function() { return {}; });
+    if (!r.ok) { igAddMsg(d.error || 'Could not add.', false); return; }
+    var msg = '✓ Added ' + d.added + (d.alreadyThere ? ' · ' + d.alreadyThere + ' already on the page' : '');
+    if (d.invalid && d.invalid.length) msg += ' · ' + d.invalid.length + " link(s) weren't Instagram post links";
+    igAddMsg(msg, !(d.invalid && d.invalid.length));
+    document.getElementById('ig-add-links').value = d.invalid && d.invalid.length ? d.invalid.join('\n') : '';
+    loadIgLinks();
+}
+async function igMove(i, dir) {
+    var j = i + dir;
+    if (j < 0 || j >= _igLinks.length) return;
+    var t = _igLinks[i]; _igLinks[i] = _igLinks[j]; _igLinks[j] = t;
+    renderIgLinks();
+    await mApi('/api/instagram/posts', { method: 'PUT', body: JSON.stringify({ order: _igLinks.map(function(l) { return l.code; }) }) });
+}
+async function igRemove(code) {
+    if (!confirm('Take this post off the website? (It stays on Instagram.)')) return;
+    await mApi('/api/instagram/posts/' + encodeURIComponent(code), { method: 'DELETE' });
+    loadIgLinks();
+}
+
+async function loadIgKey() {
+    var r = await mApi('/api/instagram/key');
+    var d = r.ok ? await r.json() : {};
+    document.getElementById('ig-key').value = d.key || '';
+    renderIgPrompt(d.key || '');
+}
+async function igNewKey() {
+    if (!confirm('Make a new key? The current key stops working straight away, so you will need to give Instinct the new one.')) return;
+    var r = await mApi('/api/instagram/key', { method: 'POST' });
+    var d = await r.json();
+    document.getElementById('ig-key').value = d.key;
+    renderIgPrompt(d.key);
+}
+function igToggleKey() {
+    var el = document.getElementById('ig-key');
+    el.type = el.type === 'password' ? 'text' : 'password';
+    document.getElementById('ig-key-show').textContent = el.type === 'password' ? 'Show' : 'Hide';
+}
+function renderIgPrompt(key) {
+    document.getElementById('ig-prompt').value =
+'Once every 24 hours, check the Instagram account @qurandetectives (https://www.instagram.com/qurandetectives/) for posts and reels published since your last check.\n\n' +
+'If there are any new ones, send their links to our website in ONE request:\n\n' +
+'  POST https://qurandetectives.co.uk/api/instagram/posts\n' +
+'  Headers:\n' +
+'    Content-Type: application/json\n' +
+'    X-QD-Key: ' + key + '\n' +
+'  Body (newest post first):\n' +
+'    {"urls": ["https://www.instagram.com/p/POST_CODE/", "https://www.instagram.com/reel/REEL_CODE/"]}\n\n' +
+'The website replies with how many were added. Links already on the website are ignored, so sending a link twice is fine. If there are no new posts, do nothing.\n\n' +
+'Keep the X-QD-Key value private. Do not post it anywhere or include it in messages.';
+}
+function igCopy(id) {
+    var el = document.getElementById(id);
+    var text = el.value;
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function() {
+        var m = document.getElementById('ig-copy-msg'); m.textContent = '✓ Copied'; m.className = 'em-status ok';
+        setTimeout(function() { m.textContent = ''; }, 2000);
+    }).catch(function() { el.select(); document.execCommand('copy'); });
 }
 </script>
 </body>
