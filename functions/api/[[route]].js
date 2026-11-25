@@ -427,12 +427,17 @@ export async function onRequest(context) {
             catch (e) { return json({ error: e.message }, 502); }
 
             const cfg = emailCfg(d);
+            const sentId = 'e' + Date.now() + Math.random().toString(36).slice(2, 5);
+            // Keep the full email exactly as it was sent (with sign-off and signature)
+            await env.QD_DATA.put('sent:html:' + sentId, built.html);
             cfg.sent.unshift({
-                id: 'e' + Date.now(), resendId: result.id || '', date: new Date().toISOString(),
+                id: sentId, resendId: result.id || '', date: new Date().toISOString(),
                 from: sender.address, to, subject, body: body.slice(0, 2000),
                 byId: me.id, byName: me.name,
             });
+            const dropped = cfg.sent.slice(300);
             cfg.sent = cfg.sent.slice(0, 300);
+            await Promise.all(dropped.map(e => env.QD_DATA.delete('sent:html:' + e.id)));
 
             // Replying to a Contact Us message? Mark it as replied.
             if (b.contactId) {
@@ -447,6 +452,25 @@ export async function onRequest(context) {
         if (route === 'email/sent' && method === 'GET') {
             const cfg = emailCfg(await readData());
             return json(isBuilder(me) ? cfg.sent : cfg.sent.filter(e => e.byId === me.id));
+        }
+
+        // GET /api/email/sent/:id — the full email as the recipient saw it
+        if (route.startsWith('email/sent/') && method === 'GET') {
+            const id = route.slice('email/sent/'.length);
+            const d = await readData();
+            const e = emailCfg(d).sent.find(x => x.id === id);
+            if (!e || (!isBuilder(me) && e.byId !== me.id)) return json({ error: 'Not found' }, 404);
+            let html = await env.QD_DATA.get('sent:html:' + id);
+            if (!html) {
+                // Sent before full copies were kept — rebuild it from what was saved
+                const sender = emailCfg(d).senders.find(s => s.address === e.from) || { address: e.from };
+                const author = (d.users || []).find(u => u.id === e.byId) || { name: e.byName || '' };
+                html = buildEmail(e.body || '', {
+                    signature: userSignature(d, author, sender.noReply ? contactAddress(d) : sender.address),
+                    noReplyContact: sender.noReply ? contactAddress(d) : '',
+                }).html;
+            }
+            return json({ ...e, html });
         }
 
         // GET /api/email/config — builder only

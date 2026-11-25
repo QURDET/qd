@@ -668,7 +668,9 @@
         .sent-item:last-child { border-bottom: none; }
         .sent-item .s-top { display: flex; justify-content: space-between; gap: 12px; font-size: 0.8rem; color: #9B7B6E; flex-wrap: wrap; }
         .sent-item .s-subj { font-weight: 700; color: #3B2417; font-size: 0.92rem; margin: 3px 0; }
-        .sent-item .s-body { display: none; white-space: pre-wrap; font-size: 0.86rem; color: #5C4033; margin-top: 8px; line-height: 1.55; }
+        .sent-item .s-body { display: none; margin-top: 12px; cursor: default; }
+        .sent-item .s-hint { color: #7B3F5E; font-weight: 600; }
+        .sent-frame { width: 100%; min-height: 200px; border: 1px solid #F0E6DC; border-radius: 10px; background: #fff; display: block; }
         .sent-item.open .s-body { display: block; }
         .sender-row { display: grid; grid-template-columns: 1.3fr 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 10px; }
         .sr-noreply { display: flex !important; align-items: center; gap: 6px; font-size: 0.8rem !important; color: #5C4033; white-space: nowrap; cursor: pointer; text-transform: none !important; letter-spacing: 0 !important; margin: 0 !important; font-weight: 500 !important; }
@@ -2233,6 +2235,32 @@ async function sendEmailFromForm() {
     }
 }
 
+// Shows the whole email exactly as it was sent (sign-off, signature, logo…)
+async function toggleSentEmail(el) {
+    const open = el.classList.toggle('open');
+    el.querySelector('.s-hint').textContent = open ? 'Click to close' : 'Click to view the full email';
+    const body = el.querySelector('.s-body');
+    if (!open || body.dataset.loaded) return;
+    body.innerHTML = '<p style="color:#9B7B6E">Loading…</p>';
+    try {
+        const r = await api('/api/email/sent/' + encodeURIComponent(el.dataset.id));
+        if (!r.ok) throw new Error('status ' + r.status);
+        const e = await r.json();
+        const frame = document.createElement('iframe');
+        frame.className = 'sent-frame';
+        frame.setAttribute('sandbox', 'allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+        frame.srcdoc = '<base target="_blank">' + e.html;
+        frame.onload = function () {
+            try { frame.style.height = (frame.contentDocument.body.scrollHeight + 24) + 'px'; } catch (err) {}
+        };
+        body.innerHTML = '';
+        body.appendChild(frame);
+        body.dataset.loaded = '1';
+    } catch (err) {
+        body.innerHTML = '<p style="color:#C0392B">Could not load this email.</p>';
+    }
+}
+
 async function loadSentEmails() {
     const wrap = document.getElementById('email-sent-list');
     try {
@@ -2242,11 +2270,11 @@ async function loadSentEmails() {
         const builder = currentUser.role === 'builder';
         wrap.innerHTML = list.slice(0, 50).map(e => {
             const date = new Date(e.date).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-            return `<div class="sent-item" onclick="this.classList.toggle('open')">
+            return `<div class="sent-item" data-id="${escHtml(e.id)}" onclick="toggleSentEmail(this)">
                 <div class="s-top"><span>To: ${escHtml((e.to || []).join(', '))}</span><span>${date}</span></div>
                 <div class="s-subj">${escHtml(e.subject)}</div>
-                <div class="s-top"><span>From ${escHtml(e.from)}${builder ? ' · sent by ' + escHtml(e.byName) : ''}</span></div>
-                <div class="s-body">${escHtml(e.body)}</div>
+                <div class="s-top"><span>From ${escHtml(e.from)}${builder ? ' · sent by ' + escHtml(e.byName) : ''}</span><span class="s-hint">Click to view the full email</span></div>
+                <div class="s-body" onclick="event.stopPropagation()"></div>
             </div>`;
         }).join('');
     } catch {
