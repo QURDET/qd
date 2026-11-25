@@ -100,7 +100,7 @@ function buildEmail(bodyText, opts = {}) {
     if (opts.noReplyContact) { html += noReplyHtml(opts.noReplyContact); text += '\n\n---\n' + noReplyText(opts.noReplyContact); }
     return {
         text,
-        html: `<!DOCTYPE html><html><body style="margin:0;padding:0"><div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#222;max-width:640px;padding:4px 2px">${html}</div></body></html>`,
+        html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;padding:0"><div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#222;max-width:640px;padding:4px 2px">${html}</div></body></html>`,
     };
 }
 
