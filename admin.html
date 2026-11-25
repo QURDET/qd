@@ -681,6 +681,40 @@
         .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
         @media (max-width: 700px) { .three-col { grid-template-columns: 1fr; } }
         [data-theme="dark"] .sig-box { border-color: #4a3020; }
+        /* Pop-ups */
+        .qd-dialog { width: 440px; text-align: center; padding: 30px 30px 26px; animation: qdPop 0.16s ease-out; }
+        @keyframes qdPop { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .qd-dialog-icon { width: 58px; height: 58px; border-radius: 50%; background: #F3E8F0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 14px; }
+        .qd-dialog-icon.danger { background: #FDEDEC; }
+        .qd-dialog h3 { margin-bottom: 10px; }
+        .qd-dialog-body { font-size: 0.9rem; color: #5C4033; line-height: 1.55; }
+        .qd-dialog .modal-actions { justify-content: center; }
+        .qd-dialog .modal-actions .btn { min-width: 120px; justify-content: center; }
+        .qd-summary { text-align: left; background: #FAF6F1; border-radius: 12px; padding: 12px 16px; margin-top: 4px; }
+        .qd-summary div { display: grid; grid-template-columns: 70px 1fr; gap: 8px; padding: 5px 0; font-size: 0.86rem; color: #3B2417; word-break: break-word; }
+        .qd-summary div + div { border-top: 1px solid #F0E6DC; }
+        .qd-summary span { color: #9B7B6E; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; padding-top: 2px; }
+        .from-chip { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 2px solid #E8D5C4; border-radius: 10px; background: #FAF6F1; padding: 6px 8px 6px 14px; min-height: 46px; }
+        .from-chip .fc-text { font-size: 0.88rem; color: #3B2417; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .from-chip .fc-text small { color: #9B7B6E; }
+        .sender-card { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: #FAF6F1; border: 2px solid #E8D5C4; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; font-family: 'Poppins', sans-serif; transition: border-color 0.15s, transform 0.15s; }
+        .sender-card:hover, .sender-card:focus { border-color: #7B3F5E; transform: translateY(-1px); outline: none; }
+        .sender-card .sc-avatar { width: 40px; height: 40px; border-radius: 50%; background: #7B3F5E; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .sender-card .sc-name { font-weight: 700; color: #3B2417; font-size: 0.92rem; }
+        .sender-card .sc-addr { color: #9B7B6E; font-size: 0.82rem; word-break: break-all; }
+        .sender-card .sc-tag { margin-left: auto; background: #F2F3F4; color: #7F8C8D; font-size: 0.68rem; font-weight: 700; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+        .email-field-error { border-color: #C0392B !important; }
+        [data-theme="dark"] .qd-dialog-body { color: #C8A882; }
+        [data-theme="dark"] .btn-outline { color: #EFE0CE; border-color: #6B4A35; }
+        [data-theme="dark"] .btn-outline:hover { background: rgba(255,255,255,0.06); }
+        [data-theme="dark"] .qd-dialog-icon { background: #2a1f14; }
+        [data-theme="dark"] .qd-summary { background: #1a1310; }
+        [data-theme="dark"] .qd-summary div { color: #EFE0CE; }
+        [data-theme="dark"] .qd-summary div + div { border-top-color: #2a1f14; }
+        [data-theme="dark"] .from-chip, [data-theme="dark"] .sender-card { background: #1a1310; border-color: #4a3020; }
+        [data-theme="dark"] .from-chip .fc-text, [data-theme="dark"] .sender-card .sc-name { color: #EFE0CE; }
+        [data-theme="dark"] .sender-card:hover { border-color: #7B3F5E; }
+        [data-theme="dark"] .sender-card .sc-tag { background: #2a1f14; color: #9E8071; }
         [data-theme="dark"] .sig-box-head, [data-theme="dark"] .sr-noreply { color: #C8A882; }
         .sender-addr { display: flex; align-items: center; border: 2px solid #E8D5C4; border-radius: 10px; background: #FAF6F1; overflow: hidden; }
         .sender-addr input { border: none !important; border-radius: 0 !important; min-width: 0; }
@@ -875,7 +909,7 @@
                 <div id="tab-email" class="tab-section">
                     <div class="email-views">
                         <button class="email-view-btn active" id="ev-inbox" onclick="showEmailView('inbox')">📥 Inbox <span class="email-pill" id="ev-inbox-count" style="display:none"></span></button>
-                        <button class="email-view-btn" id="ev-write" onclick="showEmailView('write')">✏️ Write</button>
+                        <button class="email-view-btn" id="ev-write" onclick="openWrite()">✏️ Write</button>
                         <button class="email-view-btn" id="ev-sent" onclick="showEmailView('sent')">📤 Sent</button>
                         <button class="email-view-btn" id="ev-settings" onclick="showEmailView('settings')" style="display:none">⚙️ Addresses &amp; Permissions</button>
                     </div>
@@ -921,7 +955,11 @@
                             <div class="two-col">
                                 <div class="form-group">
                                     <label>From</label>
-                                    <select id="email-from"></select>
+                                    <div class="from-chip">
+                                        <span class="fc-text" id="from-chip-text">Choose an address…</span>
+                                        <button class="btn btn-outline btn-sm" onclick="openSenderPicker()">Change</button>
+                                    </div>
+                                    <select id="email-from" style="display:none"></select>
                                 </div>
                                 <div class="form-group">
                                     <label>To</label>
@@ -1128,6 +1166,30 @@
             <button class="btn btn-outline" onclick="closeModal('member-modal')">Cancel</button>
             <button class="btn btn-purple" onclick="saveMember()">Save Member</button>
         </div>
+    </div>
+</div>
+
+<!-- ── POP-UP (confirm / message) ── -->
+<div class="modal-overlay" id="qd-confirm">
+    <div class="modal qd-dialog" role="dialog" aria-modal="true" aria-labelledby="qd-confirm-title">
+        <div class="qd-dialog-icon" id="qd-confirm-icon">📨</div>
+        <h3 id="qd-confirm-title"></h3>
+        <div class="qd-dialog-body" id="qd-confirm-body"></div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="qd-confirm-cancel">Cancel</button>
+            <button class="btn btn-purple" id="qd-confirm-ok">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── CHOOSE SENDING ADDRESS ── -->
+<div class="modal-overlay" id="sender-picker">
+    <div class="modal qd-dialog" style="width:500px;text-align:left" role="dialog" aria-modal="true">
+        <div class="qd-dialog-icon">✉️</div>
+        <h3 style="text-align:center">Which address are you sending from?</h3>
+        <p class="qd-dialog-body" style="text-align:center;margin-bottom:18px">Replies will go to the address you choose.</p>
+        <div id="sender-picker-list"></div>
+        <div class="modal-actions"><button class="btn btn-outline" onclick="cancelSenderPicker()">Cancel</button></div>
     </div>
 </div>
 
@@ -1510,8 +1572,11 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 
 // Close modal when clicking backdrop
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    if (overlay.id === 'qd-confirm') return;   // handled by qdConfirm
     overlay.addEventListener('click', function (e) {
-        if (e.target === this) this.classList.remove('open');
+        if (e.target !== this) return;
+        if (this.id === 'sender-picker') cancelSenderPicker();
+        else this.classList.remove('open');
     });
 });
 // ─────────────────────────────────────────────
@@ -1733,6 +1798,7 @@ async function renderEmailTab() {
         `<option value="${escHtml(s.address)}">${escHtml(s.name ? s.name + ' — ' : '')}${escHtml(s.address)}${s.noReply ? ' (no-reply)' : ''}</option>`).join('');
     if (prev && senders.some(s => s.address === prev)) sel.value = prev;
     sel.onchange = queueSigPreview;
+    updateFromChip();
     loadSigFields();
     queueSigPreview();
     document.getElementById('email-no-senders').style.display = senders.length ? 'none' : 'block';
@@ -1753,6 +1819,89 @@ async function renderEmailTab() {
     loadInbox();
     loadSentEmails();
     if (builder) loadEmailConfig();
+}
+
+// ── POP-UPS ──
+// qdConfirm({ title, html, okText, cancelText, icon, danger, noCancel }) -> Promise<boolean>
+function qdConfirm(opts) {
+    return new Promise(resolve => {
+        const ov = document.getElementById('qd-confirm');
+        const ok = document.getElementById('qd-confirm-ok');
+        const cancel = document.getElementById('qd-confirm-cancel');
+        const icon = document.getElementById('qd-confirm-icon');
+        document.getElementById('qd-confirm-title').textContent = opts.title || '';
+        document.getElementById('qd-confirm-body').innerHTML = opts.html || '';
+        icon.textContent = opts.icon || '📨';
+        icon.classList.toggle('danger', !!opts.danger);
+        ok.textContent = opts.okText || 'OK';
+        ok.className = 'btn ' + (opts.danger ? 'btn-red' : 'btn-purple');
+        cancel.textContent = opts.cancelText || 'Cancel';
+        cancel.style.display = opts.noCancel ? 'none' : '';
+        const done = v => {
+            ov.classList.remove('open');
+            ok.onclick = cancel.onclick = ov.onclick = null;
+            document.removeEventListener('keydown', onKey);
+            resolve(v);
+        };
+        const onKey = e => { if (e.key === 'Escape') done(false); };
+        ok.onclick = () => done(true);
+        cancel.onclick = () => done(false);
+        ov.onclick = e => { if (e.target === ov) done(false); };
+        document.addEventListener('keydown', onKey);
+        ov.classList.add('open');
+        setTimeout(() => ok.focus(), 50);
+    });
+}
+function qdMessage(title, html, icon) {
+    return qdConfirm({ title: title, html: html, icon: icon || '⚠️', okText: 'OK', noCancel: true });
+}
+
+// ── CHOOSE SENDING ADDRESS ──
+let _fromChosen = false;
+let _pickerBackToInbox = false;
+
+function currentView() {
+    const el = document.querySelector('.email-panel.active');
+    return el ? el.id.replace('ep-', '') : 'inbox';
+}
+function openWrite() {
+    const wasWriting = currentView() === 'write';
+    showEmailView('write');
+    if (!wasWriting || !_fromChosen) openSenderPicker(true);
+}
+function openSenderPicker(backToInboxOnCancel) {
+    const senders = currentUser.emailSenders || [];
+    if (!senders.length) return;
+    if (senders.length === 1) { chooseSender(senders[0].address); return; }   // only one — no need to ask
+    _pickerBackToInbox = !!backToInboxOnCancel && !_fromChosen;
+    const current = document.getElementById('email-from').value;
+    document.getElementById('sender-picker-list').innerHTML = senders.map(s => `
+        <button class="sender-card" onclick="chooseSender('${escHtml(s.address)}')" ${s.address === current && _fromChosen ? 'style="border-color:#7B3F5E"' : ''}>
+            <span class="sc-avatar">${escHtml((s.name || s.address).charAt(0).toUpperCase())}</span>
+            <span style="min-width:0"><div class="sc-name">${escHtml(s.name || s.address.split('@')[0])}</div><div class="sc-addr">${escHtml(s.address)}</div></span>
+            ${s.noReply ? '<span class="sc-tag">No-reply</span>' : ''}
+        </button>`).join('');
+    document.getElementById('sender-picker').classList.add('open');
+}
+function chooseSender(address) {
+    document.getElementById('email-from').value = address;
+    _fromChosen = true;
+    document.getElementById('sender-picker').classList.remove('open');
+    updateFromChip();
+    queueSigPreview();
+    const to = document.getElementById('email-to');
+    (to.value ? document.getElementById('email-body') : to).focus();
+}
+function cancelSenderPicker() {
+    document.getElementById('sender-picker').classList.remove('open');
+    if (_pickerBackToInbox) showEmailView('inbox');
+}
+function updateFromChip() {
+    const addr = document.getElementById('email-from').value;
+    const s = (currentUser.emailSenders || []).find(x => x.address === addr);
+    document.getElementById('from-chip-text').innerHTML = (s && _fromChosen)
+        ? `<strong>${escHtml(s.name || '')}</strong> <small>&lt;${escHtml(s.address)}&gt;${s.noReply ? ' · no-reply' : ''}</small>`
+        : 'Choose an address…';
 }
 
 // ── SIGNATURE ──
@@ -1910,9 +2059,10 @@ function closeInboxMessage() {
 }
 
 async function deleteInboxMessage(id) {
-    if (!confirm('Delete this email? This cannot be undone.')) return;
+    const yes = await qdConfirm({ title: 'Delete this email?', html: 'It will be removed for everyone who can see this inbox. This can\'t be undone.', okText: 'Delete', icon: '🗑️', danger: true });
+    if (!yes) return;
     const r = await api('/api/email/inbox/' + encodeURIComponent(id), { method: 'DELETE' });
-    if (!r.ok) { alert('Could not delete the email.'); return; }
+    if (!r.ok) { qdMessage('Could not delete', 'Something went wrong — please try again.'); return; }
     _inbox = _inbox.filter(m => m.id !== id);
     updateInboxBadge();
     closeInboxMessage();
@@ -1924,7 +2074,8 @@ function replyToInboxMessage(m) {
     // Reply from the address it was sent to, if this person can use it
     const mine = (currentUser.emailSenders || []).map(s => s.address);
     const via = (m.to || []).concat(m.cc || []).find(a => mine.includes(a));
-    if (via) document.getElementById('email-from').value = via;
+    if (via) { document.getElementById('email-from').value = via; _fromChosen = true; updateFromChip(); }
+    else { _fromChosen = false; openSenderPicker(false); }
     const replyAddr = m.replyTo || (m.from.match(/<([^>]+)>/) || [null, m.from])[1].trim();
     document.getElementById('email-to').value = replyAddr;
     document.getElementById('email-subject').value = /^re:/i.test(m.subject) ? m.subject : 'Re: ' + m.subject;
@@ -1960,6 +2111,8 @@ function replyToMessage(id) {
     showTab('email');
     clearEmailForm();
     showEmailView('write');
+    _fromChosen = false;
+    openSenderPicker(false);
     document.getElementById('email-contact-id').value = m.id;
     document.getElementById('email-to').value = m.email;
     document.getElementById('email-subject').value = /^re:/i.test(m.subject) ? m.subject : 'Re: ' + m.subject;
@@ -1985,10 +2138,31 @@ async function sendEmailFromForm() {
         contactId: document.getElementById('email-contact-id').value || undefined,
         inReplyTo: document.getElementById('email-in-reply-to').value || undefined,
     };
+    const toEl = document.getElementById('email-to');
+    toEl.classList.remove('email-field-error');
+    if (!_fromChosen || !payload.from) { openSenderPicker(false); return; }
     if (!payload.to || !payload.subject || !payload.body) {
         setEmailStatus('email-status', 'Please fill in To, Subject and Message.', false); return;
     }
-    if (!confirm('Send this email to ' + payload.to + '?')) return;
+    const recipients = payload.to.split(/[,;\s]+/).filter(Boolean);
+    const badAddr = recipients.find(a => !/^[^\s@<>,;"\/]+@[^\s@<>,;"\/]+\.[^\s@<>,;"\/]{2,}$/.test(a));
+    if (badAddr) {
+        toEl.classList.add('email-field-error'); toEl.focus();
+        setEmailStatus('email-status', '"' + badAddr + '" isn\'t a valid email address.', false); return;
+    }
+    document.getElementById('email-status').textContent = '';
+    const sender = (currentUser.emailSenders || []).find(x => x.address === payload.from) || { address: payload.from };
+    const go = await qdConfirm({
+        title: 'Send this email?',
+        icon: '📨',
+        okText: 'Send email',
+        html: `<div class="qd-summary">
+            <div><span>From</span><strong>${escHtml(sender.name ? sender.name + ' <' + sender.address + '>' : sender.address)}</strong></div>
+            <div><span>To</span>${escHtml(recipients.join(', '))}</div>
+            <div><span>Subject</span>${escHtml(payload.subject)}</div>
+        </div>`,
+    });
+    if (!go) return;
     // Unsaved signature changes? Save them so the email matches the preview
     const sigNow = readSigFields(), sigSaved = currentUser.signature || {};
     if (sigNow.signOff !== (sigSaved.signOff !== undefined ? sigSaved.signOff : 'Best Regards,')) {
@@ -2001,7 +2175,7 @@ async function sendEmailFromForm() {
         const data = await r.json().catch(() => ({}));
         if (!r.ok) { setEmailStatus('email-status', data.error || 'Could not send the email.', false); return; }
         clearEmailForm();
-        setEmailStatus('email-status', '✓ Email sent to ' + payload.to, true);
+        setEmailStatus('email-status', '✓ Email sent to ' + recipients.join(', '), true);
         if (payload.inReplyTo) setTimeout(() => showEmailView('inbox'), 1200);
         loadSentEmails();
     } catch {
