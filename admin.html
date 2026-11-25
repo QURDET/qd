@@ -706,6 +706,25 @@
         .email-field-error { border-color: #C0392B !important; }
         [data-theme="dark"] .qd-dialog-body { color: #C8A882; }
         [data-theme="dark"] .btn-outline { color: #EFE0CE; border-color: #6B4A35; }
+        /* Dashboard email stats */
+        .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+        .stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59,36,23,0.12); }
+        .stat-card .s-icon { float: right; font-size: 1.3rem; opacity: 0.85; }
+        .dash-heading { font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 800; color: #3B2417; margin: 6px 0 14px; }
+        .dash-two { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 28px; }
+        @media (max-width: 900px) { .dash-two { grid-template-columns: 1fr; } }
+        .dash-panel { padding: 6px 0; }
+        .dash-panel-title { padding: 12px 20px 8px; font-size: 0.74rem; font-weight: 700; color: #9B7B6E; text-transform: uppercase; letter-spacing: 0.6px; display: flex; justify-content: space-between; align-items: center; }
+        .dash-panel-title a { text-transform: none; letter-spacing: 0; color: #7B3F5E; font-weight: 600; cursor: pointer; }
+        .addr-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-top: 1px solid #F5EDE5; font-size: 0.86rem; color: #3B2417; cursor: pointer; }
+        .addr-row:hover { background: #FAF6F1; }
+        .addr-row .ar-count { font-weight: 700; color: #7B3F5E; }
+        .addr-row .ar-zero { color: #9B7B6E; font-weight: 400; }
+        [data-theme="dark"] .dash-heading { color: #EFE0CE; }
+        [data-theme="dark"] .addr-row { color: #EFE0CE; border-top-color: #2a1f14; }
+        [data-theme="dark"] .addr-row:hover { background: #2a1f14; }
+        [data-theme="dark"] .addr-row .ar-count { color: #D4A574; }
+        [data-theme="dark"] .dash-panel-title a { color: #D4A574; }
         [data-theme="dark"] .btn-outline:hover { background: rgba(255,255,255,0.06); }
         [data-theme="dark"] .qd-dialog-icon { background: #2a1f14; }
         [data-theme="dark"] .qd-summary { background: #1a1310; }
@@ -825,6 +844,20 @@
                 <!-- DASHBOARD -->
                 <div id="tab-dashboard" class="tab-section active">
                     <div class="stats-grid" id="stats-grid"></div>
+                    <div id="dash-email" style="display:none">
+                        <div class="dash-heading">📧 Email</div>
+                        <div class="stats-grid" id="email-stats-grid"></div>
+                        <div class="dash-two">
+                            <div class="table-card dash-panel">
+                                <div class="dash-panel-title"><span>Latest emails</span><a onclick="goEmail('inbox')">Open inbox →</a></div>
+                                <div id="dash-latest"></div>
+                            </div>
+                            <div class="table-card dash-panel">
+                                <div class="dash-panel-title"><span>Unread by inbox</span></div>
+                                <div id="dash-by-address"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- TEAM -->
@@ -1417,6 +1450,93 @@ async function renderDashboard() {
             <div class="s-sub">active memberships</div>
         </div>
     `;
+    renderEmailStats();
+}
+
+let _pendingInboxFilter = null;
+function goEmail(view, filterAddr) {
+    showTab('email');
+    showEmailView(view);
+    if (filterAddr !== undefined) _pendingInboxFilter = filterAddr;   // applied once the inbox list loads
+}
+
+async function renderEmailStats() {
+    const box = document.getElementById('dash-email');
+    const senders = currentUser.emailSenders || [];
+    if (currentUser.role !== 'builder' && !senders.length) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    let inbox = [], sent = [], contacts = [];
+    try {
+        const [ri, rs, rc] = await Promise.all([api('/api/email/inbox'), api('/api/email/sent'), api('/api/contacts')]);
+        inbox    = ri.ok ? await ri.json() : [];
+        sent     = rs.ok ? await rs.json() : [];
+        contacts = rc.ok ? await rc.json() : [];
+    } catch (e) { logSiteError('Dashboard email stats', e.message); }
+    _inbox = inbox; updateInboxBadge();
+
+    const weekAgo = Date.now() - 7 * 86400000;
+    const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+    const unread       = inbox.filter(m => !m.read).length;
+    const recvToday    = inbox.filter(m => new Date(m.date) >= startToday).length;
+    const recvWeek     = inbox.filter(m => new Date(m.date).getTime() >= weekAgo).length;
+    const sentWeek     = sent.filter(e => new Date(e.date).getTime() >= weekAgo).length;
+    const sentToday    = sent.filter(e => new Date(e.date) >= startToday).length;
+    const awaiting     = contacts.filter(c => c.status === 'received' || c.status === 'read' || !c.status).length;
+    const builder      = currentUser.role === 'builder';
+    const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+
+    document.getElementById('email-stats-grid').innerHTML = `
+        <div class="stat-card purple-card clickable" onclick="goEmail('inbox')">
+            <span class="s-icon">📥</span>
+            <div class="s-label">Unread emails</div>
+            <div class="s-val">${unread}</div>
+            <div class="s-sub">${unread ? 'waiting in your inboxes' : 'all caught up'}</div>
+        </div>
+        <div class="stat-card clickable" onclick="goEmail('inbox')">
+            <span class="s-icon">📨</span>
+            <div class="s-label">Received</div>
+            <div class="s-val">${recvWeek}</div>
+            <div class="s-sub">this week · ${recvToday} today · ${inbox.length} total</div>
+        </div>
+        <div class="stat-card clickable" onclick="goEmail('sent')">
+            <span class="s-icon">📤</span>
+            <div class="s-label">Sent emails</div>
+            <div class="s-val">${sentWeek}</div>
+            <div class="s-sub">this week · ${sentToday} today · ${sent.length} total${builder ? ' (everyone)' : ''}</div>
+        </div>
+        <div class="stat-card clickable" onclick="showTab('messages')">
+            <span class="s-icon">💬</span>
+            <div class="s-label">Contact Us</div>
+            <div class="s-val">${awaiting}</div>
+            <div class="s-sub">${awaiting ? plural(awaiting, 'message') + ' not replied to yet' : 'no messages waiting'}</div>
+        </div>`;
+
+    // Latest 5 emails
+    const latest = inbox.slice(0, 5);
+    document.getElementById('dash-latest').innerHTML = latest.length ? latest.map(m => {
+        const d = new Date(m.date);
+        const when = d >= startToday ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                                     : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        return `<div class="inbox-item ${m.read ? '' : 'unread'}" onclick="goEmail('inbox'); openInboxMessage('${escHtml(m.id)}')">
+            <div class="inbox-dot"></div>
+            <div style="min-width:0">
+                <div class="i-from">${escHtml(m.from)}</div>
+                <div class="i-subj">${escHtml(m.subject)}</div>
+            </div>
+            <div class="i-meta">${when}<br><span class="inbox-to-tag">${escHtml(((m.to || [])[0] || '').split('@')[0])}@</span></div>
+        </div>`;
+    }).join('') : '<div class="email-empty">No emails yet.</div>';
+
+    // Unread count per address
+    const addrs = builder ? Array.from(new Set(senders.map(s => s.address).concat(inbox.flatMap(m => m.to || []))))
+                          : senders.map(s => s.address);
+    const rows = addrs.map(a => ({ a, n: inbox.filter(m => !m.read && (m.to || []).concat(m.cc || []).includes(a)).length }))
+                      .sort((x, y) => y.n - x.n || x.a.localeCompare(y.a));
+    document.getElementById('dash-by-address').innerHTML = rows.length ? rows.map(r => `
+        <div class="addr-row" onclick="goEmail('inbox', '${escHtml(senders.some(s => s.address === r.a) ? r.a : '')}')">
+            <span>${escHtml(r.a.split('@')[0])}@</span>
+            <span class="ar-count ${r.n ? '' : 'ar-zero'}">${r.n ? r.n + ' unread' : '—'}</span>
+        </div>`).join('') : '<div class="email-empty">No addresses yet.</div>';
 }
 
 // TEAM
@@ -1811,7 +1931,8 @@ async function renderEmailTab() {
 
     // Inbox address filter
     const filter = document.getElementById('inbox-filter');
-    const prevF = filter.value;
+    const prevF = _pendingInboxFilter !== null ? _pendingInboxFilter : filter.value;
+    _pendingInboxFilter = null;
     filter.innerHTML = '<option value="">All my inboxes</option>' + senders.map(s =>
         `<option value="${escHtml(s.address)}">${escHtml(s.address)}</option>`).join('');
     if (prevF && senders.some(s => s.address === prevF)) filter.value = prevF;
