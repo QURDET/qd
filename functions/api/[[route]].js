@@ -370,7 +370,7 @@ export async function onRequest(context) {
                 // No Instagram connection: show the posts added by link (by hand or by an automation)
                 const links = JSON.parse((await env.QD_DATA.get('ig:links')) || '[]');
                 return new Response(JSON.stringify({ connected: false, mode: 'links', posts: links.map(l => ({ url: l.url, code: l.code, kind: l.kind })) }), {
-                    headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=120' },
+                    headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },   // new posts show straight away
                 });
             }
             const stale = !cache || Date.now() - cache.fetchedAt > IG_CACHE_MINS * 60000;
