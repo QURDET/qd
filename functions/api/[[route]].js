@@ -60,7 +60,7 @@ function signatureHtml(sig) {
     lines.push('<div style="height:10px;line-height:10px">&nbsp;</div>');
     if (sig.email) lines.push(`<div><a href="mailto:${escHtml(sig.email)}" style="${LINK}">${escHtml(sig.email)}</a></div>`);
     lines.push(`<div><a href="${SITE}" style="${LINK}">${EMAIL_DOMAIN}</a></div>`);
-    lines.push(`<div style="margin-top:14px"><a href="${SITE}"><img src="${SITE}/email-logo.png" width="72" height="72" alt="Qur'an Detectives" style="display:block;border:0;width:72px;height:72px"></a></div>`);
+    lines.push(`<div style="margin-top:14px"><a href="${SITE}"><img src="${SITE}/email-logo.png" width="72" height="72" alt="Qur'an Detectives" style="display:block;border:0;width:72px;height:72px;border-radius:50%"></a></div>`);
     lines.push(`<div style="margin-top:12px;font-size:13px">${SOCIAL.map(s =>
         `<a href="${s.url}" style="color:#7B3F5E;text-decoration:none;font-weight:bold">${s.label}</a>`).join('&nbsp;&nbsp;|&nbsp;&nbsp;')}</div>`);
     return `<div style="margin-top:22px;color:#222">${lines.join('')}</div>`;
