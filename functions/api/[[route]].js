@@ -18,10 +18,82 @@ const DEFAULT_DATA = {
     ],
 };
 
+// ── Email (sent through Resend — needs the RESEND_API_KEY secret in Cloudflare) ──
+const EMAIL_DOMAIN   = 'qurandetectives.co.uk';
+const DEFAULT_EMAIL  = {
+    senders: [{ address: 'contact@' + EMAIL_DOMAIN, name: "Qur'an Detectives" }],
+    permissions: {},                       // { userId: ['address@qurandetectives.co.uk', ...] }
+    notifyTo: 'qurandetectives@gmail.com', // where Contact Us alerts go
+    sent: [],                              // log of emails sent from the dashboard
+};
+const SESSION_TTL = 60 * 60 * 12;          // staff sign-ins last 12 hours
+
+const EMAIL_RE = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
+
+function escHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+// Wraps a plain-text message in a simple branded email layout
+function emailHtml(bodyText) {
+    const paras = escHtml(bodyText).split(/\n{2,}/).map(p => `<p style="margin:0 0 14px">${p.replace(/\n/g, '<br>')}</p>`).join('');
+    return `<div style="background:#FAF6F1;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #F0E6DC">
+    <div style="background:#7B3F5E;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:bold">Qur'an Detectives</div>
+    <div style="padding:24px;color:#3B2417;font-size:15px;line-height:1.6">${paras}</div>
+    <div style="padding:14px 24px;background:#FAF6F1;color:#9B7B6E;font-size:12px;text-align:center">
+      <a href="https://${EMAIL_DOMAIN}" style="color:#7B3F5E;text-decoration:none">${EMAIL_DOMAIN}</a>
+    </div>
+  </div>
+</div>`;
+}
+
+async function sendEmail(env, msg) {
+    if (!env.RESEND_API_KEY) throw new Error('Email is not set up yet — RESEND_API_KEY is missing in Cloudflare.');
+    const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.message || ('Email service error ' + r.status));
+    return data;
+}
+
+// Checks the signature Resend puts on webhooks, so nobody can post fake emails into the inbox
+async function verifyResendWebhook(secret, headers, rawBody) {
+    const id = headers.get('svix-id'), ts = headers.get('svix-timestamp'), sigHeader = headers.get('svix-signature');
+    if (!secret || !id || !ts || !sigHeader) return false;
+    if (Math.abs(Date.now() / 1000 - Number(ts)) > 5 * 60) return false;   // older than 5 minutes
+    const keyBytes = Uint8Array.from(atob(secret.replace(/^whsec_/, '')), c => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${id}.${ts}.${rawBody}`));
+    const expected = btoa(String.fromCharCode(...new Uint8Array(mac)));
+    return sigHeader.split(' ').some(part => {
+        const sig = part.split(',')[1] || '';
+        if (sig.length !== expected.length) return false;
+        let diff = 0;
+        for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expected.charCodeAt(i);
+        return diff === 0;
+    });
+}
+
+// "Name <a@b.com>" -> "a@b.com"
+function bareAddress(a) {
+    const m = String(a || '').match(/<([^>]+)>/);
+    return (m ? m[1] : String(a || '')).trim().toLowerCase();
+}
+function addrList(v) {
+    if (!v) return [];
+    return (Array.isArray(v) ? v : String(v).split(',')).map(bareAddress).filter(Boolean);
+}
+
+const INBOX_MAX = 1000;
+
 const CORS = {
     'Access-Control-Allow-Origin':  '*',
     'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 function json(data, status = 200) {
@@ -64,7 +136,276 @@ export async function onRequest(context) {
         await env.QD_DATA.put('data', JSON.stringify(d));
     }
 
+    // ── Staff sessions ──
+    // Signing in gives the browser a random token. Every protected request must send it
+    // (Authorization: Bearer <token>), and the server looks up who it belongs to.
+    async function createSession(userId) {
+        const token = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+        await env.QD_DATA.put('sess:' + token, userId, { expirationTtl: SESSION_TTL });
+        return token;
+    }
+    function bearerToken() {
+        const h = request.headers.get('Authorization') || '';
+        return h.startsWith('Bearer ') ? h.slice(7).trim() : '';
+    }
+    async function sessionUser(d) {
+        const token = bearerToken();
+        if (!token) return null;
+        const uid = await env.QD_DATA.get('sess:' + token);
+        if (!uid) return null;
+        return (d.users || []).find(u => u.id === uid) || null;
+    }
+    function safeUser(u) { const c = Object.assign({}, u); delete c.password; return c; }
+
+    function emailCfg(d) {
+        if (!d.email) d.email = JSON.parse(JSON.stringify(DEFAULT_EMAIL));
+        if (!Array.isArray(d.email.senders)) d.email.senders = [];
+        if (!d.email.permissions) d.email.permissions = {};
+        if (!Array.isArray(d.email.sent)) d.email.sent = [];
+        if (d.email.notifyTo === undefined) d.email.notifyTo = DEFAULT_EMAIL.notifyTo;
+        return d.email;
+    }
+    // Which "from" addresses this person may send from
+    function allowedSenders(d, user) {
+        const cfg = emailCfg(d);
+        if (user.role === 'builder') return cfg.senders;
+        const mine = (cfg.permissions[user.id] || []).map(a => a.toLowerCase());
+        return cfg.senders.filter(s => mine.includes(s.address.toLowerCase()));
+    }
+
+    // ── Inbox storage: a list of message summaries + one KV entry per message body ──
+    async function readInbox() {
+        const raw = await env.QD_DATA.get('inbox:index');
+        return raw ? JSON.parse(raw) : [];
+    }
+    async function writeInbox(list) {
+        await env.QD_DATA.put('inbox:index', JSON.stringify(list));
+    }
+    // Can this person see this message? (it was sent to one of their addresses)
+    function canSeeMessage(d, user, m) {
+        if (user.role === 'builder') return true;
+        const mine = allowedSenders(d, user).map(s => s.address.toLowerCase());
+        return [...(m.to || []), ...(m.cc || [])].some(a => mine.includes(a));
+    }
+
+    const isAdmin   = u => u && (u.role === 'admin' || u.role === 'builder');
+    const isBuilder = u => u && u.role === 'builder';
+
+    // Routes anyone can use. Everything else needs a signed-in staff member.
+    const PUBLIC_POST = ['login', 'google-login', 'member-login', 'member-google-login', 'contact', 'interest', 'email/inbound'];
+    const isPublic = route === 'health'
+        || (route === 'settings' && method === 'GET')
+        || (method === 'POST' && PUBLIC_POST.includes(route));
+
     try {
+        let me = null;
+        if (!isPublic) {
+            me = await sessionUser(await readData());
+            if (!me) return json({ error: 'Please sign in again.' }, 401);
+            if (me.role === 'viewer' && method !== 'GET' && route !== 'logout') {
+                return json({ error: 'Your account is read-only.' }, 403);
+            }
+        }
+
+        // GET /api/me — who is signed in (used to restore a session)
+        if (route === 'me' && method === 'GET') {
+            const d = await readData();
+            return json({ ...safeUser(me), emailSenders: allowedSenders(d, me) });
+        }
+
+        // POST /api/logout
+        if (route === 'logout' && method === 'POST') {
+            await env.QD_DATA.delete('sess:' + bearerToken());
+            return json({ ok: true });
+        }
+
+        // ── EMAIL ──────────────────────────────────────────
+
+        // POST /api/email/inbound — Resend calls this when an email arrives at @qurandetectives.co.uk
+        if (route === 'email/inbound' && method === 'POST') {
+            const raw = await request.text();
+            if (!(await verifyResendWebhook(env.RESEND_WEBHOOK_SECRET, request.headers, raw))) {
+                return json({ error: 'Invalid signature' }, 401);
+            }
+            const event = JSON.parse(raw);
+            if (event.type !== 'email.received') return json({ ok: true, ignored: true });
+            const meta = event.data || {};
+            const resendId = meta.email_id || meta.id;
+            if (!resendId) return json({ error: 'No email id' }, 400);
+
+            const list = await readInbox();
+            if (list.some(m => m.resendId === resendId)) return json({ ok: true, duplicate: true }); // Resend retried
+
+            // The webhook only has the basics — fetch the full message
+            let full = {};
+            try {
+                const r = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(resendId)}`, {
+                    headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}` },
+                });
+                if (r.ok) full = await r.json();
+                else console.error('Could not fetch received email', r.status, await r.text());
+            } catch (e) { console.error('Could not fetch received email', e.message); }
+
+            const hdrs = full.headers || {};
+            const headerVal = name => {
+                if (Array.isArray(hdrs)) { const h = hdrs.find(x => (x.name || '').toLowerCase() === name); return h ? h.value : ''; }
+                const k = Object.keys(hdrs).find(x => x.toLowerCase() === name); return k ? hdrs[k] : '';
+            };
+            const text = String(full.text || '');
+            const html = String(full.html || '');
+            const snippetSrc = text || html.replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ');
+            const id = 'm' + Date.now() + Math.random().toString(36).slice(2, 6);
+            const msg = {
+                id, resendId,
+                date: full.created_at || meta.created_at || new Date().toISOString(),
+                from: String(full.from || meta.from || ''),
+                to: addrList(full.to || meta.to),
+                cc: addrList(full.cc || meta.cc),
+                replyTo: addrList(full.reply_to)[0] || '',
+                subject: String(full.subject || meta.subject || '(no subject)').slice(0, 300),
+                snippet: snippetSrc.replace(/\s+/g, ' ').trim().slice(0, 160),
+                messageId: String(headerVal('message-id') || full.message_id || meta.message_id || ''),
+                attachments: (full.attachments || meta.attachments || []).map(a => a.filename || 'attachment'),
+                readBy: [],
+            };
+            await env.QD_DATA.put('inbox:msg:' + id, JSON.stringify({ text: text.slice(0, 200000), html: html.slice(0, 500000) }));
+            list.unshift(msg);
+            const removed = list.splice(INBOX_MAX);
+            await writeInbox(list);
+            await Promise.all(removed.map(m => env.QD_DATA.delete('inbox:msg:' + m.id)));
+            return json({ ok: true });
+        }
+
+        // GET /api/email/inbox — messages sent to the addresses this person has access to
+        if (route === 'email/inbox' && method === 'GET') {
+            const d = await readData();
+            const list = (await readInbox()).filter(m => canSeeMessage(d, me, m));
+            return json(list.map(m => ({ ...m, read: (m.readBy || []).includes(me.id), readBy: undefined })));
+        }
+
+        // GET / DELETE /api/email/inbox/:id
+        if (route.startsWith('email/inbox/') && (method === 'GET' || method === 'DELETE')) {
+            const id = route.slice('email/inbox/'.length);
+            const d = await readData();
+            const list = await readInbox();
+            const m = list.find(x => x.id === id);
+            if (!m || !canSeeMessage(d, me, m)) return json({ error: 'Not found' }, 404);
+            if (method === 'DELETE') {
+                await writeInbox(list.filter(x => x.id !== id));
+                await env.QD_DATA.delete('inbox:msg:' + id);
+                return json({ ok: true });
+            }
+            if (!(m.readBy || []).includes(me.id)) {
+                m.readBy = [...(m.readBy || []), me.id];
+                await writeInbox(list);
+            }
+            const body = JSON.parse((await env.QD_DATA.get('inbox:msg:' + id)) || '{}');
+            return json({ ...m, read: true, readBy: undefined, text: body.text || '', html: body.html || '' });
+        }
+
+        // GET /api/email/senders — addresses the signed-in person can send from
+        if (route === 'email/senders' && method === 'GET') {
+            return json(allowedSenders(await readData(), me));
+        }
+
+        // POST /api/email/send
+        if (route === 'email/send' && method === 'POST') {
+            const b = await request.json();
+            const d = await readData();
+            const from = String(b.from || '').toLowerCase();
+            const sender = allowedSenders(d, me).find(s => s.address.toLowerCase() === from);
+            if (!sender) return json({ error: "You don't have permission to send from that address." }, 403);
+
+            const to = String(b.to || '').split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+            if (!to.length) return json({ error: 'Add at least one recipient.' }, 400);
+            if (to.length > 20) return json({ error: 'Maximum 20 recipients per email.' }, 400);
+            const bad = to.find(a => !EMAIL_RE.test(a));
+            if (bad) return json({ error: 'This email address doesn\'t look right: ' + bad }, 400);
+
+            const subject = String(b.subject || '').trim().slice(0, 200);
+            const body    = String(b.body || '').trim().slice(0, 20000);
+            if (!subject || !body) return json({ error: 'Please add a subject and a message.' }, 400);
+
+            const replyTo = String(b.replyTo || '').trim();
+            if (replyTo && !EMAIL_RE.test(replyTo)) return json({ error: 'The reply-to address doesn\'t look right.' }, 400);
+
+            const msg = {
+                from: `${sender.name ? sender.name.replace(/[<>"]/g, '') + ' ' : ''}<${sender.address}>`,
+                to, subject, text: body, html: emailHtml(body),
+            };
+            if (replyTo) msg.reply_to = replyTo;
+            // Replying to an inbox email? Keep it in the same conversation thread for the customer
+            const inReplyTo = String(b.inReplyTo || '').trim();
+            if (/^<[^<>\s]+>$/.test(inReplyTo)) msg.headers = { 'In-Reply-To': inReplyTo, 'References': inReplyTo };
+
+            let result;
+            try { result = await sendEmail(env, msg); }
+            catch (e) { return json({ error: e.message }, 502); }
+
+            const cfg = emailCfg(d);
+            cfg.sent.unshift({
+                id: 'e' + Date.now(), resendId: result.id || '', date: new Date().toISOString(),
+                from: sender.address, to, subject, body: body.slice(0, 2000),
+                byId: me.id, byName: me.name,
+            });
+            cfg.sent = cfg.sent.slice(0, 300);
+
+            // Replying to a Contact Us message? Mark it as replied.
+            if (b.contactId) {
+                const c = (d.contacts || []).find(x => x.id === b.contactId);
+                if (c && c.status !== 'resolved') c.status = 'replied';
+            }
+            await writeData(d);
+            return json({ ok: true, id: result.id });
+        }
+
+        // GET /api/email/sent — builders see everything, everyone else sees their own
+        if (route === 'email/sent' && method === 'GET') {
+            const cfg = emailCfg(await readData());
+            return json(isBuilder(me) ? cfg.sent : cfg.sent.filter(e => e.byId === me.id));
+        }
+
+        // GET /api/email/config — builder only
+        if (route === 'email/config' && method === 'GET') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const cfg = emailCfg(await readData());
+            return json({ senders: cfg.senders, permissions: cfg.permissions, notifyTo: cfg.notifyTo, domain: EMAIL_DOMAIN });
+        }
+
+        // PUT /api/email/config — builder only: sender addresses + who can use them
+        if (route === 'email/config' && method === 'PUT') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
+            const b = await request.json();
+            const d = await readData();
+            const cfg = emailCfg(d);
+
+            const seen = new Set();
+            const senders = [];
+            for (const s of (b.senders || [])) {
+                const address = String(s.address || '').trim().toLowerCase();
+                if (!address) continue;
+                if (!EMAIL_RE.test(address) || !address.endsWith('@' + EMAIL_DOMAIN)) {
+                    return json({ error: `"${address}" must be an address ending in @${EMAIL_DOMAIN}` }, 400);
+                }
+                if (seen.has(address)) continue;
+                seen.add(address);
+                senders.push({ address, name: String(s.name || '').trim().slice(0, 80) });
+            }
+            const userIds = new Set((d.users || []).map(u => u.id));
+            const permissions = {};
+            for (const [uid, list] of Object.entries(b.permissions || {})) {
+                if (!userIds.has(uid)) continue;
+                permissions[uid] = (list || []).map(a => String(a).toLowerCase()).filter(a => seen.has(a));
+            }
+            const notifyTo = String(b.notifyTo || '').trim();
+            if (notifyTo && !EMAIL_RE.test(notifyTo)) return json({ error: 'The alert address doesn\'t look right.' }, 400);
+
+            cfg.senders = senders;
+            cfg.permissions = permissions;
+            cfg.notifyTo = notifyTo;
+            await writeData(d);
+            return json({ ok: true });
+        }
         // GET /api/health
         if (route === 'health' && method === 'GET') return json({ ok: true });
 
@@ -105,8 +446,8 @@ export async function onRequest(context) {
             if (!user) {
                 return json({ error: 'No account linked to this Google address. Ask your admin to add it in Team settings.' }, 403);
             }
-            const safeUser = Object.assign({}, user); delete safeUser.password;
-            return json({ user: safeUser });
+            const token = await createSession(user.id);
+            return json({ user: { ...safeUser(user), token, emailSenders: allowedSenders(d, user) } });
         }
 
         // POST /api/login - validates credentials server-side, returns user without password
@@ -116,14 +457,15 @@ export async function onRequest(context) {
             const d = await readData();
             const user = d.users.find(u => u.username === body.username && u.password === body.password);
             if (!user) return json({ error: 'Invalid credentials' }, 401);
-            const safe = Object.assign({}, user); delete safe.password;
-            return json(safe);
+            const token = await createSession(user.id);
+            return json({ ...safeUser(user), token, emailSenders: allowedSenders(d, user) });
         }
 
         // GET /api/inventory
         if (route === 'inventory' && method === 'GET') return json((await readData()).inventory);
         // PUT /api/inventory
         if (route === 'inventory' && method === 'PUT') {
+            if (!isAdmin(me)) return json({ error: 'Admin access required.' }, 403);
             const d = await readData();
             d.inventory = await request.json();
             await writeData(d);
@@ -140,7 +482,28 @@ export async function onRequest(context) {
             const d = await readData();
             const byId = {};
             d.users.forEach(u => { byId[u.id] = u; });
-            const incoming = await request.json();
+            let incoming = await request.json();
+            if (!Array.isArray(incoming)) return json({ error: 'Bad request' }, 400);
+            if (!isAdmin(me)) {
+                // Not an admin: only accept changes to your own name/username/password/Google email
+                const mine = incoming.find(u => u.id === me.id) || {};
+                incoming = d.users.map(u => u.id !== me.id ? u : {
+                    ...u,
+                    name: mine.name || u.name,
+                    username: mine.username || u.username,
+                    password: mine.password || '',
+                    googleEmail: mine.googleEmail !== undefined ? mine.googleEmail : u.googleEmail,
+                });
+            } else if (!isBuilder(me)) {
+                // Admins can't create or edit Full Access (builder) accounts
+                incoming = incoming.map(nu => {
+                    const old = byId[nu.id];
+                    if (old && old.role === 'builder') return { ...old, password: '' };
+                    return nu.role === 'builder' ? { ...nu, role: old ? old.role : 'staff' } : nu;
+                });
+                d.users.filter(u => u.role === 'builder' && !incoming.find(n => n.id === u.id))
+                       .forEach(u => incoming.push({ ...u, password: '' }));
+            }
             d.users = incoming.map(nu => ({ ...nu, password: nu.password || (byId[nu.id] && byId[nu.id].password) || '' }));
             await writeData(d);
             const safe = d.users.map(function(u) { var c = Object.assign({}, u); delete c.password; return c; });
@@ -156,8 +519,39 @@ export async function onRequest(context) {
             if (!b.name || !b.email || !b.subject || !b.message) return json({ error: 'Missing fields' }, 400);
             const d = await readData();
             if (!d.contacts) d.contacts = [];
-            d.contacts.unshift({ id: 'c' + Date.now(), name: b.name, email: b.email, subject: b.subject, message: b.message, date: new Date().toISOString(), status: 'received' });
+            const name    = String(b.name).trim().slice(0, 100);
+            const email   = String(b.email).trim().slice(0, 200);
+            const subject = String(b.subject).trim().slice(0, 200);
+            const message = String(b.message).trim().slice(0, 5000);
+            if (!EMAIL_RE.test(email)) return json({ error: 'Please enter a valid email address.' }, 400);
+            d.contacts.unshift({ id: 'c' + Date.now(), name, email, subject, message, date: new Date().toISOString(), status: 'received' });
             await writeData(d);
+
+            // Send the emails in the background so the form responds straight away
+            const cfg = emailCfg(d);
+            const fromAddr = (cfg.senders[0] && cfg.senders[0].address) || ('contact@' + EMAIL_DOMAIN);
+            const from = `Qur'an Detectives <${fromAddr}>`;
+            const jobs = [];
+            if (cfg.notifyTo) {
+                // 1) Alert to the team — press Reply to answer the customer directly
+                jobs.push(sendEmail(env, {
+                    from, to: [cfg.notifyTo], reply_to: email,
+                    subject: `New message: ${subject}`,
+                    text: `New Contact Us message\n\nFrom: ${name} <${email}>\nSubject: ${subject}\n\n${message}\n\nReply to this email to answer them, or open the staff dashboard: https://${EMAIL_DOMAIN}/admin.html`,
+                    html: emailHtml(`New Contact Us message\n\nFrom: ${name} <${email}>\nSubject: ${subject}\n\n${message}\n\nReply to this email to answer them, or open the staff dashboard: https://${EMAIL_DOMAIN}/admin.html`),
+                }));
+            }
+            // 2) Automatic reply to the person (fixed wording — their message is not repeated back)
+            const firstName = name.split(/\s+/)[0].slice(0, 40);
+            const autoText = `Assalamu alaikum ${firstName},\n\nThank you for getting in touch with Qur'an Detectives. We've received your message and will get back to you as soon as we can, insha'Allah.\n\nWith salaams,\nThe Qur'an Detectives team`;
+            jobs.push(sendEmail(env, {
+                from, to: [email], subject: "We've received your message",
+                ...(cfg.notifyTo ? { reply_to: cfg.notifyTo } : {}),
+                text: autoText, html: emailHtml(autoText),
+            }));
+            context.waitUntil(Promise.allSettled(jobs).then(rs => rs.forEach(r => {
+                if (r.status === 'rejected') console.error('Contact email failed:', r.reason && r.reason.message);
+            })));
             return json({ ok: true });
         }
 
@@ -301,6 +695,7 @@ export async function onRequest(context) {
 
         // PUT /api/members — preserve passwords since client never holds them
         if (route === 'members' && method === 'PUT') {
+            if (!isAdmin(me)) return json({ error: 'Admin access required.' }, 403);
             const d = await readData();
             const byId = {};
             (d.members || []).forEach(m => { byId[m.id] = m; });
@@ -313,6 +708,7 @@ export async function onRequest(context) {
 
         // POST /api/reset
         if (route === 'reset' && method === 'POST') {
+            if (!isBuilder(me)) return json({ error: 'Full Access role required.' }, 403);
             await writeData(DEFAULT_DATA);
             return json({ ok: true });
         }

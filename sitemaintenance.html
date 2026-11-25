@@ -749,10 +749,11 @@ async function saveGoogleClientId() {
     if (!clientId.includes('.apps.googleusercontent.com')) { alert('Invalid format. Google Client IDs end with .apps.googleusercontent.com'); return; }
     try {
         var r = await fetch('/api/settings', {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ((maintUser && maintUser.token) || '') },
             body: JSON.stringify({ googleClientId: clientId }),
         });
         if (r.ok) { document.getElementById('google-form').style.display = 'none'; loadGoogleStatus(); alert('Google Sign-In updated successfully.'); }
+        else if (r.status === 401) { alert('Your sign-in has expired — please sign out and sign in again.'); }
         else { alert('Failed to save settings.'); }
     } catch { alert('Failed to save settings.'); }
 }
@@ -761,7 +762,7 @@ async function doDisconnectGoogle() {
     if (!confirm('Remove Google Sign-In? Staff and members will no longer be able to sign in with Google.')) return;
     try {
         var r = await fetch('/api/settings', {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ((maintUser && maintUser.token) || '') },
             body: JSON.stringify({ googleClientId: '' }),
         });
         if (r.ok) { loadGoogleStatus(); }

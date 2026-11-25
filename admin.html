@@ -625,6 +625,65 @@
         [data-theme="dark"] .modal { background: #241b14; }
         [data-theme="dark"] .modal h3 { color: #EFE0CE; }
         [data-theme="dark"] .section-header { border-bottom-color: #4a3020; }
+        /* EMAIL TAB */
+        .email-views { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .email-view-btn { font-family: 'Poppins', sans-serif; font-size: 0.86rem; font-weight: 600; padding: 9px 16px; border-radius: 10px; border: 2px solid #E8D5C4; background: white; color: #5C4033; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .email-view-btn.active { background: #7B3F5E; border-color: #7B3F5E; color: white; }
+        .email-pill { background: #7B3F5E; color: #fff; font-size: 0.7rem; padding: 1px 7px; border-radius: 20px; }
+        .email-view-btn.active .email-pill { background: #fff; color: #7B3F5E; }
+        .email-panel { display: none; } .email-panel.active { display: block; }
+        .inbox-item { display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; align-items: start; padding: 14px 20px; border-bottom: 1px solid #F5EDE5; cursor: pointer; }
+        .inbox-item:hover { background: #FAF6F1; }
+        .inbox-item:last-child { border-bottom: none; }
+        .inbox-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; background: transparent; }
+        .inbox-item.unread .inbox-dot { background: #7B3F5E; }
+        .inbox-item .i-from { font-size: 0.88rem; color: #5C4033; }
+        .inbox-item.unread .i-from, .inbox-item.unread .i-subj { font-weight: 800; color: #3B2417; }
+        .inbox-item .i-subj { font-size: 0.9rem; color: #3B2417; margin: 2px 0; }
+        .inbox-item .i-snip { font-size: 0.8rem; color: #9B7B6E; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .inbox-item .i-meta { font-size: 0.76rem; color: #9B7B6E; text-align: right; white-space: nowrap; }
+        .inbox-to-tag { display: inline-block; background: #F3E8F0; color: #7B3F5E; font-size: 0.68rem; padding: 1px 8px; border-radius: 20px; font-weight: 700; margin-top: 4px; }
+        .msg-view-head { padding: 20px 24px; border-bottom: 1px solid #F5EDE5; }
+        .msg-view-head h4 { font-family: 'Nunito', sans-serif; font-size: 1.15rem; color: #3B2417; margin-bottom: 8px; }
+        .msg-view-head .m-line { font-size: 0.82rem; color: #9B7B6E; margin-bottom: 2px; word-break: break-word; }
+        .msg-view-body { padding: 20px 24px; }
+        .msg-view-body pre { white-space: pre-wrap; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: #3B2417; line-height: 1.6; }
+        .msg-view-body iframe { width: 100%; min-height: 420px; border: 1px solid #F0E6DC; border-radius: 10px; background: #fff; }
+        [data-theme="dark"] .email-view-btn { background: #241b14; border-color: #4a3020; color: #EFE0CE; }
+        [data-theme="dark"] .email-view-btn.active { background: #7B3F5E; border-color: #7B3F5E; }
+        [data-theme="dark"] .inbox-item { border-bottom-color: #2a1f14; }
+        [data-theme="dark"] .inbox-item:hover { background: #2a1f14; }
+        [data-theme="dark"] .inbox-item .i-from, [data-theme="dark"] .inbox-item .i-subj, [data-theme="dark"] .inbox-item.unread .i-from, [data-theme="dark"] .inbox-item.unread .i-subj { color: #EFE0CE; }
+        [data-theme="dark"] .msg-view-head { border-bottom-color: #2a1f14; }
+        [data-theme="dark"] .msg-view-head h4, [data-theme="dark"] .msg-view-body pre { color: #EFE0CE; }
+        [data-theme="dark"] .inbox-to-tag { background: #2a1f14; color: #D4A574; }
+        .email-card { padding: 22px 24px; margin-bottom: 24px; overflow: visible; }
+        .email-card textarea { resize: vertical; min-height: 180px; line-height: 1.55; }
+        .email-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+        .email-status { font-size: 0.84rem; margin-right: auto; }
+        .email-status.ok { color: #1E8449; } .email-status.err { color: #C0392B; }
+        .email-reply-note { background: #F3E8F0; color: #7B3F5E; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; margin-bottom: 14px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+        .email-empty { text-align: center; padding: 34px 20px; color: #9B7B6E; font-size: 0.9rem; }
+        .sent-item { padding: 14px 20px; border-bottom: 1px solid #F5EDE5; cursor: pointer; }
+        .sent-item:last-child { border-bottom: none; }
+        .sent-item .s-top { display: flex; justify-content: space-between; gap: 12px; font-size: 0.8rem; color: #9B7B6E; flex-wrap: wrap; }
+        .sent-item .s-subj { font-weight: 700; color: #3B2417; font-size: 0.92rem; margin: 3px 0; }
+        .sent-item .s-body { display: none; white-space: pre-wrap; font-size: 0.86rem; color: #5C4033; margin-top: 8px; line-height: 1.55; }
+        .sent-item.open .s-body { display: block; }
+        .sender-row { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .sender-addr { display: flex; align-items: center; border: 2px solid #E8D5C4; border-radius: 10px; background: #FAF6F1; overflow: hidden; }
+        .sender-addr input { border: none !important; border-radius: 0 !important; min-width: 0; }
+        .sender-addr span { padding: 0 12px 0 2px; color: #9B7B6E; font-size: 0.84rem; white-space: nowrap; }
+        .perm-table td, .perm-table th { text-align: center; }
+        .perm-table td:first-child, .perm-table th:first-child { text-align: left; }
+        .perm-table input[type=checkbox] { width: 18px; height: 18px; accent-color: #7B3F5E; cursor: pointer; }
+        .email-help { font-size: 0.8rem; color: #9B7B6E; margin: -4px 0 14px; line-height: 1.5; }
+        @media (max-width: 700px) { .sender-row { grid-template-columns: 1fr; } }
+        [data-theme="dark"] .sent-item { border-bottom-color: #2a1f14; }
+        [data-theme="dark"] .sent-item .s-subj { color: #EFE0CE; }
+        [data-theme="dark"] .sent-item .s-body { color: #C8A882; }
+        [data-theme="dark"] .email-reply-note { background: #2a1f14; color: #D4A574; }
+        [data-theme="dark"] .sender-addr { background: #1a1310; border-color: #4a3020; }
     </style>
 </head>
 <body>
@@ -655,7 +714,7 @@
         </div>
         <div class="login-error" id="login-error">Incorrect username or password.</div>
         <div id="login-reset-hint" style="display:none;margin-top:14px;padding:12px;background:#FFF3CD;border-radius:8px;font-size:0.8rem;color:#856404">
-            Still stuck? <a href="#" onclick="resetAdminData();return false;" style="color:#7B3F5E;font-weight:700">Reset to factory defaults</a> — this clears all saved data.
+            Still stuck? Ask an admin to reset your password from the <strong>Team</strong> page.
         </div>
         <a href="index.html" style="display:block;margin-top:16px;color:#9B7B6E;font-size:0.84rem;text-decoration:none;" onmouseover="this.style.color='#7B3F5E'" onmouseout="this.style.color='#9B7B6E'">← Go back to home</a>
         <div style="margin-top:32px;padding-top:18px;border-top:1px solid #F0E6DC;text-align:center">
@@ -687,6 +746,9 @@
                 </div>
                 <div class="nav-item" onclick="showTab('members')" id="nav-members">
                     <span class="icon">🎫</span> Members
+                </div>
+                <div class="nav-item" onclick="showTab('email')" id="nav-email">
+                    <span class="icon">📧</span> Email <span id="inbox-badge" style="display:none;background:#7B3F5E;color:#fff;font-size:0.7rem;padding:1px 7px;border-radius:20px;margin-left:4px;font-weight:700"></span>
                 </div>
             </nav>
             <div class="sidebar-footer">
@@ -796,6 +858,118 @@
                         <div class="section-header" style="margin-top:4px"><h3>Resolved</h3></div>
                         <div id="resolved-messages-list"></div>
                     </div>
+                </div>
+
+                <!-- EMAIL -->
+                <div id="tab-email" class="tab-section">
+                    <div class="email-views">
+                        <button class="email-view-btn active" id="ev-inbox" onclick="showEmailView('inbox')">📥 Inbox <span class="email-pill" id="ev-inbox-count" style="display:none"></span></button>
+                        <button class="email-view-btn" id="ev-write" onclick="showEmailView('write')">✏️ Write</button>
+                        <button class="email-view-btn" id="ev-sent" onclick="showEmailView('sent')">📤 Sent</button>
+                        <button class="email-view-btn" id="ev-settings" onclick="showEmailView('settings')" style="display:none">⚙️ Addresses &amp; Permissions</button>
+                    </div>
+
+                    <!-- INBOX -->
+                    <div class="email-panel active" id="ep-inbox">
+                        <div id="inbox-list-wrap">
+                            <div class="section-header">
+                                <select id="inbox-filter" onchange="renderInboxList()" style="font-family:'Poppins',sans-serif;font-size:0.85rem;border:2px solid #E8D5C4;border-radius:10px;padding:8px 12px;background:#FAF6F1;color:#3B2417"></select>
+                                <button class="btn btn-outline btn-sm" onclick="loadInbox()">↻ Refresh</button>
+                            </div>
+                            <div class="table-card" id="inbox-list"></div>
+                        </div>
+                        <div id="inbox-view" style="display:none">
+                            <div class="section-header">
+                                <button class="btn btn-outline btn-sm" onclick="closeInboxMessage()">← Back to inbox</button>
+                                <div style="display:flex;gap:8px">
+                                    <button class="btn btn-purple btn-sm" id="btn-inbox-reply">Reply</button>
+                                    <button class="btn btn-sm btn-red" id="btn-inbox-delete">Delete</button>
+                                </div>
+                            </div>
+                            <div class="table-card" style="overflow:visible">
+                                <div class="msg-view-head" id="inbox-view-head"></div>
+                                <div class="msg-view-body" id="inbox-view-body"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WRITE -->
+                    <div class="email-panel" id="ep-write">
+                    <div class="table-card email-card">
+                        <div id="email-no-senders" class="email-empty" style="display:none">
+                            <div style="font-size:2rem;margin-bottom:8px">📭</div>
+                            You haven't been given an email address to send from yet.<br>Ask someone with Full Access to give you one.
+                        </div>
+                        <div id="email-compose">
+                            <div id="email-reply-note" class="email-reply-note" style="display:none">
+                                <span id="email-reply-text"></span>
+                                <button class="btn btn-outline btn-sm" onclick="clearEmailForm()">Cancel reply</button>
+                            </div>
+                            <input type="hidden" id="email-contact-id">
+                            <input type="hidden" id="email-in-reply-to">
+                            <div class="two-col">
+                                <div class="form-group">
+                                    <label>From</label>
+                                    <select id="email-from"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>To</label>
+                                    <input type="text" id="email-to" placeholder="name@example.com — separate several with commas">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <input type="text" id="email-subject" maxlength="200" placeholder="Subject">
+                            </div>
+                            <div class="form-group">
+                                <label>Message</label>
+                                <textarea id="email-body" placeholder="Write your message… Leave a blank line between paragraphs."></textarea>
+                            </div>
+                            <div class="email-actions">
+                                <span id="email-status" class="email-status"></span>
+                                <button class="btn btn-outline" onclick="clearEmailForm()">Clear</button>
+                                <button class="btn btn-purple" id="btn-send-email" onclick="sendEmailFromForm()">Send Email</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div><!-- /ep-write -->
+
+                    <!-- SENT -->
+                    <div class="email-panel" id="ep-sent">
+                    <div class="section-header">
+                        <h3 id="email-sent-title">Sent</h3>
+                        <button class="btn btn-outline btn-sm" onclick="loadSentEmails()">↻ Refresh</button>
+                    </div>
+                    <div class="table-card" style="margin-bottom:28px" id="email-sent-list"></div>
+                    </div><!-- /ep-sent -->
+
+                    <!-- SETTINGS (Full Access only): addresses + who can use them -->
+                    <div class="email-panel" id="ep-settings">
+                    <div id="email-admin" style="display:none">
+                        <div class="table-card email-card">
+                            <div class="form-group">
+                                <label>Contact Us alerts go to</label>
+                                <input type="email" id="email-notify" placeholder="qurandetectives@gmail.com">
+                            </div>
+                            <p class="email-help">When someone fills in the Contact Us form, an alert goes here and they get an automatic "we've received your message" reply. Leave blank to turn alerts off.</p>
+
+                            <label style="display:block;font-size:0.79rem;font-weight:600;color:#5C4033;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">Addresses you can send from</label>
+                            <p class="email-help">The first address is used for Contact Us emails. Emails sent to any of these addresses arrive in the Inbox.</p>
+                            <div id="email-sender-rows"></div>
+                            <button class="btn btn-outline btn-sm" onclick="addSenderRow()" style="margin-bottom:22px">+ Add address</button>
+
+                            <label style="display:block;font-size:0.79rem;font-weight:600;color:#5C4033;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">Who can use each address</label>
+                            <p class="email-help">A tick lets that person send from the address <strong>and</strong> read its inbox. Full Access accounts can always use every address and see every email.</p>
+                            <div style="overflow-x:auto;margin-bottom:18px"><table class="perm-table" id="email-perm-table"></table></div>
+
+                            <div class="email-actions">
+                                <span id="email-admin-status" class="email-status"></span>
+                                <button class="btn btn-purple" onclick="saveEmailConfig()">Save Email Settings</button>
+                            </div>
+                        </div>
+                    </div>
+                    </div><!-- /ep-settings -->
                 </div>
 
             </div><!-- /page-content -->
@@ -988,8 +1162,30 @@ const DEFAULT_USERS = [
 // ─────────────────────────────────────────────
 // STORAGE HELPERS (server-side API)
 // ─────────────────────────────────────────────
-async function getUsers()     { try { const r = await fetch('/api/users');     return r.ok ? r.json() : DEFAULT_USERS;     } catch { return DEFAULT_USERS;     } }
-async function saveUsers(v)     { try { await fetch('/api/users',     { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(v) }); } catch {} }
+// Every staff request carries the sign-in token so the server knows who is asking
+async function api(url, opts) {
+    opts = opts || {};
+    const headers = Object.assign({}, opts.headers || {});
+    if (currentUser && currentUser.token) headers['Authorization'] = 'Bearer ' + currentUser.token;
+    if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    const r = await fetch(url, Object.assign({}, opts, { headers: headers }));
+    if (r.status === 401 && currentUser) sessionExpired();
+    return r;
+}
+function sessionExpired() {
+    doLogout();
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = 'Your sign-in has expired — please sign in again.';
+    errEl.style.display = 'block';
+}
+
+async function getUsers()     { try { const r = await api('/api/users');     return r.ok ? r.json() : DEFAULT_USERS;     } catch { return DEFAULT_USERS;     } }
+async function saveUsers(v)     {
+    try {
+        const r = await api('/api/users', { method:'PUT', body: JSON.stringify(v) });
+        if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'Could not save changes.'); }
+    } catch { alert('Could not save changes.'); }
+}
 
 // ─────────────────────────────────────────────
 // AUTH
@@ -1031,12 +1227,16 @@ async function doLogin() {
 
 async function resetAdminData() {
     if (!confirm('This will reset all data to factory defaults. Continue?')) return;
-    await fetch('/api/reset', { method: 'POST' });
+    const r = await api('/api/reset', { method: 'POST' });
+    if (!r.ok) { alert('Only Full Access accounts can reset data.'); return; }
     sessionStorage.clear();
     location.reload();
 }
 
 function doLogout() {
+    if (currentUser && currentUser.token) {
+        fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + currentUser.token } }).catch(() => {});
+    }
     currentUser = null;
     sessionStorage.removeItem('qd_sess');
     document.getElementById('admin-panel').style.display = 'none';
@@ -1060,6 +1260,9 @@ function showPanel() {
     document.getElementById('nav-members').style.display      = isAdmin   ? 'flex'  : 'none';
     document.getElementById('btn-add-member').style.display   = isAdmin   ? ''      : 'none';
     document.getElementById('btn-add-reg-member').style.display = isAdmin ? ''      : 'none';
+    const canEmail = isBuilder || (currentUser.emailSenders || []).length > 0;
+    document.getElementById('nav-email').style.display        = canEmail  ? 'flex'  : 'none';
+    if (canEmail) api('/api/email/inbox').then(r => r.ok ? r.json() : []).then(l => { _inbox = l; updateInboxBadge(); }).catch(() => {});
 
     showTab('dashboard');
 }
@@ -1070,11 +1273,14 @@ function showPanel() {
         const s = sessionStorage.getItem('qd_sess');
         if (s) {
             const stored = JSON.parse(s);
-            const r = await fetch('/api/users');
-            if (r.ok) {
-                const users = await r.json();
-                const valid = users.find(x => x.id === stored.id && x.username === stored.username);
-                if (valid) { currentUser = { ...stored, ...valid }; showPanel(); return; }
+            if (stored.token) {
+                const r = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + stored.token } });
+                if (r.ok) {
+                    const me = await r.json();
+                    currentUser = { ...me, token: stored.token };
+                    sessionStorage.setItem('qd_sess', JSON.stringify(currentUser));
+                    showPanel(); return;
+                }
             }
             sessionStorage.removeItem('qd_sess');
         }
@@ -1084,7 +1290,7 @@ function showPanel() {
 // ─────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────
-const TAB_TITLES = { dashboard: 'Dashboard', team: 'Team', messages: 'Messages', members: 'Members' };
+const TAB_TITLES = { dashboard: 'Dashboard', team: 'Team', messages: 'Messages', members: 'Members', email: 'Email' };
 
 function showTab(tab) {
     document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
@@ -1097,6 +1303,7 @@ function showTab(tab) {
     if (tab === 'team')      renderTeam();
     if (tab === 'messages')  loadAllMessages();
     if (tab === 'members')   renderMembers();
+    if (tab === 'email')     renderEmailTab();
 }
 
 function toggleSidebar() {
@@ -1367,7 +1574,7 @@ async function loadAllMessages() {
     const wrap = document.getElementById('messages-list');
     wrap.innerHTML = '<p style="color:#9B7B6E;padding:20px 0">Loading…</p>';
     try {
-        const contactsRes = await fetch('/api/contacts');
+        const contactsRes = await api('/api/contacts');
         if (!contactsRes.ok) throw new Error('Contacts API returned ' + contactsRes.status);
         const contacts  = await contactsRes.json();
         if (!Array.isArray(contacts)) throw new Error('Contacts response is not an array');
@@ -1379,6 +1586,8 @@ async function loadAllMessages() {
         });
 
         // Sort newest first
+        _contactsById = {};
+        contacts.forEach(function(m) { _contactsById[m.id] = m; });
         const all = contacts.slice().sort(function(a, b) {
             return new Date(b.date) - new Date(a.date);
         });
@@ -1442,6 +1651,7 @@ function renderMessageCard(m) {
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
                 <select onchange="updateMessageStatus('${m.id}', this.value)" style="font-family:'Poppins',sans-serif;font-size:0.8rem;border:1.5px solid #E8D5C4;border-radius:8px;padding:5px 8px;background:#FAF6F1;color:#3B2417;cursor:pointer">${opts}</select>
+                ${(currentUser && (currentUser.role === 'builder' || (currentUser.emailSenders || []).length)) ? `<button class="btn btn-purple btn-sm" onclick="replyToMessage('${m.id}')">Reply</button>` : ''}
                 <button class="btn btn-outline btn-sm" style="color:#C0392B;border-color:#C0392B" onclick="deleteMessage('${m.id}')">Delete</button>
             </div>
         </div>
@@ -1462,9 +1672,8 @@ function toggleResolvedMessages() {
 }
 
 async function updateMessageStatus(id, status) {
-    await fetch('/api/contacts/' + id, {
+    await api('/api/contacts/' + id, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: status }),
     });
     loadAllMessages();
@@ -1472,15 +1681,369 @@ async function updateMessageStatus(id, status) {
 
 async function deleteMessage(id) {
     if (!confirm('Delete this message?')) return;
-    await fetch('/api/contacts/' + id, { method: 'DELETE' });
+    await api('/api/contacts/' + id, { method: 'DELETE' });
     loadAllMessages();
+}
+
+// ─────────────────────────────────────────────
+// EMAIL
+// ─────────────────────────────────────────────
+let _contactsById = {};
+let _emailCfg = null;
+let _teamForEmail = [];
+
+async function renderEmailTab() {
+    // Refresh which addresses this person can use (a builder may have just changed them)
+    try {
+        const r = await api('/api/email/senders');
+        if (r.ok) {
+            currentUser.emailSenders = await r.json();
+            sessionStorage.setItem('qd_sess', JSON.stringify(currentUser));
+        }
+    } catch {}
+    const senders = currentUser.emailSenders || [];
+    const sel = document.getElementById('email-from');
+    const prev = sel.value;
+    sel.innerHTML = senders.map(s =>
+        `<option value="${escHtml(s.address)}">${escHtml(s.name ? s.name + ' — ' : '')}${escHtml(s.address)}</option>`).join('');
+    if (prev && senders.some(s => s.address === prev)) sel.value = prev;
+    document.getElementById('email-no-senders').style.display = senders.length ? 'none' : 'block';
+    document.getElementById('email-compose').style.display    = senders.length ? 'block' : 'none';
+
+    const builder = currentUser.role === 'builder';
+    document.getElementById('email-sent-title').textContent = builder ? 'Sent (everyone)' : 'Sent by you';
+    document.getElementById('email-admin').style.display = builder ? 'block' : 'none';
+    document.getElementById('ev-settings').style.display = builder ? '' : 'none';
+
+    // Inbox address filter
+    const filter = document.getElementById('inbox-filter');
+    const prevF = filter.value;
+    filter.innerHTML = '<option value="">All my inboxes</option>' + senders.map(s =>
+        `<option value="${escHtml(s.address)}">${escHtml(s.address)}</option>`).join('');
+    if (prevF && senders.some(s => s.address === prevF)) filter.value = prevF;
+
+    loadInbox();
+    loadSentEmails();
+    if (builder) loadEmailConfig();
+}
+
+function showEmailView(v) {
+    ['inbox', 'write', 'sent', 'settings'].forEach(k => {
+        document.getElementById('ep-' + k).classList.toggle('active', k === v);
+        document.getElementById('ev-' + k).classList.toggle('active', k === v);
+    });
+    if (v === 'inbox') closeInboxMessage();
+}
+
+// ── INBOX ──
+let _inbox = [];
+let _openMsg = null;
+
+async function loadInbox() {
+    const wrap = document.getElementById('inbox-list');
+    if (!_inbox.length) wrap.innerHTML = '<div class="email-empty">Loading…</div>';
+    try {
+        const r = await api('/api/email/inbox');
+        _inbox = r.ok ? await r.json() : [];
+        updateInboxBadge();
+        renderInboxList();
+    } catch {
+        wrap.innerHTML = '<div class="email-empty">Could not load the inbox.</div>';
+    }
+}
+
+function updateInboxBadge() {
+    const unread = _inbox.filter(m => !m.read).length;
+    ['inbox-badge', 'ev-inbox-count'].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = unread;
+        el.style.display = unread ? 'inline' : 'none';
+    });
+}
+
+function renderInboxList() {
+    const f = document.getElementById('inbox-filter').value;
+    const list = f ? _inbox.filter(m => (m.to || []).concat(m.cc || []).includes(f)) : _inbox;
+    const wrap = document.getElementById('inbox-list');
+    if (!list.length) {
+        wrap.innerHTML = '<div class="email-empty"><div style="font-size:2rem;margin-bottom:8px">📭</div>No emails yet.</div>';
+        return;
+    }
+    const today = new Date().toDateString();
+    wrap.innerHTML = list.map(m => {
+        const d = new Date(m.date);
+        const when = d.toDateString() === today
+            ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+            : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        const toTag = (m.to || [])[0] || '';
+        return `<div class="inbox-item ${m.read ? '' : 'unread'}" onclick="openInboxMessage('${escHtml(m.id)}')">
+            <div class="inbox-dot"></div>
+            <div style="min-width:0">
+                <div class="i-from">${escHtml(m.from)}</div>
+                <div class="i-subj">${escHtml(m.subject)}${(m.attachments || []).length ? ' 📎' : ''}</div>
+                <div class="i-snip">${escHtml(m.snippet)}</div>
+            </div>
+            <div class="i-meta">${when}<br><span class="inbox-to-tag">${escHtml(toTag.split('@')[0])}@</span></div>
+        </div>`;
+    }).join('');
+}
+
+async function openInboxMessage(id) {
+    document.getElementById('inbox-list-wrap').style.display = 'none';
+    document.getElementById('inbox-view').style.display = 'block';
+    document.getElementById('inbox-view-head').innerHTML = '';
+    document.getElementById('inbox-view-body').innerHTML = '<p style="color:#9B7B6E">Loading…</p>';
+    try {
+        const r = await api('/api/email/inbox/' + encodeURIComponent(id));
+        if (!r.ok) throw new Error('status ' + r.status);
+        const m = await r.json();
+        _openMsg = m;
+        const listItem = _inbox.find(x => x.id === id);
+        if (listItem) { listItem.read = true; updateInboxBadge(); }
+        const date = new Date(m.date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        document.getElementById('inbox-view-head').innerHTML = `
+            <h4>${escHtml(m.subject)}</h4>
+            <div class="m-line"><strong>From:</strong> ${escHtml(m.from)}</div>
+            <div class="m-line"><strong>To:</strong> ${escHtml((m.to || []).join(', '))}${(m.cc || []).length ? ' · <strong>Cc:</strong> ' + escHtml(m.cc.join(', ')) : ''}</div>
+            <div class="m-line">${date}</div>
+            ${(m.attachments || []).length ? `<div class="m-line">📎 ${escHtml(m.attachments.join(', '))} — open in the Resend dashboard to download</div>` : ''}`;
+        const body = document.getElementById('inbox-view-body');
+        if (m.html) {
+            // Shown in a locked-down frame: no scripts can run, links open in a new tab
+            const frame = document.createElement('iframe');
+            frame.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox');
+            frame.setAttribute('referrerpolicy', 'no-referrer');
+            frame.srcdoc = '<base target="_blank"><meta http-equiv="Content-Security-Policy" content="script-src \'none\'">' + m.html;
+            body.innerHTML = '';
+            body.appendChild(frame);
+            frame.onload = function () {
+                try { frame.style.height = Math.max(420, frame.contentDocument.body.scrollHeight + 40) + 'px'; } catch (e) {}
+            };
+        } else {
+            body.innerHTML = '<pre></pre>';
+            body.querySelector('pre').textContent = m.text || '(This email has no text.)';
+        }
+        document.getElementById('btn-inbox-reply').onclick = function () { replyToInboxMessage(m); };
+        document.getElementById('btn-inbox-delete').onclick = function () { deleteInboxMessage(m.id); };
+    } catch (e) {
+        document.getElementById('inbox-view-body').innerHTML = '<p style="color:#C0392B">Could not open this email.</p>';
+    }
+}
+
+function closeInboxMessage() {
+    _openMsg = null;
+    document.getElementById('inbox-view').style.display = 'none';
+    document.getElementById('inbox-list-wrap').style.display = 'block';
+    renderInboxList();
+}
+
+async function deleteInboxMessage(id) {
+    if (!confirm('Delete this email? This cannot be undone.')) return;
+    const r = await api('/api/email/inbox/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!r.ok) { alert('Could not delete the email.'); return; }
+    _inbox = _inbox.filter(m => m.id !== id);
+    updateInboxBadge();
+    closeInboxMessage();
+}
+
+function replyToInboxMessage(m) {
+    clearEmailForm();
+    showEmailView('write');
+    // Reply from the address it was sent to, if this person can use it
+    const mine = (currentUser.emailSenders || []).map(s => s.address);
+    const via = (m.to || []).concat(m.cc || []).find(a => mine.includes(a));
+    if (via) document.getElementById('email-from').value = via;
+    const replyAddr = m.replyTo || (m.from.match(/<([^>]+)>/) || [null, m.from])[1].trim();
+    document.getElementById('email-to').value = replyAddr;
+    document.getElementById('email-subject').value = /^re:/i.test(m.subject) ? m.subject : 'Re: ' + m.subject;
+    document.getElementById('email-in-reply-to').value = m.messageId || '';
+    const when = new Date(m.date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const original = m.text || (m.html ? new DOMParser().parseFromString(m.html, 'text/html').body.textContent : '');
+    const quoted = original.trim().split('\n').slice(0, 60).map(l => '> ' + l).join('\n');
+    const fromName = m.from.includes('<') ? m.from.split('<')[0].replace(/"/g, '').trim() : '';
+    const greet = 'Assalamu alaikum' + (fromName ? ' ' + fromName.split(/\s+/)[0] : '') + ',\n\n';
+    document.getElementById('email-body').value = `${greet}\n\nWith salaams,\n${currentUser.name}\nQur'an Detectives\n\n— On ${when}, ${m.from} wrote:\n${quoted}`;
+    document.getElementById('email-reply-text').textContent = 'Replying to ' + m.from;
+    document.getElementById('email-reply-note').style.display = 'flex';
+    const body = document.getElementById('email-body');
+    body.focus(); body.setSelectionRange(greet.length, greet.length); body.scrollTop = 0;
+}
+
+function setEmailStatus(id, text, ok) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'email-status ' + (ok ? 'ok' : 'err');
+}
+
+function clearEmailForm() {
+    ['email-to', 'email-subject', 'email-body', 'email-contact-id', 'email-in-reply-to'].forEach(f => document.getElementById(f).value = '');
+    document.getElementById('email-reply-note').style.display = 'none';
+    document.getElementById('email-status').textContent = '';
+}
+
+function replyToMessage(id) {
+    const m = _contactsById[id];
+    if (!m) return;
+    showTab('email');
+    clearEmailForm();
+    showEmailView('write');
+    document.getElementById('email-contact-id').value = m.id;
+    document.getElementById('email-to').value = m.email;
+    document.getElementById('email-subject').value = /^re:/i.test(m.subject) ? m.subject : 'Re: ' + m.subject;
+    const when = new Date(m.date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const quoted = m.message.split('\n').map(l => '> ' + l).join('\n');
+    const first = (m.name || '').split(/\s+/)[0];
+    document.getElementById('email-body').value = `Assalamu alaikum ${first},\n\n\n\nWith salaams,\n${currentUser.name}\nQur'an Detectives\n\n— On ${when}, ${m.name} wrote:\n${quoted}`;
+    document.getElementById('email-reply-text').textContent = 'Replying to ' + m.name + ' — the message will be marked as Replied.';
+    document.getElementById('email-reply-note').style.display = 'flex';
+    const body = document.getElementById('email-body');
+    body.focus();
+    const pos = ('Assalamu alaikum ' + first + ',\n\n').length;
+    body.setSelectionRange(pos, pos); body.scrollTop = 0;
+}
+
+async function sendEmailFromForm() {
+    const payload = {
+        from:      document.getElementById('email-from').value,
+        to:        document.getElementById('email-to').value.trim(),
+        subject:   document.getElementById('email-subject').value.trim(),
+        body:      document.getElementById('email-body').value.trim(),
+        contactId: document.getElementById('email-contact-id').value || undefined,
+        inReplyTo: document.getElementById('email-in-reply-to').value || undefined,
+    };
+    if (!payload.to || !payload.subject || !payload.body) {
+        setEmailStatus('email-status', 'Please fill in To, Subject and Message.', false); return;
+    }
+    if (!confirm('Send this email to ' + payload.to + '?')) return;
+    const btn = document.getElementById('btn-send-email');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+        const r = await api('/api/email/send', { method: 'POST', body: JSON.stringify(payload) });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { setEmailStatus('email-status', data.error || 'Could not send the email.', false); return; }
+        clearEmailForm();
+        setEmailStatus('email-status', '✓ Email sent to ' + payload.to, true);
+        if (payload.inReplyTo) setTimeout(() => showEmailView('inbox'), 1200);
+        loadSentEmails();
+    } catch {
+        setEmailStatus('email-status', 'Could not send — check your connection and try again.', false);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Send Email';
+    }
+}
+
+async function loadSentEmails() {
+    const wrap = document.getElementById('email-sent-list');
+    try {
+        const r = await api('/api/email/sent');
+        const list = r.ok ? await r.json() : [];
+        if (!list.length) { wrap.innerHTML = '<div class="email-empty">No emails sent yet.</div>'; return; }
+        const builder = currentUser.role === 'builder';
+        wrap.innerHTML = list.slice(0, 50).map(e => {
+            const date = new Date(e.date).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+            return `<div class="sent-item" onclick="this.classList.toggle('open')">
+                <div class="s-top"><span>To: ${escHtml((e.to || []).join(', '))}</span><span>${date}</span></div>
+                <div class="s-subj">${escHtml(e.subject)}</div>
+                <div class="s-top"><span>From ${escHtml(e.from)}${builder ? ' · sent by ' + escHtml(e.byName) : ''}</span></div>
+                <div class="s-body">${escHtml(e.body)}</div>
+            </div>`;
+        }).join('');
+    } catch {
+        wrap.innerHTML = '<div class="email-empty">Could not load sent emails.</div>';
+    }
+}
+
+// ── Full Access: addresses + permissions ──
+const EMAIL_DOMAIN = 'qurandetectives.co.uk';
+
+async function loadEmailConfig() {
+    try {
+        const [cfgRes, users] = await Promise.all([api('/api/email/config'), getUsers()]);
+        if (!cfgRes.ok) return;
+        _emailCfg = await cfgRes.json();
+        _teamForEmail = users;
+        document.getElementById('email-notify').value = _emailCfg.notifyTo || '';
+        document.getElementById('email-sender-rows').innerHTML = '';
+        (_emailCfg.senders || []).forEach(s => addSenderRow(s));
+        if (!_emailCfg.senders.length) addSenderRow();
+        renderPermTable();
+    } catch (e) { logSiteError('Email settings', e.message); }
+}
+
+function addSenderRow(s) {
+    s = s || { address: '', name: '' };
+    const local = (s.address || '').split('@')[0];
+    const row = document.createElement('div');
+    row.className = 'sender-row form-group';
+    row.style.marginBottom = '10px';
+    row.innerHTML = `
+        <div class="sender-addr"><input type="text" class="sr-local" placeholder="e.g. orders" value="${escHtml(local)}"><span>@${EMAIL_DOMAIN}</span></div>
+        <input type="text" class="sr-name" placeholder="Name shown (e.g. Qur'an Detectives)" value="${escHtml(s.name || '')}">
+        <button class="btn btn-sm btn-red" title="Remove">✕</button>`;
+    row.querySelector('button').onclick = function () { row.remove(); renderPermTable(); };
+    row.querySelector('.sr-local').addEventListener('change', renderPermTable);
+    document.getElementById('email-sender-rows').appendChild(row);
+}
+
+function readSenderRows() {
+    return Array.from(document.querySelectorAll('#email-sender-rows .sender-row')).map(row => ({
+        address: row.querySelector('.sr-local').value.trim().toLowerCase().replace(/@.*$/, '').replace(/\s/g, '') ,
+        name: row.querySelector('.sr-name').value.trim(),
+    })).filter(s => s.address).map(s => ({ address: s.address + '@' + EMAIL_DOMAIN, name: s.name }));
+}
+
+function readPermTable() {
+    const perms = {};
+    document.querySelectorAll('#email-perm-table input[type=checkbox]').forEach(cb => {
+        if (!perms[cb.dataset.user]) perms[cb.dataset.user] = [];
+        if (cb.checked) perms[cb.dataset.user].push(cb.dataset.addr);
+    });
+    return perms;
+}
+
+function renderPermTable() {
+    // keep any ticks made before re-drawing
+    const current = document.querySelector('#email-perm-table input') ? readPermTable() : (_emailCfg ? _emailCfg.permissions : {});
+    const senders = readSenderRows();
+    const team = _teamForEmail.filter(u => u.role !== 'builder');
+    const table = document.getElementById('email-perm-table');
+    if (!senders.length || !team.length) {
+        table.innerHTML = `<tr><td style="color:#9B7B6E">${!senders.length ? 'Add an address above first.' : 'No other team members yet.'}</td></tr>`;
+        return;
+    }
+    table.innerHTML = `<thead><tr><th>Team member</th>${senders.map(s => `<th>${escHtml(s.address.split('@')[0])}@</th>`).join('')}</tr></thead>
+        <tbody>${team.map(u => `<tr><td><strong>${escHtml(u.name)}</strong> <span class="role-tag ${escHtml(u.role)}">${escHtml(u.role)}</span></td>
+            ${senders.map(s => `<td><input type="checkbox" data-user="${escHtml(u.id)}" data-addr="${escHtml(s.address)}" ${(current[u.id] || []).includes(s.address) ? 'checked' : ''}></td>`).join('')}
+        </tr>`).join('')}</tbody>`;
+}
+
+async function saveEmailConfig() {
+    const payload = {
+        senders: readSenderRows(),
+        permissions: readPermTable(),
+        notifyTo: document.getElementById('email-notify').value.trim(),
+    };
+    try {
+        const r = await api('/api/email/config', { method: 'PUT', body: JSON.stringify(payload) });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { setEmailStatus('email-admin-status', data.error || 'Could not save.', false); return; }
+        setEmailStatus('email-admin-status', '✓ Saved', true);
+        renderEmailTab();
+    } catch {
+        setEmailStatus('email-admin-status', 'Could not save — try again.', false);
+    }
 }
 
 // ─────────────────────────────────────────────
 // MEMBERS
 // ─────────────────────────────────────────────
-async function getMembers()     { try { const r = await fetch('/api/members'); return r.ok ? r.json() : []; } catch { return []; } }
-async function saveMembers(v)   { try { await fetch('/api/members', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(v) }); } catch {} }
+async function getMembers()     { try { const r = await api('/api/members'); return r.ok ? r.json() : []; } catch { return []; } }
+async function saveMembers(v)   {
+    try {
+        const r = await api('/api/members', { method: 'PUT', body: JSON.stringify(v) });
+        if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'Could not save changes.'); }
+    } catch { alert('Could not save changes.'); }
+}
 
 async function renderMembers() {
     const q   = (document.getElementById('mem-search')?.value || '').toLowerCase();
